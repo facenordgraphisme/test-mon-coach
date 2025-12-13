@@ -27,7 +27,7 @@ export async function Hero() {
     const subtitle = content?.heroSubtitle || "Escalade, Canyon, VTT en Hautes-Alpes. Vivez le luxe des sensations pures, sans la foule.";
     const imageUrl = content?.heroImageUrl;
     const ctaText = content?.ctaText || "Réserver une aventure";
-    const ctaLink = content?.ctaLink || "/calendar";
+    const ctaLink = content?.ctaLink || "/calendrier";
 
     return (
         <section className="relative h-[90vh] w-full overflow-hidden flex items-center justify-center">

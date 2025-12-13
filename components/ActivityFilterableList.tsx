@@ -48,8 +48,8 @@ export function ActivityFilterableList({ initialActivities }: ActivityFilterable
                         key={f.value}
                         onClick={() => setFilter(f.value === 'Tous' ? 'Tous' : f.value)}
                         className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors whitespace-nowrap ${(filter.toLowerCase() === f.value.toLowerCase() || (filter === 'Tous' && f.value === 'Tous'))
-                                ? 'bg-[var(--brand-rock)] text-white border-[var(--brand-rock)]'
-                                : 'border-stone-200 text-stone-600 hover:bg-stone-100'
+                            ? 'bg-[var(--brand-rock)] text-white border-[var(--brand-rock)]'
+                            : 'border-stone-200 text-stone-600 hover:bg-stone-100'
                             }`}
                     >
                         {f.label}
@@ -61,7 +61,7 @@ export function ActivityFilterableList({ initialActivities }: ActivityFilterable
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredActivities.length > 0 ? (
                     filteredActivities.map((activity) => (
-                        <Link key={activity.slug} href={`/activities/${activity.slug}`} className="group block bg-white rounded-2xl overflow-hidden border border-stone-100 shadow-sm hover:shadow-lg transition-all duration-300">
+                        <Link key={activity.slug} href={`/aventures/${activity.slug}`} className="group block bg-white rounded-2xl overflow-hidden border border-stone-100 shadow-sm hover:shadow-lg transition-all duration-300">
                             <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
                                 {activity.imageUrl ? (
                                     <img

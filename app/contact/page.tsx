@@ -73,7 +73,7 @@ export default function ContactPage() {
                                 Vérifiez d'abord si une sortie est déjà programmée dans le calendrier.
                             </p>
                             <Button asChild variant="outline" className="w-full bg-white">
-                                <Link href="/calendar">Voir le calendrier</Link>
+                                <Link href="/calendrier">Voir le calendrier</Link>
                             </Button>
                         </div>
                     </div>

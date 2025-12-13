@@ -45,7 +45,7 @@ export const homepage = defineType({
             name: 'ctaLink',
             title: 'Lien du Bouton',
             type: 'string',
-            initialValue: '/calendar'
+            initialValue: '/calendrier'
         }),
         defineField({
             name: 'features',
@@ -127,7 +127,7 @@ export const homepage = defineType({
                         name: 'buttonLink',
                         title: 'Lien du bouton',
                         type: 'string',
-                        initialValue: '/activities'
+                        initialValue: '/aventures'
                     }
                 ]
             }]

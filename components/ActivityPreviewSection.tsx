@@ -49,7 +49,7 @@ export async function ActivityPreviewSection() {
                         </p>
                     </div>
                     <Button asChild variant="ghost" className="group">
-                        <Link href="/activities" className="flex items-center gap-2">
+                        <Link href="/aventures" className="flex items-center gap-2">
                             Tout voir
                             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                         </Link>
@@ -58,7 +58,7 @@ export async function ActivityPreviewSection() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {activities.map((activity: any) => (
-                        <Link key={activity.slug} href={`/activities/${activity.slug}`} className="group relative block overflow-hidden rounded-2xl bg-gray-100 aspect-[4/5]">
+                        <Link key={activity.slug} href={`/aventures/${activity.slug}`} className="group relative block overflow-hidden rounded-2xl bg-gray-100 aspect-[4/5]">
                             {activity.imageUrl ? (
                                 <img
                                     src={activity.imageUrl}

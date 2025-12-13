@@ -55,7 +55,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                 {/* Back Link */}
                 <div className="mb-8">
                     <Button asChild variant="ghost" className="pl-0 hover:bg-transparent hover:text-[var(--brand-water)]">
-                        <Link href="/calendar">← Retour au calendrier</Link>
+                        <Link href="/calendrier">← Retour au calendrier</Link>
                     </Button>
                 </div>
 

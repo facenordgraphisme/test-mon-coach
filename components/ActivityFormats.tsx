@@ -31,7 +31,7 @@ export async function ActivityFormats() {
             imageUrl: "/assets/IMG_1814.JPG",
             benefits: ["Technique approfondie", "Progression rapide", "Focus total"],
             buttonText: "Découvrir",
-            buttonLink: "/activities"
+            buttonLink: "/aventures"
         },
         {
             title: "Duo & Multi",
@@ -39,7 +39,7 @@ export async function ActivityFormats() {
             imageUrl: "/assets/IMG_9739.png",
             benefits: ["Variété des paysages", "Journée complète", "Ludique et sportif"],
             buttonText: "Les combos",
-            buttonLink: "/activities"
+            buttonLink: "/aventures"
         },
         {
             title: "Sur Mesure",
@@ -97,7 +97,7 @@ export async function ActivityFormats() {
                                 </ul>
 
                                 <Button asChild className="w-full bg-[var(--brand-rock)] hover:bg-stone-800 text-white rounded-full h-12">
-                                    <Link href={format.buttonLink || '/activities'}>
+                                    <Link href={format.buttonLink || '/aventures'}>
                                         {format.buttonText || 'En savoir plus'}
                                     </Link>
                                 </Button>

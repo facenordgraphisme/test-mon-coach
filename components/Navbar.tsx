@@ -26,13 +26,13 @@ export function Navbar() {
 
     const navLinks = [
         { href: "/", label: "Accueil" },
-        { href: "/activities", label: "Aventures" },
-        { href: "/calendar", label: "Calendrier" },
+        { href: "/aventures", label: "Aventures" },
+        { href: "/calendrier", label: "Calendrier" },
         { href: "/guide", label: "Le Guide" },
         { href: "/contact", label: "Contact" },
     ]
 
-    const isHeroPage = pathname === "/" || pathname === "/activities" || pathname === "/guide" || pathname.startsWith("/activities/")
+    const isHeroPage = pathname === "/" || pathname === "/aventures" || pathname === "/guide" || pathname.startsWith("/aventures/")
     const showScrolledState = isScrolled || !isHeroPage
 
     return (
@@ -75,7 +75,7 @@ export function Navbar() {
                         </Link>
                     ))}
                     <Button asChild size="sm" className={cn("rounded-full px-6", showScrolledState ? "bg-stone-900 text-white" : "bg-white text-stone-900 hover:bg-gray-100")}>
-                        <Link href="/calendar">Réserver</Link>
+                        <Link href="/calendrier">Réserver</Link>
                     </Button>
                 </nav>
 

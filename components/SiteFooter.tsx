@@ -15,8 +15,8 @@ export function SiteFooter() {
                     <h4 className="text-white font-medium">Navigation</h4>
                     <ul className="space-y-2 text-sm">
                         <li><Link href="/" className="hover:text-white">Accueil</Link></li>
-                        <li><Link href="/activities" className="hover:text-white">Nos Aventures</Link></li>
-                        <li><Link href="/calendar" className="hover:text-white">Calendrier</Link></li>
+                        <li><Link href="/aventures" className="hover:text-white">Nos Aventures</Link></li>
+                        <li><Link href="/calendrier" className="hover:text-white">Calendrier</Link></li>
                         <li><Link href="/guide" className="hover:text-white">Le Guide</Link></li>
                     </ul>
                 </div>

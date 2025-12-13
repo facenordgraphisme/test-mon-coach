@@ -27,7 +27,11 @@ export async function Hero() {
     const subtitle = content?.heroSubtitle || "Escalade, Canyon, VTT en Hautes-Alpes. Vivez le luxe des sensations pures, sans la foule.";
     const imageUrl = content?.heroImageUrl;
     const ctaText = content?.ctaText || "Réserver une aventure";
-    const ctaLink = content?.ctaLink || "/calendrier";
+    let ctaLink = content?.ctaLink || "/calendrier";
+
+    // Quick fix: Rewrite old paths if Sanity data is not updated
+    if (ctaLink === "/calendar") ctaLink = "/calendrier";
+    if (ctaLink === "/activities") ctaLink = "/aventures";
 
     return (
         <section className="relative h-[90vh] w-full overflow-hidden flex items-center justify-center">
@@ -72,7 +76,7 @@ export async function Hero() {
                         </Link>
                     </Button>
                     <Button asChild variant="outline" size="lg" className="bg-transparent border-white text-white hover:bg-white/10 rounded-full px-8 text-lg backdrop-blur-sm">
-                        <Link href="/activities">
+                        <Link href="/aventures">
                             Découvrir les formules
                         </Link>
                     </Button>

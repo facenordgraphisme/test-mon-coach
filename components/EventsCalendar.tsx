@@ -157,7 +157,7 @@ export function EventsCalendar({ events }: { events: Event[] }) {
                                                     activityTitle={event.activity.title}
                                                     price={event.activity.price}
                                                     date={event.date}
-                                                    className="bg-[var(--brand-water)] hover:bg-[var(--brand-dark)] text-white"
+                                                    className="bg-[var(--brand-water)] hover:brightness-90 text-white"
                                                 >
                                                     Réserver <ArrowRight className="ml-2 w-4 h-4" />
                                                 </BookingButton>

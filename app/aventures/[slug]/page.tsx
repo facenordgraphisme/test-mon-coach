@@ -208,7 +208,7 @@ export default async function SingleActivityPage({ params }: { params: { slug: s
 
                                 <div className="pt-2 border-t border-stone-100">
                                     <Button className="w-full" variant="outline" asChild>
-                                        <Link href="/calendar">Voir tout le calendrier</Link>
+                                        <Link href="/calendrier">Voir tout le calendrier</Link>
                                     </Button>
                                 </div>
                                 <Button className="w-full bg-[var(--brand-water)] hover:brightness-90 text-white transition-all" asChild>

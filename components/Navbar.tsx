@@ -26,7 +26,15 @@ export function Navbar() {
 
     const navLinks = [
         { href: "/", label: "Accueil" },
-        { href: "/aventures", label: "Aventures" },
+        {
+            href: "/aventures",
+            label: "Aventures",
+            children: [
+                { href: "/aventures/mono-activite", label: "Mono-activité" },
+                { href: "/aventures/duo-activites", label: "Duo d'activités" },
+                { href: "/aventures/sur-mesure", label: "Sur-mesure" },
+            ]
+        },
         { href: "/calendrier", label: "Calendrier" },
         { href: "/guide", label: "Le Guide" },
         { href: "/contact", label: "Contact" },
@@ -45,7 +53,6 @@ export function Navbar() {
             <div className="container px-4 md:px-6 flex items-center justify-between">
 
                 {/* Logo */}
-                {/* Logo */}
                 <Link href="/" className="relative h-20 w-64">
                     <Image
                         src="/assets/logo.png"
@@ -61,18 +68,39 @@ export function Navbar() {
 
                 {/* Desktop Nav */}
                 <nav className="hidden md:flex items-center gap-8">
-                    {navLinks.map(link => (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            className={cn(
-                                "text-sm font-medium hover:opacity-70 transition-opacity",
-                                pathname === link.href ? "underline underline-offset-4 decoration-2 decoration-[var(--brand-water)]" : "",
-                                showScrolledState ? "text-stone-700" : "text-gray-100"
+                    {navLinks.map((link) => (
+                        <div key={link.href} className="relative group">
+                            <Link
+                                href={link.href}
+                                className={cn(
+                                    "text-sm font-medium hover:opacity-70 transition-opacity flex items-center gap-1",
+                                    pathname === link.href ? "underline underline-offset-4 decoration-2 decoration-[var(--brand-water)]" : "",
+                                    showScrolledState ? "text-stone-700" : "text-gray-100"
+                                )}
+                            >
+                                {link.label}
+                                {link.children && (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50"><path d="m6 9 6 6 6-6" /></svg>
+                                )}
+                            </Link>
+
+                            {/* Dropdown */}
+                            {link.children && (
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 hidden group-hover:block">
+                                    <div className="bg-white rounded-xl shadow-xl border border-stone-100 overflow-hidden min-w-[200px] py-1">
+                                        {link.children.map((subLink) => (
+                                            <Link
+                                                key={subLink.href}
+                                                href={subLink.href}
+                                                className="block px-6 py-3 text-sm text-stone-700 hover:bg-stone-50 hover:text-[var(--brand-water)] transition-colors whitespace-nowrap"
+                                            >
+                                                {subLink.label}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
                             )}
-                        >
-                            {link.label}
-                        </Link>
+                        </div>
                     ))}
                     <Button asChild size="sm" className={cn("rounded-full px-6", showScrolledState ? "bg-stone-900 text-white" : "bg-white text-stone-900 hover:bg-gray-100")}>
                         <Link href="/calendrier">Réserver</Link>
@@ -93,16 +121,31 @@ export function Navbar() {
 
                 {/* Mobile Menu Overlay */}
                 {mobileMenuOpen && (
-                    <div className="absolute top-full left-0 right-0 bg-white border-b border-stone-100 p-6 flex flex-col gap-4 shadow-xl md:hidden animate-in slide-in-from-top-2">
-                        {navLinks.map(link => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className="text-lg font-medium text-stone-800 py-2 border-b border-stone-50"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                {link.label}
-                            </Link>
+                    <div className="absolute top-full left-0 right-0 bg-white border-b border-stone-100 p-6 flex flex-col gap-4 shadow-xl md:hidden animate-in slide-in-from-top-2 max-h-[80vh] overflow-y-auto">
+                        {navLinks.map((link) => (
+                            <div key={link.href}>
+                                <Link
+                                    href={link.href}
+                                    className="block text-lg font-bold text-stone-800 py-2 border-b border-stone-50"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    {link.label}
+                                </Link>
+                                {link.children && (
+                                    <div className="pl-4 mt-2 space-y-2 border-l-2 border-stone-100 ml-2">
+                                        {link.children.map((subLink) => (
+                                            <Link
+                                                key={subLink.href}
+                                                href={subLink.href}
+                                                className="block text-base text-stone-600 py-1"
+                                                onClick={() => setMobileMenuOpen(false)}
+                                            >
+                                                {subLink.label}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         ))}
                     </div>
                 )}

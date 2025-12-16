@@ -56,7 +56,8 @@ export function EventsCalendar({ events }: { events: Event[] }) {
                                 hasEvent: datesWithEvents
                             }}
                             modifiersClassNames={{
-                                hasEvent: "bg-stone-100 font-bold text-[var(--brand-water)]"
+                                hasEvent: "bg-[var(--brand-water)] font-bold text-white hover:bg-[var(--brand-water)]/90",
+                                today: "bg-emerald-100 text-emerald-900 font-bold border border-emerald-200"
                             }}
                         />
                     </div>

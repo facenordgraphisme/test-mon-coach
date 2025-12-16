@@ -5,6 +5,8 @@ import { category } from './category'
 import { guide } from './guide'
 import { event } from './event'
 import { homepage } from './homepage'
+import { booking } from './booking'
+import { formula } from './formula'
 
 export const schemaTypes: SchemaTypeDefinition[] = [
     activity,
@@ -13,4 +15,6 @@ export const schemaTypes: SchemaTypeDefinition[] = [
     guide,
     event,
     homepage,
+    booking,
+    formula,
 ]

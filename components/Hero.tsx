@@ -59,7 +59,7 @@ export async function Hero() {
             <div className="relative z-20 container px-4 md:px-6 text-center text-white space-y-8 animate-in fade-in zoom-in duration-1000">
                 <div className="space-y-4">
                     <h2 className="text-xl md:text-2xl font-light tracking-widest uppercase text-gray-200">
-                        Mon Coach Plein Air
+                        Rêves d'Aventures
                     </h2>
                     <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-none text-balance max-w-4xl mx-auto drop-shadow-lg">
                         {title}

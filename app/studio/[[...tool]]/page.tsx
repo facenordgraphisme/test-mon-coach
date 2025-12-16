@@ -10,7 +10,8 @@ export default function StudioPage() {
         // Suppress specific React warning about disableTransition
         const originalError = console.error;
         console.error = (...args) => {
-            if (/disableTransition/.test(args[0])) {
+            const merged = args.join(' ');
+            if (merged.includes('disableTransition')) {
                 return;
             }
             originalError.call(console, ...args);

@@ -39,5 +39,11 @@ export const guide = defineType({
                 hotspot: true,
             },
         }),
+        defineField({
+            name: 'photos',
+            title: 'Galerie Photos',
+            type: 'array',
+            of: [{ type: 'image', options: { hotspot: true } }]
+        }),
     ],
 })

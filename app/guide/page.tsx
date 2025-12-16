@@ -9,7 +9,8 @@ async function getGuideProfile() {
             name,
             bio,
             diplomas,
-            "imageUrl": image.asset->url
+            "imageUrl": image.asset->url,
+            "photos": photos[].asset->url
         }
     `);
 }
@@ -102,6 +103,20 @@ export default async function GuidePage() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Gallery Section */}
+                        {guide?.photos && guide.photos.length > 0 && (
+                            <div className="md:col-span-5 p-8 md:p-12 border-t border-stone-100 bg-stone-50">
+                                <h3 className="font-bold text-stone-900 mb-6 uppercase tracking-wider text-sm center">En action</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {guide.photos.map((photo: string, index: number) => (
+                                        <div key={index} className="aspect-square rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                            <img src={photo} alt={`Guide photo ${index + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </main>

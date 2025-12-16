@@ -21,35 +21,50 @@ async function getActivityTypes() {
     }
 }
 
-export async function ActivityFormats() {
+interface ActivityFormatsProps {
+    hideTitle?: boolean;
+    className?: string;
+    variant?: 'default' | 'compact';
+}
+
+export async function ActivityFormats({ hideTitle = false, className = "", variant = 'default' }: ActivityFormatsProps) {
     const fetchedFormats = await getActivityTypes();
 
-    const formats = (fetchedFormats && fetchedFormats.length > 0) ? fetchedFormats : [
+    let formats = (fetchedFormats && fetchedFormats.length > 0) ? fetchedFormats : [
         {
             title: "Mono-Activité",
-            description: "Concentrez-vous sur votre passion. Une séance intense et technique pour progresser rapidement.",
-            imageUrl: "/assets/IMG_1814.JPG",
+            description: "Profitez d'une séance dédiée pour découvrir ou vous perfectionner.",
+            imageUrl: "/assets/IMG_9961.png",
             benefits: ["Technique approfondie", "Progression rapide", "Focus total"],
             buttonText: "Découvrir",
-            buttonLink: "/aventures"
+            buttonLink: "/aventures/mono-activite"
         },
         {
-            title: "Duo & Multi",
+            title: "Duo d'activités",
             description: "Pourquoi choisir ? Combinez les plaisirs pour une journée variée et complète.",
             imageUrl: "/assets/IMG_9739.png",
             benefits: ["Variété des paysages", "Journée complète", "Ludique et sportif"],
             buttonText: "Les combos",
-            buttonLink: "/aventures"
+            buttonLink: "/aventures/duo-activites"
         },
         {
             title: "Sur Mesure",
-            description: "Votre projet, vos règles. Nous construisons ensemble l'aventure de vos rêves.",
+            description: "Votre projet, vos règles. Nous construisons ensemble l'aventure de vos rêves (Multi, Groupes, Événements).",
             imageUrl: "/assets/IMG_9962.png",
             benefits: ["Date flexible", "Lieu au choix", "Niveau adapté"],
             buttonText: "Contacter",
-            buttonLink: "/contact"
+            buttonLink: "/aventures/sur-mesure"
         }
     ];
+
+    // Force link rewrite to ensure new routing works even with old Sanity data
+    formats = formats.map((f: any) => {
+        let newLink = f.buttonLink;
+        if (f.title.toLowerCase().includes('mono')) newLink = "/aventures/mono-activite";
+        if (f.title.toLowerCase().includes('duo')) newLink = "/aventures/duo-activites";
+        if (f.title.toLowerCase().includes('sur') || f.title.toLowerCase().includes('multi')) newLink = "/aventures/sur-mesure";
+        return { ...f, buttonLink: newLink };
+    });
 
     return (
         <section className="py-24 bg-white">
@@ -61,9 +76,9 @@ export async function ActivityFormats() {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className={`grid grid-cols-1 md:grid-cols-3 ${variant === 'compact' ? 'gap-6' : 'gap-8'}`}>
                     {formats.map((format: any, i: number) => (
-                        <div key={i} className="flex flex-col group rounded-3xl overflow-hidden border border-stone-200 bg-stone-50 hover:shadow-xl transition-all duration-300">
+                        <div key={i} className={`flex flex-col group rounded-3xl overflow-hidden border border-stone-200 bg-stone-50 hover:shadow-xl transition-all duration-300 ${variant === 'compact' ? 'hover:-translate-y-1' : ''}`}>
                             {/* Image Header */}
                             <div className="h-48 overflow-hidden relative bg-stone-200">
                                 {format.imageUrl ? (
@@ -78,25 +93,27 @@ export async function ActivityFormats() {
                             </div>
 
                             {/* Content */}
-                            <div className="p-8 flex flex-col flex-1">
-                                <h3 className="text-2xl font-bold text-stone-900 mb-3">{format.title}</h3>
-                                <p className="text-stone-600 mb-6 flex-1">
+                            <div className={`${variant === 'compact' ? 'p-6' : 'p-8'} flex flex-col flex-1`}>
+                                <h3 className={`${variant === 'compact' ? 'text-xl' : 'text-2xl'} font-bold text-stone-900 ${variant === 'compact' ? 'mb-2' : 'mb-3'}`}>{format.title}</h3>
+                                <p className={`text-stone-600 flex-1 ${variant === 'compact' ? 'text-sm leading-relaxed mb-4' : 'mb-6'}`}>
                                     {format.description}
                                 </p>
 
                                 {/* Benefits List */}
-                                <ul className="space-y-3 mb-8">
-                                    {format.benefits && format.benefits.map((benefit: string, j: number) => (
-                                        <li key={j} className="flex items-start gap-3 text-stone-700 text-sm">
-                                            <div className="mt-0.5 p-0.5 rounded-full bg-green-100 text-green-700">
-                                                <Check className="w-3 h-3" />
-                                            </div>
-                                            {benefit}
-                                        </li>
-                                    ))}
-                                </ul>
+                                {variant === 'default' && (
+                                    <ul className="space-y-3 mb-8">
+                                        {format.benefits && format.benefits.map((benefit: string, j: number) => (
+                                            <li key={j} className="flex items-start gap-3 text-stone-700 text-sm">
+                                                <div className="mt-0.5 p-0.5 rounded-full bg-green-100 text-green-700">
+                                                    <Check className="w-3 h-3" />
+                                                </div>
+                                                {benefit}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
 
-                                <Button asChild className="w-full bg-[var(--brand-rock)] hover:bg-stone-800 text-white rounded-full h-12">
+                                <Button asChild className={`w-full bg-[var(--brand-rock)] hover:bg-stone-800 text-white rounded-full ${variant === 'compact' ? 'h-10 text-sm' : 'h-12'}`}>
                                     <Link href={format.buttonLink || '/aventures'}>
                                         {format.buttonText || 'En savoir plus'}
                                     </Link>

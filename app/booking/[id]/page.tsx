@@ -9,6 +9,15 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PortableText } from '@portabletext/react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+function getMapSrc(input: string | undefined): string | undefined {
+    if (!input) return undefined;
+    const srcMatch = input.match(/src=["']([^"']+)["']/);
+    if (srcMatch) return srcMatch[1];
+    return input.split('"')[0].split(' ')[0];
+}
 
 async function getEventDetails(eventId: string) {
     return client.fetch(groq`
@@ -31,7 +40,12 @@ async function getEventDetails(eventId: string) {
                 },
                 equipment,
                 "imageUrl": mainImage.asset->url,
-                "categories": categories[]->{title}
+                "categories": categories[]->{title},
+                program,
+                providedEquipment,
+                locationInfo,
+                locationEmbedUrl,
+                reviews
             }
         }
     `, { eventId });
@@ -98,35 +112,183 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                             </div>
                         )}
 
-                        {/* Description */}
-                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-100 prose prose-stone max-w-none">
-                            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                                <AlertCircle className="w-5 h-5 text-[var(--brand-water)]" />
-                                L'expérience
-                            </h3>
-                            {activity.description ? (
-                                <div className="text-stone-700">
-                                    <PortableText value={activity.description} />
-                                </div>
-                            ) : (
-                                <p className="text-stone-500 italic">Aucune description disponible.</p>
-                            )}
-                        </div>
+                        {/* Tabs Integration */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-2 md:p-6">
+                            <Tabs defaultValue="experience" className="w-full">
+                                <TabsList className="w-full justify-start overflow-x-auto mb-8 bg-transparent border-b border-stone-200 h-auto p-0 rounded-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                                    <TabsTrigger
+                                        value="experience"
+                                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--brand-rock)] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-stone-600 data-[state=active]:text-[var(--brand-rock)] font-bold text-base bg-transparent"
+                                    >
+                                        L'expérience
+                                    </TabsTrigger>
+                                    {activity.program && (
+                                        <TabsTrigger
+                                            value="program"
+                                            className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--brand-rock)] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-stone-600 data-[state=active]:text-[var(--brand-rock)] font-bold text-base bg-transparent"
+                                        >
+                                            Au programme
+                                        </TabsTrigger>
+                                    )}
+                                    {(activity.equipment || activity.providedEquipment) && (
+                                        <TabsTrigger
+                                            value="equipment"
+                                            className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--brand-rock)] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-stone-600 data-[state=active]:text-[var(--brand-rock)] font-bold text-base bg-transparent"
+                                        >
+                                            Matériel
+                                        </TabsTrigger>
+                                    )}
+                                    <TabsTrigger
+                                        value="infos"
+                                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--brand-rock)] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-stone-600 data-[state=active]:text-[var(--brand-rock)] font-bold text-base bg-transparent"
+                                    >
+                                        Infos pratiques
+                                    </TabsTrigger>
+                                    {activity.reviews && activity.reviews.length > 0 && (
+                                        <TabsTrigger
+                                            value="reviews"
+                                            className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--brand-rock)] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-stone-600 data-[state=active]:text-[var(--brand-rock)] font-bold text-base bg-transparent"
+                                        >
+                                            Avis ({activity.reviews.length})
+                                        </TabsTrigger>
+                                    )}
+                                </TabsList>
 
-                        {/* Equipment */}
-                        {activity.equipment && activity.equipment.length > 0 && (
-                            <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-100">
-                                <h3 className="text-xl font-bold mb-6">Matériel requis</h3>
-                                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {activity.equipment.map((item: string, i: number) => (
-                                        <li key={i} className="flex items-start gap-2 text-stone-700">
-                                            <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
-                                            <span>{item}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
+                                {/* Experience Tab */}
+                                <TabsContent value="experience" className="outline-none animate-in fade-in-50 duration-500">
+                                    <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                                        <span className="w-8 h-1 bg-[var(--brand-rock)] rounded-full block"></span>
+                                        Description
+                                    </h2>
+                                    <div className="prose prose-stone max-w-none text-gray-600 leading-relaxed min-h-[200px]">
+                                        {Array.isArray(activity.description)
+                                            ? <PortableText value={activity.description} />
+                                            : <p>Description détaillée à venir.</p>
+                                        }
+                                    </div>
+                                </TabsContent>
+
+                                {/* Program Tab */}
+                                {activity.program && (
+                                    <TabsContent value="program" className="outline-none animate-in fade-in-50 duration-500">
+                                        <h3 className="text-xl font-bold mb-6">Déroulement de la sortie</h3>
+                                        <div className="space-y-8 border-l-2 border-stone-200 ml-3 pl-8 py-2 relative">
+                                            {activity.program.map((step: any, i: number) => (
+                                                <div key={i} className="relative group">
+                                                    <div className="absolute -left-[43px] top-1 w-7 h-7 rounded-full bg-white border-4 border-stone-100 group-hover:border-[var(--brand-water)] transition-colors flex items-center justify-center">
+                                                        <div className="w-2 h-2 rounded-full bg-[var(--brand-water)]"></div>
+                                                    </div>
+                                                    <span className="inline-block px-2 py-1 bg-stone-100 text-[var(--brand-water)] text-xs font-bold rounded mb-2">
+                                                        {step.time}
+                                                    </span>
+                                                    <h4 className="text-stone-900 font-bold text-lg mb-1">{step.description}</h4>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </TabsContent>
+                                )}
+
+                                {/* Equipment Tab */}
+                                {(activity.equipment || activity.providedEquipment) && (
+                                    <TabsContent value="equipment" className="outline-none animate-in fade-in-50 duration-500">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div className="bg-stone-50 p-6 rounded-2xl border border-stone-100">
+                                                <h4 className="font-bold text-[var(--brand-rock)] mb-4 flex items-center gap-2">
+                                                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                                    Fourni par le guide
+                                                </h4>
+                                                {activity.providedEquipment && activity.providedEquipment.length > 0 ? (
+                                                    <ul className="space-y-3">
+                                                        {activity.providedEquipment.map((item: string, i: number) => (
+                                                            <li key={i} className="text-stone-700 text-sm pl-2 border-l-2 border-green-200">
+                                                                {item}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                ) : (
+                                                    <p className="text-stone-400 text-sm italic">Aucun matériel spécifique fourni.</p>
+                                                )}
+                                            </div>
+
+                                            <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
+                                                <h4 className="font-bold text-stone-900 mb-4">À prévoir</h4>
+                                                {activity.equipment && activity.equipment.length > 0 ? (
+                                                    <ul className="space-y-3">
+                                                        {activity.equipment.map((item: string, i: number) => (
+                                                            <li key={i} className="flex items-start gap-3 text-stone-600 text-sm">
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-stone-300 mt-1.5 shrink-0"></span>
+                                                                {item}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                ) : (
+                                                    <p className="text-stone-400 text-sm italic">Aucun matériel spécifique requis.</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </TabsContent>
+                                )}
+
+                                {/* Infos Tab */}
+                                <TabsContent value="infos" className="outline-none animate-in fade-in-50 duration-500 space-y-8">
+                                    {activity.locationInfo && (
+                                        <div>
+                                            <h3 className="font-bold text-lg mb-3">Informations d'accès</h3>
+                                            <div className="bg-stone-50 p-6 rounded-xl text-stone-700 leading-relaxed border-l-4 border-[var(--brand-water)]">
+                                                {activity.locationInfo}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {activity.locationEmbedUrl && (
+                                        <div>
+                                            <h3 className="font-bold text-lg mb-3">Carte</h3>
+                                            <div className="aspect-video w-full rounded-xl overflow-hidden shadow-lg border border-stone-200 bg-stone-100">
+                                                <iframe
+                                                    src={getMapSrc(activity.locationEmbedUrl)}
+                                                    width="100%"
+                                                    height="100%"
+                                                    style={{ border: 0 }}
+                                                    allowFullScreen
+                                                    loading="lazy"
+                                                    referrerPolicy="no-referrer-when-downgrade"
+                                                ></iframe>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {!activity.locationInfo && !activity.locationEmbedUrl && (
+                                        <p className="text-stone-400 italic">Pas d'informations spécifiques pour le moment.</p>
+                                    )}
+                                </TabsContent>
+
+                                {/* Reviews Tab */}
+                                {activity.reviews && activity.reviews.length > 0 && (
+                                    <TabsContent value="reviews" className="outline-none animate-in fade-in-50 duration-500">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {activity.reviews.map((review: any, i: number) => (
+                                                <div key={i} className="bg-white p-6 rounded-xl border border-stone-100 shadow-sm hover:shadow-md transition-shadow">
+                                                    <div className="flex gap-1 mb-3 text-yellow-400">
+                                                        {[...Array(review.rating || 5)].map((_, j) => (
+                                                            <svg key={j} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                            </svg>
+                                                        ))}
+                                                    </div>
+                                                    <p className="text-stone-700 italic mb-4 leading-relaxed">"{review.text}"</p>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-[var(--brand-rock)] text-white flex items-center justify-center font-bold text-xs">
+                                                            {review.author.charAt(0)}
+                                                        </div>
+                                                        <p className="text-stone-900 font-bold text-sm">{review.author}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </TabsContent>
+                                )}
+                            </Tabs>
+                        </div>
                     </div>
 
                     {/* Sidebar / Checkout */}

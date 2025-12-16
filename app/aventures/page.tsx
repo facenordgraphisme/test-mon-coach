@@ -2,6 +2,8 @@ import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ActivityFilterableList } from "@/components/ActivityFilterableList";
+import { ActivityFormats } from "@/components/ActivityFormats";
+import { Suspense } from 'react';
 
 async function getActivities() {
     return client.fetch(groq`
@@ -41,7 +43,11 @@ export default async function ActivitiesPage() {
             </header>
 
             <main className="flex-1 container mx-auto px-4 md:px-6 py-12">
-                <ActivityFilterableList initialActivities={activities} />
+                <ActivityFormats hideTitle={true} className="py-8 pb-12" variant="compact" />
+                <h2 className="text-3xl font-bold mb-8 text-stone-900">Toutes nos activités</h2>
+                <Suspense fallback={<div>Chargement...</div>}>
+                    <ActivityFilterableList initialActivities={activities} />
+                </Suspense>
             </main>
             <SiteFooter />
         </div>

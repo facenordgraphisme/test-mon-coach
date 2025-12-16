@@ -79,6 +79,49 @@ export const activity = defineType({
             title: 'Matériel requis',
             type: 'array',
             of: [{ type: 'string' }]
+        }),
+        defineField({
+            name: 'program',
+            title: 'Déroulement',
+            type: 'array',
+            of: [{
+                type: 'object',
+                fields: [
+                    { name: 'time', type: 'string', title: 'Horaire / Durée' },
+                    { name: 'description', type: 'string', title: 'Description' }
+                ]
+            }]
+        }),
+        defineField({
+            name: 'providedEquipment',
+            title: 'Matériel fourni',
+            type: 'array',
+            of: [{ type: 'string' }]
+        }),
+        defineField({
+            name: 'locationInfo',
+            title: 'Plan et accès',
+            type: 'text',
+            rows: 3
+        }),
+        defineField({
+            name: 'locationEmbedUrl',
+            title: 'URL Embed Google Maps',
+            type: 'url',
+            description: 'Collez le lien "src" du code d\'intégration Google Maps (iframe).',
+        }),
+        defineField({
+            name: 'reviews',
+            title: 'Avis Clients',
+            type: 'array',
+            of: [{
+                type: 'object',
+                fields: [
+                    { name: 'author', type: 'string', title: 'Auteur' },
+                    { name: 'text', type: 'text', title: 'Avis' },
+                    { name: 'rating', type: 'number', title: 'Note (1-5)', validation: Rule => Rule.min(1).max(5) }
+                ]
+            }]
         })
     ],
 })

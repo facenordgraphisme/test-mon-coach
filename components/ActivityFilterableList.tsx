@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 
 interface Activity {
@@ -23,10 +24,26 @@ interface Activity {
 
 interface ActivityFilterableListProps {
     initialActivities: Activity[];
+    hideFilters?: boolean;
 }
 
-export function ActivityFilterableList({ initialActivities }: ActivityFilterableListProps) {
-    const [filter, setFilter] = useState('Tous');
+export function ActivityFilterableList({ initialActivities, hideFilters = false }: ActivityFilterableListProps) {
+    const searchParams = useSearchParams();
+    const initialFilter = searchParams.get('format');
+
+    // Map 'mono'/'duo' from URL to the correct initial state. Default to 'Tous'.
+    // URL params are lowercase 'mono', 'duo'. internal state uses 'Tous', 'mono', 'duo', 'multi'
+    // If hideFilters is true, we assume the initialActivities are already filtered, so we default to 'Tous' (meaning "all of the provided")
+    const [filter, setFilter] = useState(initialFilter && !hideFilters ? initialFilter.toLowerCase() : 'Tous');
+
+    useEffect(() => {
+        if (!hideFilters) {
+            const param = searchParams.get('format');
+            if (param) {
+                setFilter(param.toLowerCase());
+            }
+        }
+    }, [searchParams, hideFilters]);
 
     const filteredActivities = filter === 'Tous'
         ? initialActivities
@@ -42,20 +59,22 @@ export function ActivityFilterableList({ initialActivities }: ActivityFilterable
     return (
         <div>
             {/* Filters */}
-            <div className="mb-8 flex gap-2 overflow-x-auto pb-2">
-                {filters.map((f) => (
-                    <button
-                        key={f.value}
-                        onClick={() => setFilter(f.value === 'Tous' ? 'Tous' : f.value)}
-                        className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors whitespace-nowrap ${(filter.toLowerCase() === f.value.toLowerCase() || (filter === 'Tous' && f.value === 'Tous'))
-                            ? 'bg-[var(--brand-rock)] text-white border-[var(--brand-rock)]'
-                            : 'border-stone-200 text-stone-600 hover:bg-stone-100'
-                            }`}
-                    >
-                        {f.label}
-                    </button>
-                ))}
-            </div>
+            {!hideFilters && (
+                <div className="mb-8 flex gap-2 overflow-x-auto pb-2">
+                    {filters.map((f) => (
+                        <button
+                            key={f.value}
+                            onClick={() => setFilter(f.value === 'Tous' ? 'Tous' : f.value)}
+                            className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors whitespace-nowrap ${(filter.toLowerCase() === f.value.toLowerCase() || (filter === 'Tous' && f.value === 'Tous'))
+                                ? 'bg-[var(--brand-rock)] text-white border-[var(--brand-rock)]'
+                                : 'border-stone-200 text-stone-600 hover:bg-stone-100'
+                                }`}
+                        >
+                            {f.label}
+                        </button>
+                    ))}
+                </div>
+            )}
 
             {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

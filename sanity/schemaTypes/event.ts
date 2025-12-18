@@ -24,10 +24,11 @@ export const event = defineType({
             validation: Rule => Rule.min(1).max(10)
         }),
         defineField({
-            name: 'bookedCount',
-            title: 'Déjà inscrits',
+            name: 'seatsAvailable',
+            title: 'Places restantes',
             type: 'number',
-            initialValue: 0,
+            description: 'Nombre de places disponibles pour cette session',
+            validation: Rule => Rule.min(0)
         }),
         defineField({
             name: 'status',

@@ -13,6 +13,18 @@ export async function POST(req: Request) {
             return new NextResponse('Missing required fields', { status: 400 });
         }
 
+        // 0. Check Stock
+        const event = await writeClient.fetch(`*[_type == "event" && _id == $eventId][0]`, { eventId });
+        if (!event) return new NextResponse('Event not found', { status: 404 });
+
+        // Use seatsAvailable if present, otherwise default to 0 (safer to prevent overbooking on legacy)
+        // Or default to 5 if you prefer lenient migration
+        const seatsAvailable = event.seatsAvailable ?? 0;
+
+        if (seatsAvailable < quantity) {
+            return new NextResponse('Plus assez de places disponibles pour cette activité.', { status: 400 });
+        }
+
         // 1. Create Booking in Sanity
         let bookingId = null;
         try {
@@ -33,8 +45,6 @@ export async function POST(req: Request) {
             console.log("Booking created in Sanity:", bookingId);
         } catch (sanityError) {
             console.error("Sanity create error", sanityError);
-            // We might continue even if Sanity fails, but ideally we should block
-            // For now, let's block to ensure data integrity
             return new NextResponse('Error creating booking record', { status: 500 });
         }
 
@@ -66,7 +76,7 @@ export async function POST(req: Request) {
             cancel_url: `${process.env.NEXT_PUBLIC_URL}/calendrier`,
         });
 
-        // 3. Update Sanity with Stripe Session ID (Optional but good for tracking)
+        // 3. Update Sanity with Stripe Session ID
         if (bookingId) {
             await writeClient
                 .patch(bookingId)

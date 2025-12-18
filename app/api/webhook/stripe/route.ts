@@ -84,16 +84,22 @@ export async function POST(req: Request) {
                         await resend.emails.send({
                             from: 'Mon Coach Plein Air <onboarding@resend.dev>',
                             to: 'facenordgraphisme@gmail.com',
-                            subject: `Nouvelle Réservation : ${customerName}`,
+                            subject: `Nouvelle Réservation : ${customerName} - ${session.metadata?.activityTitle}`,
                             html: `
                                 <div style="font-family: sans-serif; color: #333;">
-                                    <h1>Nouvelle transaction reçue !</h1>
-                                    <p><strong>Client :</strong> ${customerName} (${customerEmail})</p>
-                                    <p><strong>Montant :</strong> ${session.amount_total ? session.amount_total / 100 : 0} €</p>
-                                    <p><strong>Activité ID :</strong> ${eventId}</p>
-                                    <p><strong>Places réservées :</strong> ${quantity}</p>
+                                    <h1 style="color: #0ea5e9;">Nouvelle transaction reçue !</h1>
+                                    <p><strong>Activité :</strong> ${session.metadata?.activityTitle}</p>
+                                    <p><strong>Date :</strong> ${new Date(session.metadata?.date).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                                     <hr />
-                                    <p><a href="https://mon-coach-plein-air.sanity.studio">Accéder au Dashboard Sanity</a></p>
+                                    <h3>Détails du client</h3>
+                                    <p><strong>Nom :</strong> ${customerName}</p>
+                                    <p><strong>Email :</strong> ${customerEmail}</p>
+                                    <p><strong>Téléphone :</strong> ${session.metadata?.phone || 'Non renseigné'}</p>
+                                    <hr />
+                                    <p><strong>Places réservées :</strong> ${quantity}</p>
+                                    <p><strong>Montant total :</strong> ${session.amount_total ? session.amount_total / 100 : 0} €</p>
+                                    <br />
+                                    <p><a href="https://mon-coach-plein-air.sanity.studio" style="background-color: #0ea5e9; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Accéder au Dashboard Sanity</a></p>
                                 </div>
                             `
                         });

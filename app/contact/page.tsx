@@ -4,19 +4,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Calendar, Mail, MapPin, Phone } from "lucide-react";
+import { PageHero } from "@/components/PageHero";
 
 export default function ContactPage() {
     return (
         <div className="min-h-screen flex flex-col bg-stone-50">
-            <header className="bg-white py-12 px-4 md:px-6 border-b border-stone-100 pt-32 pb-12">
-                <div className="container mx-auto max-w-4xl text-center">
-                    <h1 className="text-3xl md:text-5xl font-bold mb-4 text-stone-900">Une envie particulière ?</h1>
-                    <p className="text-stone-500 max-w-xl mx-auto">
-                        Vous souhaitez un devis pour un groupe, un séminaire ou une aventure sur-mesure ?
-                        Écrivez-moi, je vous réponds rapidement.
-                    </p>
-                </div>
-            </header>
+            <PageHero
+                title="Contact"
+                subtitle="Une envie particulière ? Un projet de groupe ? Écrivez-nous, réponse rapide garantie."
+                label="ÉCHANGEZ"
+                image="/assets/100_0099.JPG"
+            />
 
             <main className="flex-1 container mx-auto px-4 md:px-6 py-12 max-w-6xl">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12 bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-stone-100">

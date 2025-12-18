@@ -31,8 +31,38 @@ export const difficulty = defineType({
         }),
         defineField({
             name: 'description',
-            title: 'Description',
+            title: 'Description (Courte - Page d\'accueil)',
             type: 'text',
+        }),
+        defineField({
+            name: 'fullDescription',
+            title: 'Description Complète (Page dédiée)',
+            type: 'text',
+        }),
+        defineField({
+            name: 'prerequisites',
+            title: 'Pré-requis',
+            type: 'string',
+        }),
+        defineField({
+            name: 'effort',
+            title: 'Effort',
+            type: 'string',
+        }),
+        defineField({
+            name: 'technique',
+            title: 'Technique',
+            type: 'string',
+        }),
+        defineField({
+            name: 'engagement',
+            title: 'Engagement',
+            type: 'string',
+        }),
+        defineField({
+            name: 'goal',
+            title: 'Objectif (Phrase de fin)',
+            type: 'string',
         })
     ]
 })

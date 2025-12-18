@@ -2,6 +2,8 @@ import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Badge } from "@/components/ui/badge";
+import { PortableText } from "@portabletext/react";
+import { PageHero } from "@/components/PageHero";
 
 async function getGuideProfile() {
     return client.fetch(groq`
@@ -23,14 +25,12 @@ export default async function GuidePage() {
     return (
         <div className="min-h-screen flex flex-col bg-stone-50">
             {/* Hero Profile */}
-            <div className="bg-[var(--brand-water)] text-white py-24 px-4 md:px-6">
-                <div className="container mx-auto max-w-4xl text-center space-y-6">
-                    <h1 className="text-4xl md:text-6xl font-bold">Votre Guide</h1>
-                    <p className="text-xl md:text-2xl font-light text-stone-300 max-w-2xl mx-auto italic">
-                        "Vivre la nature avec passion, sécurité et authenticité."
-                    </p>
-                </div>
-            </div>
+            <PageHero
+                title="Votre Guide"
+                subtitle="&quot;Vivre la nature avec passion, sécurité et authenticité.&quot;"
+                label="RENCONTRE"
+                image="/assets/IMG_9962.png"
+            />
 
             <main className="flex-1 container mx-auto px-4 md:px-6 -mt-12 mb-12 max-w-5xl">
                 <div className="bg-white rounded-3xl overflow-hidden shadow-xl">
@@ -63,11 +63,7 @@ export default async function GuidePage() {
                             <div className="prose prose-stone text-stone-600">
                                 {/* Simplified Bio rendering */}
                                 {guide?.bio ? (
-                                    Array.isArray(guide.bio) ? (
-                                        guide.bio.map((block: any, i: number) => (
-                                            <p key={i}>{block.children?.map((c: any) => c.text).join('')}</p>
-                                        ))
-                                    ) : <p>Biographie en cours de rédaction.</p>
+                                    <PortableText value={guide.bio} />
                                 ) : (
                                     <div className="space-y-4">
                                         <p>

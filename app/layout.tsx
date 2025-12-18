@@ -13,14 +13,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mon Coach Plein Air | Aventures Exclusives Hautes-Alpes",
+  title: "Rêves d'Aventures | Aventures Exclusives Hautes-Alpes",
   description: "Guides de haute montagne et coaching sportif en Escalade, Canyon, VTT. Des expériences exclusives, pensées pour vous en Hautes-Alpes. Mono, Duo et Multi activités.",
   keywords: ["Escalade", "Canyoning", "VTT", "Hautes-Alpes", "Guide", "Coaching", "Aventure", "Plein Air"],
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
     url: 'https://moncoachpleinair.com',
-    title: 'Mon Coach Plein Air',
+    title: "Rêves d'Aventures",
     description: 'Luxe, Nature et Sensations Pures.',
     siteName: 'Mon Coach Plein Air'
   }

@@ -1,6 +1,8 @@
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 import { Info } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 async function getLevels() {
     return client.fetch(groq`
@@ -38,6 +40,14 @@ export async function LevelDescriptions() {
                             </p>
                         </div>
                     ))}
+                </div>
+
+                <div className="mt-10 text-center">
+                    <Button asChild variant="outline" className="rounded-full px-8 border-stone-300 text-stone-700 hover:bg-stone-100 hover:text-stone-900">
+                        <Link href="/niveaux">
+                            En savoir plus sur les niveaux
+                        </Link>
+                    </Button>
                 </div>
             </div>
         </section>

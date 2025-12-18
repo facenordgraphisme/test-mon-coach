@@ -37,10 +37,11 @@ export function Navbar() {
         },
         { href: "/calendrier", label: "Calendrier" },
         { href: "/guide", label: "Le Guide" },
+        { href: "/niveaux", label: "Niveaux" },
         { href: "/contact", label: "Contact" },
     ]
 
-    const isHeroPage = pathname === "/" || pathname === "/aventures" || pathname === "/guide" || pathname.startsWith("/aventures/")
+    const isHeroPage = pathname === "/" || pathname === "/aventures" || pathname === "/guide" || pathname.startsWith("/aventures/") || pathname === "/niveaux" || pathname === "/calendrier" || pathname === "/contact"
     const showScrolledState = isScrolled || !isHeroPage
 
     return (
@@ -55,7 +56,7 @@ export function Navbar() {
                 {/* Logo */}
                 <Link href="/" className="relative h-20 w-64">
                     <Image
-                        src="/assets/logo.png"
+                        src="/assets/logo-v2.png"
                         alt="Mon Coach Plein Air"
                         fill
                         className={cn(

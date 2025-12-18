@@ -36,6 +36,13 @@ export const homepage = defineType({
             ]
         }),
         defineField({
+            name: 'heroGallery',
+            title: 'Galerie Hero (Carrousel)',
+            type: 'array',
+            description: "Ajoutez plusieurs images pour créer un carrousel de fond (effet fondu). Si vide, l'image unique ci-dessus sera utilisée.",
+            of: [{ type: 'image', options: { hotspot: true } }]
+        }),
+        defineField({
             name: 'ctaText',
             title: 'Texte du Bouton Principal',
             type: 'string',
@@ -128,6 +135,28 @@ export const homepage = defineType({
                         title: 'Lien du bouton',
                         type: 'string',
                         initialValue: '/aventures'
+                    }
+                ]
+            }]
+        }),
+        defineField({
+            name: 'faq',
+            title: 'Foire Aux Questions (FAQ)',
+            type: 'array',
+            description: 'Questions/Réponses affichées en bas de page.',
+            of: [{
+                type: 'object',
+                fields: [
+                    {
+                        name: 'question',
+                        title: 'Question',
+                        type: 'string',
+                    },
+                    {
+                        name: 'answer',
+                        title: 'Réponse',
+                        type: 'text',
+                        rows: 3
                     }
                 ]
             }]

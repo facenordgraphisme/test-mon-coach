@@ -32,27 +32,27 @@ export async function ActivityFormats({ hideTitle = false, className = "", varia
 
     let formats = (fetchedFormats && fetchedFormats.length > 0) ? fetchedFormats : [
         {
-            title: "Mono-Activité",
-            description: "Profitez d'une séance dédiée pour découvrir ou vous perfectionner.",
+            title: "Le Mono-Activité",
+            description: "Pour une expérience unique, concentrée. Découverte, perfectionnement ou juste profiter d’un moment autour d’un élément.",
             imageUrl: "/assets/IMG_9961.png",
-            benefits: ["Technique approfondie", "Progression rapide", "Focus total"],
+            benefits: ["Roche : Escalade, Via Ferrata", "Eau : Canyon, Kayak, Voile", "Terre : VTT, Gravel, Route"],
             buttonText: "Découvrir",
             buttonLink: "/aventures/mono-activite"
         },
         {
-            title: "Duo d'activités",
-            description: "Pourquoi choisir ? Combinez les plaisirs pour une journée variée et complète.",
+            title: "Les Duos",
+            description: "Combiner deux activités pour une immersion totale. Le vélo devient votre moyen d'accès privilégié aux sites d'exception.",
             imageUrl: "/assets/IMG_9739.png",
-            benefits: ["Variété des paysages", "Journée complète", "Ludique et sportif"],
-            buttonText: "Les combos",
+            benefits: ["Vélo + Escalade / Via Ferrata", "Vélo + Planche à voile", "Les Duos Malins : Fraîcheur & Eau"],
+            buttonText: "Les Combinés",
             buttonLink: "/aventures/duo-activites"
         },
         {
-            title: "Sur Mesure",
-            description: "Votre projet, vos règles. Nous construisons ensemble l'aventure de vos rêves (Multi, Groupes, Événements).",
+            title: "Multi & Sur Mesure",
+            description: "Construisons ensemble un week-end ou une semaine de folie. Pour un voyage local, sportif et 100% nature.",
             imageUrl: "/assets/IMG_9962.png",
-            benefits: ["Date flexible", "Lieu au choix", "Niveau adapté"],
-            buttonText: "Contacter",
+            benefits: ["Programme à la carte", "Groupes & Événements", "100% Personnalisable"],
+            buttonText: "Créer mon aventure",
             buttonLink: "/aventures/sur-mesure"
         }
     ];
@@ -113,7 +113,7 @@ export async function ActivityFormats({ hideTitle = false, className = "", varia
                                     </ul>
                                 )}
 
-                                <Button asChild className={`w-full bg-[var(--brand-rock)] hover:bg-stone-800 text-white rounded-full ${variant === 'compact' ? 'h-10 text-sm' : 'h-12'}`}>
+                                <Button asChild className={`w-full ${variant === 'compact' ? 'h-10 text-xs' : ''}`}>
                                     <Link href={format.buttonLink || '/aventures'}>
                                         {format.buttonText || 'En savoir plus'}
                                     </Link>

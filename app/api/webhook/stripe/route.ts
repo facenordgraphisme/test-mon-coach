@@ -5,7 +5,7 @@ import { writeClient } from '@/lib/sanity.server';
 import { Resend } from 'resend';
 
 // Initialize Resend with API Key (Use environment variable)
-const resend = new Resend(process.env.RESEND_API_KEY);
+// const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
     const body = await req.text();
@@ -57,6 +57,7 @@ export async function POST(req: Request) {
                 // 3. Send Emails
                 if (process.env.RESEND_API_KEY) {
                     try {
+                        const resend = new Resend(process.env.RESEND_API_KEY);
                         const customerEmail = session.customer_details?.email || booking.email;
                         const customerName = session.customer_details?.name || booking.customerName;
 

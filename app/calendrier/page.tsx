@@ -12,6 +12,7 @@ async function getUpcomingEvents() {
            date,
            status,
            maxParticipants,
+           seatsAvailable,
            bookedCount,
            activity->{
                title,

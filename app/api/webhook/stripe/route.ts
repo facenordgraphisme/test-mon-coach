@@ -2,10 +2,8 @@ import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { writeClient } from '@/lib/sanity.server';
+import { revalidatePath } from 'next/cache';
 import { Resend } from 'resend';
-
-// Initialize Resend with API Key (Use environment variable)
-// const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
     const body = await req.text();
@@ -20,6 +18,7 @@ export async function POST(req: Request) {
             process.env.STRIPE_WEBHOOK_SECRET!
         );
     } catch (error: any) {
+        // console.error(`Webhook signature verification failed.`, error.message);
         return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 });
     }
 
@@ -40,10 +39,6 @@ export async function POST(req: Request) {
 
             // 2. Decrement Seats Available
             if (eventId) {
-                // Get quantity from line items or metadata if saved? 
-                // Metadata didn't store quantity explicitly, but session has line_items if expanded, 
-                // OR we can fetch the booking doc to get the quantity.
-                // Fetching booking is safer.
                 const booking = await writeClient.fetch(`*[_type == "booking" && _id == $bookingId][0]`, { bookingId });
                 const quantity = booking?.quantity || 1;
 
@@ -65,7 +60,7 @@ export async function POST(req: Request) {
 
                         // Email to Customer
                         await resend.emails.send({
-                            from: 'Mon Coach Plein Air <onboarding@resend.dev>', // Use verified domain in prod
+                            from: 'Mon Coach Plein Air <onboarding@resend.dev>', // Use verified domain in prod by Resend
                             to: customerEmail,
                             subject: 'Confirmation de votre réservation - Mon Coach Plein Air',
                             html: `
@@ -107,6 +102,14 @@ export async function POST(req: Request) {
                     }
                 } else {
                     console.log("RESEND_API_KEY missing, skipping emails");
+                }
+
+                // 4. Revalidate Calendar Cache
+                try {
+                    revalidatePath('/calendrier');
+                    console.log("Revalidated /calendrier");
+                } catch (err) {
+                    console.error("Revalidation failed", err);
                 }
             }
         }

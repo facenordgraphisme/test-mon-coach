@@ -44,6 +44,7 @@ export async function POST(req: Request) {
 
                 await writeClient
                     .patch(eventId)
+                    .setIfMissing({ seatsAvailable: 0 }) // Safely init if missing
                     .dec({ seatsAvailable: quantity })
                     .commit();
 

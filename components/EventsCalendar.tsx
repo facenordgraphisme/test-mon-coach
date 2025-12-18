@@ -16,6 +16,7 @@ type Event = {
     date: string
     status: 'available' | 'lastSpots' | 'full'
     maxParticipants: number
+    seatsAvailable?: number
     bookedCount: number
     activity: {
         title: string
@@ -141,14 +142,14 @@ export function EventsCalendar({ events }: { events: Event[] }) {
 
                                             <div className="flex items-center gap-2 text-sm text-stone-500">
                                                 <Users className="w-4 h-4" />
-                                                <span>{event.bookedCount || 0} / {event.maxParticipants} participants</span>
+                                                <span>{event.seatsAvailable ?? event.maxParticipants} places restantes</span>
                                             </div>
                                         </div>
 
                                         <div className="w-full md:w-auto flex flex-row md:flex-col items-center md:items-end justify-between gap-3 border-t md:border-t-0 border-stone-100 pt-4 md:pt-0 mt-2 md:mt-0">
                                             <span className="font-bold text-2xl text-[var(--brand-rock)]">{event.activity.price}€</span>
 
-                                            {event.status === 'full' ? (
+                                            {event.status === 'full' || (event.seatsAvailable !== undefined && event.seatsAvailable <= 0) ? (
                                                 <Button disabled className="bg-stone-200 text-stone-400">
                                                     Complet
                                                 </Button>

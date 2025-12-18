@@ -19,6 +19,7 @@ interface BookingFormProps {
     difficultyColor?: string;
     difficultyLevel?: string;
     difficultyDescription?: string;
+    seatsAvailable?: number;
 }
 
 export function BookingForm({
@@ -32,8 +33,9 @@ export function BookingForm({
     difficultyTitle,
     difficultyColor,
     difficultyLevel,
-    difficultyDescription
-}: BookingFormProps) {
+    difficultyDescription,
+    seatsAvailable
+}: BookingFormProps & { seatsAvailable?: number }) {
     const [loading, setLoading] = useState(false);
     const [quantity, setQuantity] = useState(1);
     const [isGift, setIsGift] = useState(false);
@@ -44,7 +46,7 @@ export function BookingForm({
         recipientName: ''
     });
 
-    const availableSpots = Math.max(0, maxParticipants - bookedCount);
+    const availableSpots = seatsAvailable ?? Math.max(0, maxParticipants - bookedCount);
     const maxSelectable = Math.min(availableSpots, 10);
     const totalPrice = price * quantity;
 

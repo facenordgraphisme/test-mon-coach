@@ -107,8 +107,8 @@ export async function POST(req: Request) {
 
                 // 4. Revalidate Calendar Cache
                 try {
-                    revalidatePath('/calendrier');
-                    console.log("Revalidated /calendrier");
+                    revalidatePath('/', 'layout');
+                    console.log("Revalidated / (layout)");
                 } catch (err) {
                     console.error("Revalidation failed", err);
                 }

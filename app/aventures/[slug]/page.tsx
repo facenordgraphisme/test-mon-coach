@@ -52,7 +52,9 @@ async function getData(slug: string) {
                 date,
                 status,
                 _id,
+                _id,
                 bookedCount,
+                seatsAvailable,
                 maxParticipants
             },
             // For Activity: Related activities
@@ -75,6 +77,8 @@ async function getData(slug: string) {
                     date,
                     status,
                     maxParticipants,
+                    maxParticipants,
+                    seatsAvailable,
                     bookedCount,
                     activity->{
                         title,
@@ -500,7 +504,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                                         {new Date(event.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
                                                     </span>
                                                     <span className="text-xs text-stone-500">
-                                                        {event.bookedCount || 0}/{event.maxParticipants} places
+                                                        {event.seatsAvailable ?? (event.maxParticipants - (event.bookedCount || 0))} places restantes
                                                     </span>
                                                 </div>
                                                 <BookingButton

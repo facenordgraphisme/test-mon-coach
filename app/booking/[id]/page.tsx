@@ -25,6 +25,8 @@ async function getEventDetails(eventId: string) {
             _id,
             date,
             maxParticipants,
+            maxParticipants,
+            seatsAvailable,
             bookedCount,
             status,
             activity->{
@@ -301,6 +303,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                 date={event.date}
                                 image={activity.imageUrl}
                                 maxParticipants={event.maxParticipants}
+                                seatsAvailable={event.seatsAvailable}
                                 bookedCount={event.bookedCount}
                                 difficultyTitle={activity.difficulty?.title}
                                 difficultyColor={activity.difficulty?.color}

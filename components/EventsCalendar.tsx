@@ -10,6 +10,7 @@ import Link from "next/link"
 import { ArrowRight, Clock, Users } from "lucide-react"
 import { format, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 type Event = {
     _id: string
@@ -23,7 +24,9 @@ type Event = {
         slug: string
         duration: string
         price: number
+        imageUrl: string
         difficulty: {
+            title: string
             level: string
             color: string
         }
@@ -96,79 +99,123 @@ export function EventsCalendar({ events }: { events: Event[] }) {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-4">
-                        {displayedEvents.map((event) => (
-                            <Card key={event._id} className="overflow-hidden hover:shadow-md transition-shadow duration-300 border-stone-100 bg-white group">
-                                <div className="flex flex-col md:flex-row">
-                                    {/* Date Column */}
-                                    <div className="bg-stone-50 p-6 flex flex-col items-center justify-center min-w-[130px] border-b md:border-b-0 md:border-r border-stone-100">
-                                        <span className="text-sm font-semibold text-[var(--brand-water)] uppercase tracking-widest">
-                                            {format(new Date(event.date), 'MMM', { locale: fr })}
-                                        </span>
-                                        <span className="text-4xl font-bold text-stone-900 my-1">
-                                            {format(new Date(event.date), 'dd')}
-                                        </span>
-                                        <div className="flex items-center gap-1 text-xs text-stone-500 bg-stone-200/50 px-2 py-1 rounded-full">
-                                            <Clock className="w-3 h-3" />
-                                            {format(new Date(event.date), 'HH:mm')}
-                                        </div>
-                                    </div>
+                        {displayedEvents.map((event) => {
+                            // Compute real status based on seats
+                            const totalSeats = event.maxParticipants || 0;
+                            const booked = event.bookedCount || 0;
+                            const seatsLeft = event.seatsAvailable !== undefined ? event.seatsAvailable : (totalSeats - booked);
 
-                                    {/* Info Column */}
-                                    <div className="p-6 flex-1 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                                        <div className="space-y-2">
-                                            <div className="flex flex-wrap gap-2 text-xs">
-                                                {event.activity.difficulty && (
-                                                    <Badge variant="outline" className={`bg-${event.activity.difficulty.color}-50 text-${event.activity.difficulty.color}-700 border-${event.activity.difficulty.color}-200`}>
-                                                        Niveau {event.activity.difficulty.level}
-                                                    </Badge>
-                                                )}
-                                                <Badge variant="secondary" className="bg-stone-100 text-stone-600">
-                                                    {event.activity.duration}
-                                                </Badge>
-                                                <Badge variant="outline" className={`
-                                                    ${event.status === 'available' ? 'border-green-200 text-green-700 bg-green-50' : ''}
-                                                    ${event.status === 'lastSpots' ? 'border-orange-200 text-orange-700 bg-orange-50' : ''}
-                                                    ${event.status === 'full' ? 'border-red-200 text-red-700 bg-red-50' : ''}
-                                                `}>
-                                                    {event.status === 'available' && 'Disponible'}
-                                                    {event.status === 'lastSpots' && 'Dernières places'}
-                                                    {event.status === 'full' && 'Complet'}
-                                                </Badge>
-                                            </div>
+                            let computedStatus = event.status;
+                            if (seatsLeft <= 0) computedStatus = 'full';
+                            else if (seatsLeft <= 2) computedStatus = 'lastSpots';
+                            else computedStatus = 'available';
 
-                                            <h4 className="text-xl font-bold text-stone-900 group-hover:text-[var(--brand-water)] transition-colors">
-                                                {event.activity.title}
-                                            </h4>
+                            // const isFull = computedStatus === 'full'; // Unused but logic is there
 
-                                            <div className="flex items-center gap-2 text-sm text-stone-500">
-                                                <Users className="w-4 h-4" />
-                                                <span>{event.seatsAvailable ?? event.maxParticipants} places restantes</span>
+                            return (
+                                <Card key={event._id} className="overflow-hidden hover:shadow-md transition-shadow duration-300 border-stone-100 bg-white group">
+                                    <div className="flex flex-col md:flex-row">
+                                        {/* Date Column */}
+                                        <div className="bg-stone-50 p-6 flex flex-col items-center justify-center min-w-[130px] border-b md:border-b-0 md:border-r border-stone-100 shrink-0">
+                                            <span className="text-sm font-semibold text-[var(--brand-water)] uppercase tracking-widest">
+                                                {format(new Date(event.date), 'MMM', { locale: fr })}
+                                            </span>
+                                            <span className="text-4xl font-bold text-stone-900 my-1">
+                                                {format(new Date(event.date), 'dd')}
+                                            </span>
+                                            <div className="flex items-center gap-1 text-xs text-stone-500 bg-stone-200/50 px-2 py-1 rounded-full">
+                                                <Clock className="w-3 h-3" />
+                                                {format(new Date(event.date), 'HH:mm')}
                                             </div>
                                         </div>
 
-                                        <div className="w-full md:w-auto flex flex-row md:flex-col items-center md:items-end justify-between gap-3 border-t md:border-t-0 border-stone-100 pt-4 md:pt-0 mt-2 md:mt-0">
-                                            <span className="font-bold text-2xl text-[var(--brand-rock)]">{event.activity.price}€</span>
-
-                                            {event.status === 'full' || (event.seatsAvailable !== undefined && event.seatsAvailable <= 0) ? (
-                                                <Button disabled className="bg-stone-200 text-stone-400">
-                                                    Complet
-                                                </Button>
+                                        {/* Image Column */}
+                                        <div className="relative w-full md:w-32 h-32 md:h-auto shrink-0 border-b md:border-b-0 md:border-r border-stone-100">
+                                            {event.activity.imageUrl ? (
+                                                <img
+                                                    src={event.activity.imageUrl}
+                                                    alt={event.activity.title}
+                                                    className="w-full h-full object-cover"
+                                                />
                                             ) : (
-                                                <BookingButton
-                                                    eventId={event._id}
-                                                    activityTitle={event.activity.title}
-                                                    price={event.activity.price}
-                                                    date={event.date}
-                                                    className="bg-[var(--brand-water)] hover:brightness-90 text-white"
-                                                >
-                                                    Réserver <ArrowRight className="ml-2 w-4 h-4" />
-                                                </BookingButton>
+                                                <div className="w-full h-full bg-stone-200 flex items-center justify-center text-stone-400">
+                                                    <span className="text-xs">Pas d'image</span>
+                                                </div>
                                             )}
                                         </div>
+
+                                        {/* Info Column */}
+                                        <div className="p-6 flex-1 flex flex-col justify-between">
+                                            <div className="space-y-3">
+                                                <div className="flex flex-wrap gap-2 text-xs mb-1">
+                                                    {event.activity.difficulty && (
+                                                        <TooltipProvider>
+                                                            <Tooltip delayDuration={300}>
+                                                                <TooltipTrigger asChild>
+                                                                    <div className="cursor-help">
+                                                                        <Badge variant="outline" className={`bg-${event.activity.difficulty.color}-50 text-${event.activity.difficulty.color}-700 border-${event.activity.difficulty.color}-200 hover:bg-${event.activity.difficulty.color}-100 transition-colors`}>
+                                                                            Niveau {event.activity.difficulty.level}
+                                                                        </Badge>
+                                                                    </div>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent className="max-w-[200px] p-4">
+                                                                    <p className="font-bold mb-1">{event.activity.difficulty.title}</p>
+                                                                    <p className="text-xs text-stone-500 mb-2">Cliquez pour voir les détails des niveaux.</p>
+                                                                    <Link href="/niveaux" className="text-xs text-[var(--brand-water)] underline underline-offset-2 hover:text-stone-900">
+                                                                        En savoir plus
+                                                                    </Link>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    )}
+                                                    <Badge variant="secondary" className="bg-stone-100 text-stone-600">
+                                                        {event.activity.duration}
+                                                    </Badge>
+                                                    <Badge variant="outline" className={`
+                                                        ${computedStatus === 'available' ? 'border-green-200 text-green-700 bg-green-50' : ''}
+                                                        ${computedStatus === 'lastSpots' ? 'border-orange-200 text-orange-700 bg-orange-50' : ''}
+                                                        ${computedStatus === 'full' ? 'border-red-200 text-red-700 bg-red-50' : ''}
+                                                    `}>
+                                                        {computedStatus === 'available' && 'Disponible'}
+                                                        {computedStatus === 'lastSpots' && 'Dernières places'}
+                                                        {computedStatus === 'full' && 'Complet'}
+                                                    </Badge>
+                                                </div>
+
+                                                <h4 className="text-xl font-bold text-stone-900 group-hover:text-[var(--brand-water)] transition-colors leading-tight">
+                                                    {event.activity.title}
+                                                </h4>
+
+                                                <div className="flex items-center gap-2 text-sm text-stone-500">
+                                                    <Users className="w-4 h-4 text-stone-400" />
+                                                    <span>{seatsLeft > 0 ? `${seatsLeft} places restantes` : 'Complet'}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="w-full md:w-auto flex flex-row md:flex-col items-center md:items-end justify-between gap-3 border-t md:border-t-0 border-stone-100 pt-4 md:pt-0 mt-2 md:mt-0">
+                                                <span className="font-bold text-2xl text-[var(--brand-rock)]">{event.activity.price}€</span>
+
+                                                {computedStatus === 'full' ? (
+                                                    <Button disabled className="bg-stone-200 text-stone-400">
+                                                        Complet
+                                                    </Button>
+                                                ) : (
+                                                    <BookingButton
+                                                        eventId={event._id}
+                                                        activityTitle={event.activity.title}
+                                                        price={event.activity.price}
+                                                        date={event.date}
+                                                        className="bg-[var(--brand-water)] hover:brightness-90 text-white"
+                                                    >
+                                                        Réserver <ArrowRight className="ml-2 w-4 h-4" />
+                                                    </BookingButton>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </Card>
-                        ))}
+                                </Card>
+                            );
+                        })}
                     </div>
                 )}
             </div>

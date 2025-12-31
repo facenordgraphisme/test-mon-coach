@@ -31,6 +31,8 @@ async function getEventDetails(eventId: string) {
             status,
             activity->{
                 title,
+                requiresHeightWeight,
+                description,
                 description,
                 price,
                 duration,
@@ -309,6 +311,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                 difficultyColor={activity.difficulty?.color}
                                 difficultyLevel={activity.difficulty?.level}
                                 difficultyDescription={activity.difficulty?.description}
+                                requiresHeightWeight={activity.requiresHeightWeight}
                             />
                         </div>
                     </div>

@@ -8,6 +8,8 @@ import { homepage } from './homepage'
 import { booking } from './booking'
 import { formula } from './formula'
 import { levelsPage } from './levelsPage'
+import { review } from './review'
+import { accessPage } from './accessPage'
 
 export const schemaTypes: SchemaTypeDefinition[] = [
     activity,
@@ -19,4 +21,6 @@ export const schemaTypes: SchemaTypeDefinition[] = [
     booking,
     formula,
     levelsPage,
+    review,
+    accessPage,
 ]

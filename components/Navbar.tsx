@@ -37,11 +37,19 @@ export function Navbar() {
         },
         { href: "/calendrier", label: "Calendrier" },
         { href: "/guide", label: "Le Guide" },
-        { href: "/niveaux", label: "Niveaux" },
         { href: "/contact", label: "Contact" },
+        {
+            href: "#",
+            label: "Plus",
+            children: [
+                { href: "/niveaux", label: "Niveaux" },
+                { href: "/avis", label: "Avis Clients" },
+                { href: "/acces", label: "Accès & Hébergement" },
+            ]
+        },
     ]
 
-    const isHeroPage = pathname === "/" || pathname === "/aventures" || pathname === "/guide" || pathname.startsWith("/aventures/") || pathname === "/niveaux" || pathname === "/calendrier" || pathname === "/contact"
+    const isHeroPage = pathname === "/" || pathname === "/aventures" || pathname === "/guide" || pathname.startsWith("/aventures/") || pathname === "/niveaux" || pathname === "/calendrier" || pathname === "/contact" || pathname === "/avis" || pathname === "/acces"
     const showScrolledState = isScrolled || !isHeroPage
 
     return (

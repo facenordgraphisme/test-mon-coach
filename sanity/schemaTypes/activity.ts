@@ -93,6 +93,13 @@ export const activity = defineType({
             }]
         }),
         defineField({
+            name: 'requiresHeightWeight',
+            title: 'Demander Taille / Poids ?',
+            description: 'Si activé, les champs Taille et Poids seront demandés lors de la réservation.',
+            type: 'boolean',
+            initialValue: false
+        }),
+        defineField({
             name: 'providedEquipment',
             title: 'Matériel fourni',
             type: 'array',

@@ -19,10 +19,12 @@ async function getUpcomingEvents() {
                "slug": slug.current,
                duration,
                price,
-               difficulty->{
-                   level,
-                   color
-               }
+               "imageUrl": mainImage.asset->url,
+                difficulty->{
+                    title,
+                    level,
+                    color
+                }
            }
         }
     `);

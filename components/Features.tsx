@@ -33,8 +33,8 @@ export function Features() {
                     </div>
                 </div>
 
-                {/* The 3 Pillars - Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+                {/* The Pillars - Flex/Grid centered */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20 max-w-4xl mx-auto">
                     {/* Pillar 1: Luxe */}
                     <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-stone-100 group">
                         <div className="w-12 h-12 bg-stone-50 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
@@ -47,29 +47,7 @@ export function Features() {
                         </p>
                     </div>
 
-                    {/* Pillar 2: 3x3 Offer */}
-                    <div className="bg-[var(--brand-water)] text-white p-8 rounded-2xl shadow-lg transform md:-translate-y-4">
-                        <div className="mb-6">
-                            <Layers className="w-8 h-8 text-white/90" />
-                        </div>
-                        <h4 className="text-xl font-bold mb-4">Une offre flexible</h4>
-                        <ul className="space-y-3 text-sm font-medium opacity-90">
-                            <li className="flex items-center gap-2">
-                                <span className="bg-white/20 w-6 h-6 flex items-center justify-center rounded-full text-xs">1</span>
-                                3 Formules : Mono, Duos, Multi
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <span className="bg-white/20 w-6 h-6 flex items-center justify-center rounded-full text-xs">2</span>
-                                3 Niveaux : Découverte, Aventure, Warrior
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <span className="bg-white/20 w-6 h-6 flex items-center justify-center rounded-full text-xs">3</span>
-                                3 Durées : ½ journée, Journée, Semaine
-                            </li>
-                        </ul>
-                    </div>
-
-                    {/* Pillar 3: Eco */}
+                    {/* Pillar 2: Eco (formerly 3) */}
                     <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-stone-100 group">
                         <div className="w-12 h-12 bg-stone-50 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                             <Leaf className="w-6 h-6 text-green-600" />

@@ -5,7 +5,7 @@ import { writeClient } from '@/lib/sanity.server';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { eventId, activityTitle, price, date, image, quantity = 1, customerName, email, phone } = body;
+        const { eventId, activityTitle, price, date, image, quantity = 1, customerName, email, phone, medicalInfo, height, weight } = body;
 
         console.log("Checkout init:", { eventId, customerName });
 
@@ -17,10 +17,8 @@ export async function POST(req: Request) {
         const event = await writeClient.fetch(`*[_type == "event" && _id == $eventId][0]`, { eventId });
         if (!event) return new NextResponse('Event not found', { status: 404 });
 
-        // Use seatsAvailable if present, otherwise default to 0 (safer to prevent overbooking on legacy)
-        // Or default to 5 if you prefer lenient migration
+        // ... stock check ...
         const seatsAvailable = event.seatsAvailable ?? 0;
-
         if (seatsAvailable < quantity) {
             return new NextResponse('Plus assez de places disponibles pour cette activité.', { status: 400 });
         }
@@ -33,6 +31,9 @@ export async function POST(req: Request) {
                 customerName,
                 email,
                 phone,
+                medicalInfo, // New
+                height,      // New
+                weight,      // New
                 event: {
                     _type: 'reference',
                     _ref: eventId
@@ -73,7 +74,10 @@ export async function POST(req: Request) {
                 customerName,
                 activityTitle,
                 date,
-                phone
+                phone,
+                medicalInfo: medicalInfo ? medicalInfo.substring(0, 100) : "",
+                height,
+                weight
             },
             success_url: `${process.env.NEXT_PUBLIC_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.NEXT_PUBLIC_URL}/calendrier`,

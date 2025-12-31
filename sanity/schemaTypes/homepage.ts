@@ -55,6 +55,27 @@ export const homepage = defineType({
             initialValue: '/calendrier'
         }),
         defineField({
+            name: 'flexibleOffer1',
+            title: 'Offre Flexible - Texte 1',
+            type: 'string',
+            description: 'Ex: 3 Formules : Mono, Duos, Multi',
+            initialValue: '3 Formules : Mono, Duos, Multi'
+        }),
+        defineField({
+            name: 'flexibleOffer2',
+            title: 'Offre Flexible - Texte 2',
+            type: 'string',
+            description: 'Ex: 3 Niveaux : Découverte, Aventure, Warrior',
+            initialValue: '3 Niveaux : Découverte, Aventure, Warrior'
+        }),
+        defineField({
+            name: 'flexibleOffer3',
+            title: 'Offre Flexible - Texte 3',
+            type: 'string',
+            description: 'Ex: 3 Durées : ½ journée, Journée, Semaine',
+            initialValue: '3 Durées : ½ journée, Journée, Semaine'
+        }),
+        defineField({
             name: 'features',
             title: 'Points Forts (Cartes)',
             type: 'array',

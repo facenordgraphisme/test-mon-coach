@@ -20,7 +20,14 @@ interface BookingFormProps {
     difficultyLevel?: string;
     difficultyDescription?: string;
     seatsAvailable?: number;
+    requiresHeightWeight?: boolean;
 }
+
+type ParticipantData = {
+    medicalInfo: string;
+    height: string;
+    weight: string;
+};
 
 export function BookingForm({
     eventId,
@@ -34,17 +41,49 @@ export function BookingForm({
     difficultyColor,
     difficultyLevel,
     difficultyDescription,
-    seatsAvailable
-}: BookingFormProps & { seatsAvailable?: number }) {
+    seatsAvailable,
+    requiresHeightWeight
+}: BookingFormProps) {
     const [loading, setLoading] = useState(false);
     const [quantity, setQuantity] = useState(1);
     const [isGift, setIsGift] = useState(false);
+
+    // Create initial state for 1 participant
+    const [participantsData, setParticipantsData] = useState<ParticipantData[]>([
+        { medicalInfo: '', height: '', weight: '' }
+    ]);
+
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         phone: '',
         recipientName: ''
     });
+
+    const updateQuantity = (newQuantity: number) => {
+        setQuantity(newQuantity);
+        setParticipantsData(prev => {
+            const newData = [...prev];
+            if (newQuantity > prev.length) {
+                // Add new participants
+                for (let i = prev.length; i < newQuantity; i++) {
+                    newData.push({ medicalInfo: '', height: '', weight: '' });
+                }
+            } else {
+                // Remove participants
+                return newData.slice(0, newQuantity);
+            }
+            return newData;
+        });
+    };
+
+    const updateParticipant = (index: number, field: keyof ParticipantData, value: string) => {
+        setParticipantsData(prev => {
+            const newData = [...prev];
+            newData[index] = { ...newData[index], [field]: value };
+            return newData;
+        });
+    };
 
     const availableSpots = seatsAvailable ?? Math.max(0, maxParticipants - bookedCount);
     const maxSelectable = Math.min(availableSpots, 10);
@@ -64,6 +103,28 @@ export function BookingForm({
                 return;
             }
 
+            // Validate participants data
+            for (let i = 0; i < quantity; i++) {
+                const p = participantsData[i];
+                if (requiresHeightWeight && (!p.height || !p.weight)) {
+                    alert(`Merci de renseigner la taille et le poids pour le participant ${i + 1}.`);
+                    return;
+                }
+            }
+
+            // Serialize data
+            const medicalInfoString = participantsData
+                .map((p, i) => `P${i + 1}: ${p.medicalInfo || 'RAS'}`)
+                .join(' | ');
+
+            const heightString = participantsData
+                .map((p, i) => `P${i + 1}: ${p.height || '?'}`)
+                .join(' | ');
+
+            const weightString = participantsData
+                .map((p, i) => `P${i + 1}: ${p.weight || '?'}`)
+                .join(' | ');
+
             setLoading(true);
             const response = await fetch('/api/checkout', {
                 method: 'POST',
@@ -80,6 +141,9 @@ export function BookingForm({
                     customerName: formData.name,
                     email: formData.email,
                     phone: formData.phone,
+                    medicalInfo: medicalInfoString,
+                    height: heightString,
+                    weight: weightString,
                     isGift: isGift,
                     recipientName: isGift ? formData.recipientName : undefined
                 })
@@ -159,7 +223,7 @@ export function BookingForm({
                     <label className="text-sm font-medium text-stone-700 mb-2 block">Nombre de participants</label>
                     <Select
                         value={quantity.toString()}
-                        onValueChange={(val) => setQuantity(parseInt(val))}
+                        onValueChange={(val) => updateQuantity(parseInt(val))}
                     >
                         <SelectTrigger className="w-full">
                             <SelectValue placeholder="Sélectionner" />
@@ -173,6 +237,59 @@ export function BookingForm({
                         </SelectContent>
                     </Select>
                 </div>
+
+                {/* Participants Info Loop */}
+                {participantsData.map((participant, index) => (
+                    <div key={index} className="pt-4 border-t border-stone-50 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <h4 className="font-bold text-stone-800 mb-3 text-sm flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center text-xs">
+                                {index + 1}
+                            </span>
+                            Participant {index + 1}
+                            {index === 0 && <span className="text-stone-400 font-normal text-xs ml-1">(Vous)</span>}
+                        </h4>
+
+                        {/* Height / Weight (if required) */}
+                        {requiresHeightWeight && (
+                            <div className="grid grid-cols-2 gap-4 mb-3">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-medium text-stone-600">Taille (cm)</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-[var(--brand-water)] focus:border-transparent outline-none"
+                                        placeholder="ex: 175"
+                                        value={participant.height}
+                                        onChange={(e) => updateParticipant(index, 'height', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-medium text-stone-600">Poids (kg)</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-[var(--brand-water)] focus:border-transparent outline-none"
+                                        placeholder="ex: 70"
+                                        value={participant.weight}
+                                        onChange={(e) => updateParticipant(index, 'weight', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Medical Info */}
+                        <div className="space-y-1">
+                            <label className="text-xs font-medium text-stone-600">
+                                Santé / Régime (Allergies, Asthme...)
+                                <span className="text-stone-400 font-normal ml-1">(Optionnel)</span>
+                            </label>
+                            <textarea
+                                className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-[var(--brand-water)] focus:border-transparent outline-none min-h-[60px]"
+                                placeholder="R.A.S."
+                                value={participant.medicalInfo}
+                                onChange={(e) => updateParticipant(index, 'medicalInfo', e.target.value)}
+                            />
+                        </div>
+                    </div>
+                ))}
 
                 {/* Gift Toggle */}
                 <div className="pt-4 border-t border-stone-50">

@@ -8,14 +8,17 @@ import { SiteFooter } from "@/components/SiteFooter";
 
 
 
+import { ReviewSection } from "@/components/ReviewSection";
+
 export default async function Home() {
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col" suppressHydrationWarning>
       <Hero />
-      <Features />
       <ActivityFormats />
+      <Features />
       <LevelDescriptions />
       <ActivityPreviewSection />
+      <ReviewSection />
       <FAQSection />
       <SiteFooter />
     </div>

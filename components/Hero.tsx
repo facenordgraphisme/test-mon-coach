@@ -16,7 +16,10 @@ async function getHeroData() {
             "heroImageUrl": heroImage.asset->url,
             "gallery": heroGallery[].asset->url,
             ctaText,
-            ctaLink
+            ctaLink,
+            flexibleOffer1,
+            flexibleOffer2,
+            flexibleOffer3
         }
     `);
 }
@@ -46,6 +49,10 @@ export function Hero() {
     const heroSubtitle = data?.heroSubtitle || "Escalade, Canyon, VTT en Hautes-Alpes. Vivez le luxe des sensations pures, sans la foule.";
     const ctaText = data?.ctaText || "Réserver une aventure";
     const ctaLink = data?.ctaLink || "/calendrier";
+
+    const flexibleOffer1 = data?.flexibleOffer1 || "3 Formules : Mono, Duos, Multi";
+    const flexibleOffer2 = data?.flexibleOffer2 || "3 Niveaux : Découverte, Aventure, Warrior";
+    const flexibleOffer3 = data?.flexibleOffer3 || "3 Durées : ½ journée, Journée, Semaine";
 
     // Images array
     const images = data?.gallery?.length ? data.gallery : (data?.heroImageUrl ? [data.heroImageUrl] : ["/assets/AFZN9428.JPG"]);
@@ -95,7 +102,25 @@ export function Hero() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.8, duration: 0.8, ease: "easeOut" }}
                 >
-                    <Button asChild variant="secondary" size="lg" className="h-14 px-10 text-base font-bold shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] border-none">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8, duration: 0.8 }}
+                        className="flex flex-col md:flex-row gap-6 md:gap-12 justify-center items-center mb-12"
+                    >
+                        {[flexibleOffer1, flexibleOffer2, flexibleOffer3].map((text, i) => (
+                            <motion.div
+                                key={i}
+                                whileHover={{ scale: 1.05, color: "var(--brand-water)" }}
+                                className="flex items-center gap-3 text-lg md:text-xl font-bold text-stone-100 tracking-wide cursor-default transition-colors duration-300"
+                            >
+                                <div className="w-2 h-2 rounded-full bg-[var(--brand-water)] shadow-[0_0_10px_var(--brand-water)]" />
+                                <span className="drop-shadow-md">{text}</span>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+
+                    <Button asChild variant="secondary" size="lg" className="h-16 px-12 text-lg font-bold shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] border-none transform hover:-translate-y-1 transition-all duration-300">
                         <Link href={ctaLink}>
                             {ctaText}
                         </Link>

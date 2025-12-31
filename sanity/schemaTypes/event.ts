@@ -31,6 +31,20 @@ export const event = defineType({
             validation: Rule => Rule.min(0)
         }),
         defineField({
+            name: 'duration',
+            title: 'Durée de la séance',
+            type: 'string',
+            options: {
+                list: [
+                    { title: 'Demi-journée', value: 'half_day' },
+                    { title: 'Journée complète', value: 'full_day' },
+                ],
+                layout: 'radio'
+            },
+            initialValue: 'half_day',
+            validation: Rule => Rule.required()
+        }),
+        defineField({
             name: 'status',
             title: 'Statut',
             type: 'string',

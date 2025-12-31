@@ -5,9 +5,9 @@ import { writeClient } from '@/lib/sanity.server';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { eventId, activityTitle, price, date, image, quantity = 1, customerName, email, phone, medicalInfo, height, weight } = body;
+        const { eventId, activityTitle, price, rentalPriceTotal = 0, date, image, quantity = 1, customerName, email, phone, medicalInfo, height, weight } = body;
 
-        console.log("Checkout init:", { eventId, customerName });
+        console.log("Checkout init:", { eventId, customerName, rentalPriceTotal });
 
         if (!eventId || !price || !customerName || !email) {
             return new NextResponse('Missing required fields', { status: 400 });
@@ -24,6 +24,8 @@ export async function POST(req: Request) {
         }
 
         // 1. Create Booking in Sanity
+        const finalTotalPrice = (price * quantity) + rentalPriceTotal;
+
         let bookingId = null;
         try {
             const doc = await writeClient.create({
@@ -39,7 +41,7 @@ export async function POST(req: Request) {
                     _ref: eventId
                 },
                 quantity,
-                price: price * quantity,
+                price: finalTotalPrice,
                 status: 'pending'
             });
             bookingId = doc._id;
@@ -66,6 +68,17 @@ export async function POST(req: Request) {
                     },
                     quantity: quantity,
                 },
+                ...(rentalPriceTotal > 0 ? [{
+                    price_data: {
+                        currency: 'eur',
+                        product_data: {
+                            name: "Location de matériel (Vélos)",
+                            description: "Location selon options choisies",
+                        },
+                        unit_amount: rentalPriceTotal * 100,
+                    },
+                    quantity: 1,
+                }] : [])
             ],
             mode: 'payment',
             metadata: {

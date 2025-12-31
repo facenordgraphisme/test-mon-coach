@@ -100,6 +100,13 @@ export const activity = defineType({
             initialValue: false
         }),
         defineField({
+            name: 'availableBikes',
+            title: 'Vélos disponibles à la location',
+            description: 'Sélectionnez les modèles de vélos proposés pour cette activité.',
+            type: 'array',
+            of: [{ type: 'reference', to: { type: 'bike' } }]
+        }),
+        defineField({
             name: 'providedEquipment',
             title: 'Matériel fourni',
             type: 'array',

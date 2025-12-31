@@ -3,6 +3,7 @@ import { activity } from './activity'
 import { difficulty } from './difficulty'
 import { category } from './category'
 import { guide } from './guide'
+import { bike } from './bike'
 import { event } from './event'
 import { homepage } from './homepage'
 import { booking } from './booking'
@@ -23,4 +24,5 @@ export const schemaTypes: SchemaTypeDefinition[] = [
     levelsPage,
     review,
     accessPage,
+    bike,
 ]

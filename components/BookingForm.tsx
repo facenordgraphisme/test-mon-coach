@@ -7,6 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
+// Define the Bike type based on Sanity schema
+type Bike = {
+    _id: string;
+    name: string;
+    priceHalfDay: number;
+    priceFullDay: number;
+};
+
 interface BookingFormProps {
     eventId: string;
     activityTitle: string;
@@ -21,12 +29,15 @@ interface BookingFormProps {
     difficultyDescription?: string;
     seatsAvailable?: number;
     requiresHeightWeight?: boolean;
+    availableBikes?: Bike[]; // Dynamic bikes from Sanity
+    eventDuration?: string; // 'half_day' or 'full_day' from Event
 }
 
 type ParticipantData = {
     medicalInfo: string;
     height: string;
     weight: string;
+    bikeRentalId?: string; // Stores the _id of the selected bike, or 'none'
 };
 
 export function BookingForm({
@@ -42,15 +53,27 @@ export function BookingForm({
     difficultyLevel,
     difficultyDescription,
     seatsAvailable,
-    requiresHeightWeight
+    requiresHeightWeight,
+    availableBikes = [],
+    eventDuration
 }: BookingFormProps) {
     const [loading, setLoading] = useState(false);
     const [quantity, setQuantity] = useState(1);
     const [isGift, setIsGift] = useState(false);
 
+    // Determine if it is a full day event based on event schema
+    const isFullDay = eventDuration === 'full_day';
+
+    const getRentalPrice = (bikeId: string | undefined) => {
+        if (!bikeId || bikeId === 'none') return 0;
+        const bike = availableBikes.find(b => b._id === bikeId);
+        if (!bike) return 0;
+        return isFullDay ? (bike.priceFullDay || 0) : (bike.priceHalfDay || 0);
+    };
+
     // Create initial state for 1 participant
     const [participantsData, setParticipantsData] = useState<ParticipantData[]>([
-        { medicalInfo: '', height: '', weight: '' }
+        { medicalInfo: '', height: '', weight: '', bikeRentalId: 'none' }
     ]);
 
     const [formData, setFormData] = useState({
@@ -67,7 +90,7 @@ export function BookingForm({
             if (newQuantity > prev.length) {
                 // Add new participants
                 for (let i = prev.length; i < newQuantity; i++) {
-                    newData.push({ medicalInfo: '', height: '', weight: '' });
+                    newData.push({ medicalInfo: '', height: '', weight: '', bikeRentalId: 'none' });
                 }
             } else {
                 // Remove participants
@@ -87,7 +110,9 @@ export function BookingForm({
 
     const availableSpots = seatsAvailable ?? Math.max(0, maxParticipants - bookedCount);
     const maxSelectable = Math.min(availableSpots, 10);
-    const totalPrice = price * quantity;
+
+    const totalRentalPrice = participantsData.reduce((sum, p) => sum + getRentalPrice(p.bikeRentalId), 0);
+    const totalPrice = (price * quantity) + totalRentalPrice;
 
     const onCheckout = async () => {
         try {
@@ -125,6 +150,14 @@ export function BookingForm({
                 .map((p, i) => `P${i + 1}: ${p.weight || '?'}`)
                 .join(' | ');
 
+            const rentalString = availableBikes.length > 0 ? participantsData
+                .map((p, i) => {
+                    const bike = availableBikes.find(b => b._id === p.bikeRentalId);
+                    return bike ? `P${i + 1}: ${bike.name} (+${getRentalPrice(p.bikeRentalId)}€)` : null;
+                })
+                .filter(Boolean)
+                .join(' | ') : "";
+
             setLoading(true);
             const response = await fetch('/api/checkout', {
                 method: 'POST',
@@ -135,13 +168,14 @@ export function BookingForm({
                     eventId,
                     activityTitle,
                     price,
+                    rentalPriceTotal: totalRentalPrice,
                     date,
                     image,
                     quantity,
                     customerName: formData.name,
                     email: formData.email,
                     phone: formData.phone,
-                    medicalInfo: medicalInfoString,
+                    medicalInfo: medicalInfoString + (rentalString ? ` | LOC: ${rentalString}` : ""),
                     height: heightString,
                     weight: weightString,
                     isGift: isGift,
@@ -248,6 +282,29 @@ export function BookingForm({
                             Participant {index + 1}
                             {index === 0 && <span className="text-stone-400 font-normal text-xs ml-1">(Vous)</span>}
                         </h4>
+
+                        {/* Bike Rental (if available) */}
+                        {availableBikes.length > 0 && (
+                            <div className="mb-3">
+                                <label className="text-xs font-medium text-stone-600 mb-1 block">Location de vélo ({isFullDay ? 'Tarif Journée' : 'Tarif Demi-journée'})</label>
+                                <Select
+                                    value={participant.bikeRentalId}
+                                    onValueChange={(val) => updateParticipant(index, 'bikeRentalId', val)}
+                                >
+                                    <SelectTrigger className="w-full text-sm">
+                                        <SelectValue placeholder="Choisir une option" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">Pas de location</SelectItem>
+                                        {availableBikes.map((bike) => (
+                                            <SelectItem key={bike._id} value={bike._id}>
+                                                {bike.name} (+{isFullDay ? bike.priceFullDay : bike.priceHalfDay}€)
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
 
                         {/* Height / Weight (if required) */}
                         {requiresHeightWeight && (
@@ -374,7 +431,10 @@ export function BookingForm({
                 <div className="pt-6 space-y-4">
                     <div className="flex justify-between items-end">
                         <span className="text-stone-600 font-medium">Total à payer</span>
-                        <span className="text-3xl font-bold text-[var(--brand-rock)]">{totalPrice}€</span>
+                        <div className="text-right">
+                            <span className="block text-3xl font-bold text-[var(--brand-rock)]">{totalPrice}€</span>
+                            {totalRentalPrice > 0 && <span className="text-xs text-stone-500">dont {totalRentalPrice}€ de location</span>}
+                        </div>
                     </div>
 
                     <Button

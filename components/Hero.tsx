@@ -111,7 +111,7 @@ export function Hero() {
                         {[flexibleOffer1, flexibleOffer2, flexibleOffer3].map((text, i) => (
                             <motion.div
                                 key={i}
-                                whileHover={{ scale: 1.05, color: "var(--brand-water)" }}
+                                whileHover={{ scale: 1.05 }}
                                 className="flex items-center gap-3 text-lg md:text-xl font-bold text-stone-100 tracking-wide cursor-default transition-colors duration-300"
                             >
                                 <div className="w-2 h-2 rounded-full bg-[var(--brand-water)] shadow-[0_0_10px_var(--brand-water)]" />

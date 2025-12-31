@@ -2,6 +2,7 @@
 
 import { defineConfig } from 'sanity'
 import { structureTool } from 'sanity/structure'
+import { frFRLocale } from '@sanity/locale-fr-fr'
 import { structure } from '@/sanity/structure'
 import { visionTool } from '@sanity/vision'
 import { schemaTypes } from '@/sanity/schemaTypes'
@@ -15,7 +16,8 @@ export default defineConfig({
     dataset,
     plugins: [
         structureTool({ structure }),
-        visionTool()
+        visionTool(),
+        frFRLocale()
     ],
     schema: {
         types: schemaTypes,

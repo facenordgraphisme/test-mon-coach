@@ -25,17 +25,21 @@ async function getEventDetails(eventId: string) {
             _id,
             date,
             maxParticipants,
-            maxParticipants,
             seatsAvailable,
             bookedCount,
             status,
+            duration,
             activity->{
                 title,
                 requiresHeightWeight,
-                description,
+                availableBikes[]->{
+                    _id,
+                    name,
+                    priceHalfDay,
+                    priceFullDay
+                },
                 description,
                 price,
-                duration,
                 difficulty->{
                     level,
                     color,
@@ -312,6 +316,8 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                 difficultyLevel={activity.difficulty?.level}
                                 difficultyDescription={activity.difficulty?.description}
                                 requiresHeightWeight={activity.requiresHeightWeight}
+                                availableBikes={activity.availableBikes}
+                                eventDuration={event.duration}
                             />
                         </div>
                     </div>

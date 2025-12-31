@@ -10,12 +10,14 @@ export const booking = defineType({
             name: 'customerName',
             title: 'Nom du client',
             type: 'string',
+            readOnly: true,
             validation: Rule => Rule.required()
         }),
         defineField({
             name: 'email',
             title: 'Email',
             type: 'string',
+            readOnly: true,
             validation: Rule => Rule.required().email()
         }),
         defineField({
@@ -23,6 +25,7 @@ export const booking = defineType({
             title: 'Téléphone',
             type: 'string',
             description: 'Pour envoi SMS',
+            readOnly: true,
             validation: Rule => Rule.required()
         }),
         defineField({
@@ -38,17 +41,38 @@ export const booking = defineType({
             name: 'event',
             title: 'Séance réservée',
             type: 'reference',
-            to: [{ type: 'event' }]
+            to: [{ type: 'event' }],
+            readOnly: true
         }),
         defineField({
             name: 'quantity',
             title: 'Nombre de personnes',
             type: 'number',
+            readOnly: true
+        }),
+        defineField({
+            name: 'medicalInfo',
+            title: 'Infos médicales / Location (Détail)',
+            type: 'text',
+            readOnly: true
+        }),
+        defineField({
+            name: 'height',
+            title: 'Tailles',
+            type: 'string',
+            readOnly: true
+        }),
+        defineField({
+            name: 'weight',
+            title: 'Poids',
+            type: 'string',
+            readOnly: true
         }),
         defineField({
             name: 'price',
             title: 'Prix total',
             type: 'number',
+            readOnly: true
         }),
         defineField({
             name: 'status',
@@ -67,13 +91,45 @@ export const booking = defineType({
             name: 'stripeSessionId',
             title: 'ID Session Stripe',
             type: 'string',
+            readOnly: true
         }),
         defineField({
             name: 'createdAt',
             title: 'Créé le',
             type: 'datetime',
+            readOnly: true,
             initialValue: () => new Date().toISOString()
         })
+    ],
+    orderings: [
+        {
+            title: 'Date de création (Nouveau > Ancien)',
+            name: 'createdAtDesc',
+            by: [
+                { field: 'createdAt', direction: 'desc' }
+            ]
+        },
+        {
+            title: 'Date de création (Ancien > Nouveau)',
+            name: 'createdAtAsc',
+            by: [
+                { field: 'createdAt', direction: 'asc' }
+            ]
+        },
+        {
+            title: 'Nom du client (A-Z)',
+            name: 'customerNameAsc',
+            by: [
+                { field: 'customerName', direction: 'asc' }
+            ]
+        },
+        {
+            title: 'Statut',
+            name: 'status',
+            by: [
+                { field: 'status', direction: 'asc' }
+            ]
+        }
     ],
     preview: {
         select: {

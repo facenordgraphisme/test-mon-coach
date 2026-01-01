@@ -17,6 +17,7 @@ async function getActivities() {
             // Fetch prices of upcoming events to determine "from" price
             "upcomingEvents": *[_type == "event" && activity._ref == ^._id && date >= now()] {
                 price,
+                title,
                 duration,
                 difficulty->{
                     title,

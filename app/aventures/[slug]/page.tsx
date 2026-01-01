@@ -52,6 +52,7 @@ async function getData(slug: string) {
                 date,
                 status,
                 _id,
+                title,
                 price,
                 bookedCount,
                 seatsAvailable,
@@ -74,6 +75,7 @@ async function getData(slug: string) {
             {
                 "events": *[_type == "event" && status != 'cancelled' && dateTime(date) > dateTime(now()) && activity->format == $format] | order(date asc) {
                     _id,
+                    title,
                     date,
                     status,
                     maxParticipants,
@@ -517,9 +519,10 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                         {activity.upcomingEvents.map((event: any) => (
                                             <div key={event._id} className="flex items-center justify-between p-3 bg-stone-50 rounded-lg border border-stone-100">
                                                 <div className="flex flex-col">
-                                                    <div className="flex items-baseline gap-2">
+                                                    <div className="flex items-baseline gap-2 flex-wrap">
                                                         <span className="font-bold text-stone-900">
                                                             {new Date(event.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
+                                                            {event.title && <span className="font-normal text-stone-600 block text-xs">{event.title}</span>}
                                                         </span>
                                                         <span className="text-sm font-semibold text-[var(--brand-rock)]">{event.price}€</span>
                                                     </div>

@@ -23,6 +23,7 @@ async function getEventDetails(eventId: string) {
     return client.fetch(groq`
         *[_type == "event" && _id == $eventId][0] {
             _id,
+            title,
             date,
             maxParticipants,
             seatsAvailable,
@@ -94,7 +95,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                 ))}
                             </div>
                             <h1 className="text-3xl md:text-5xl font-bold text-stone-900 mb-4">
-                                {activity.title}
+                                {event.title ? `${event.title} - ${activity.title}` : activity.title}
                             </h1>
                             <div className="flex flex-wrap gap-4 text-stone-600">
                                 <div className="flex items-center gap-2">
@@ -305,7 +306,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                         <div className="sticky top-24 space-y-6">
                             <BookingForm
                                 eventId={event._id}
-                                activityTitle={activity.title}
+                                activityTitle={event.title ? `${event.title} - ${activity.title}` : activity.title}
                                 price={event.price} // Use event price
                                 date={event.date}
                                 image={activity.imageUrl}

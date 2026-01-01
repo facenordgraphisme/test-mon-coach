@@ -1,3 +1,5 @@
+const dynamic = 'force-dynamic'
+
 import { Hero } from "@/components/Hero";
 import { Features } from "@/components/Features";
 import { LevelDescriptions } from "@/components/LevelDescriptions";
@@ -12,7 +14,7 @@ import { ReviewSection } from "@/components/ReviewSection";
 
 export default async function Home() {
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col" suppressHydrationWarning>
+    <div className="min-h-screen bg-stone-50 flex flex-col">
       <Hero />
       <ActivityFormats />
       <Features />

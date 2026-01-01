@@ -20,6 +20,7 @@ interface Activity {
     }[];
     upcomingEvents?: {
         price: number;
+        title?: string;
         duration: string;
         difficulty: {
             title: string;
@@ -104,6 +105,8 @@ export function ActivityFilterableList({ initialActivities, hideFilters = false 
                             }
                         }
 
+                        const upcomingEventTitle = activity.upcomingEvents && activity.upcomingEvents[0] && activity.upcomingEvents[0].title;
+
                         return (
                             <Link key={activity.slug} href={`/aventures/${activity.slug}`} className="group block bg-white rounded-2xl overflow-hidden border border-stone-100 shadow-sm hover:shadow-lg transition-all duration-300">
                                 <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
@@ -137,6 +140,11 @@ export function ActivityFilterableList({ initialActivities, hideFilters = false 
                                         {displayDifficulty && (
                                             <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-${displayDifficulty.color}-100 text-${displayDifficulty.color}-800`}>
                                                 Niveau {displayDifficulty.level}
+                                            </span>
+                                        )}
+                                        {upcomingEventTitle && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                                {upcomingEventTitle}
                                             </span>
                                         )}
                                         <span className="text-xs text-stone-500 bg-stone-100 px-2 py-0.5 rounded">

@@ -1,4 +1,6 @@
-import { Gem, Leaf, Users, Layers, Timer, Mountain, Wind } from "lucide-react";
+import { Gem, Leaf, Users, Layers, Timer, Mountain, Wind, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export function Features() {
     return (
@@ -59,6 +61,15 @@ export function Features() {
                             <br /><span className="italic mt-2 block opacity-80">Max de sensations, min d'empreinte.</span>
                         </p>
                     </div>
+                </div>
+
+                {/* Bottom CTA */}
+                <div className="flex justify-center mt-12">
+                    <Button asChild size="lg" variant="outline" className="rounded-full px-8 border-stone-300 text-stone-700 hover:bg-stone-100 hover:text-stone-900 shadow-sm">
+                        <Link href="/aventures">
+                            Découvrir toutes les aventures <ArrowRight className="ml-2 w-4 h-4" />
+                        </Link>
+                    </Button>
                 </div>
 
             </div>

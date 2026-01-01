@@ -88,7 +88,7 @@ export function Hero() {
                     <h2 className="text-sm md:text-base font-bold tracking-[0.3em] text-stone-200 uppercase mb-6 drop-shadow-md">
                         Rêves d'Aventures
                     </h2>
-                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-8 drop-shadow-2xl text-white">
+                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-semibold tracking-tight mb-8 drop-shadow-2xl text-white">
                         {heroTitle}
                     </h1>
                     <div className="w-24 h-1 bg-white mx-auto rounded-full opacity-80 mb-8" />
@@ -114,17 +114,24 @@ export function Hero() {
                                 whileHover={{ scale: 1.05 }}
                                 className="flex items-center gap-3 text-lg md:text-xl font-bold text-stone-100 tracking-wide cursor-default transition-colors duration-300"
                             >
-                                <div className="w-2 h-2 rounded-full bg-[var(--brand-water)] shadow-[0_0_10px_var(--brand-water)]" />
+                                <div className="w-2 h-2 rounded-full bg-white shadow-[0_0_10px_var(--brand-water)]" />
                                 <span className="drop-shadow-md">{text}</span>
                             </motion.div>
                         ))}
                     </motion.div>
 
-                    <Button asChild variant="secondary" size="lg" className="h-16 px-12 text-lg font-bold shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] border-none transform hover:-translate-y-1 transition-all duration-300">
-                        <Link href={ctaLink}>
-                            {ctaText}
-                        </Link>
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                        <Button asChild variant="secondary" size="lg" className="h-14 px-8 text-base font-bold shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] border-none transform hover:-translate-y-1 transition-all duration-300">
+                            <Link href={ctaLink}>
+                                {ctaText}
+                            </Link>
+                        </Button>
+                        <Button asChild variant="outline" size="lg" className="h-14 px-8 text-base font-bold bg-transparent text-white border-white hover:bg-white/10 hover:text-white shadow-lg backdrop-blur-sm transform hover:-translate-y-1 transition-all duration-300">
+                            <Link href="/aventures">
+                                Découvrir les formules
+                            </Link>
+                        </Button>
+                    </div>
                 </motion.div>
             </div>
 

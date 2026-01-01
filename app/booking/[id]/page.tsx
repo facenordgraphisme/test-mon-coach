@@ -28,7 +28,21 @@ async function getEventDetails(eventId: string) {
             seatsAvailable,
             bookedCount,
             status,
+            status,
             duration,
+            price,
+            description,
+            difficulty->{
+                level,
+                color,
+                title,
+                description
+            },
+            equipment,
+            providedEquipment,
+            program,
+            locationInfo,
+            locationEmbedUrl,
             activity->{
                 title,
                 requiresHeightWeight,
@@ -38,21 +52,8 @@ async function getEventDetails(eventId: string) {
                     priceHalfDay,
                     priceFullDay
                 },
-                description,
-                price,
-                difficulty->{
-                    level,
-                    color,
-                    title,
-                    description
-                },
-                equipment,
                 "imageUrl": mainImage.asset->url,
                 "categories": categories[]->{title},
-                program,
-                providedEquipment,
-                locationInfo,
-                locationEmbedUrl,
                 reviews
             }
         }
@@ -130,7 +131,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                     >
                                         L'expérience
                                     </TabsTrigger>
-                                    {activity.program && (
+                                    {event.program && (
                                         <TabsTrigger
                                             value="program"
                                             className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--brand-rock)] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-stone-600 data-[state=active]:text-[var(--brand-rock)] font-bold text-base bg-transparent"
@@ -138,7 +139,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                             Au programme
                                         </TabsTrigger>
                                     )}
-                                    {(activity.equipment || activity.providedEquipment) && (
+                                    {(event.equipment || event.providedEquipment) && (
                                         <TabsTrigger
                                             value="equipment"
                                             className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--brand-rock)] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-stone-600 data-[state=active]:text-[var(--brand-rock)] font-bold text-base bg-transparent"
@@ -169,19 +170,19 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                         Description
                                     </h2>
                                     <div className="prose prose-stone max-w-none text-gray-600 leading-relaxed min-h-[200px]">
-                                        {Array.isArray(activity.description)
-                                            ? <PortableText value={activity.description} />
+                                        {Array.isArray(event.description)
+                                            ? <PortableText value={event.description} />
                                             : <p>Description détaillée à venir.</p>
                                         }
                                     </div>
                                 </TabsContent>
 
                                 {/* Program Tab */}
-                                {activity.program && (
+                                {event.program && (
                                     <TabsContent value="program" className="outline-none animate-in fade-in-50 duration-500">
                                         <h3 className="text-xl font-bold mb-6">Déroulement de la sortie</h3>
                                         <div className="space-y-8 border-l-2 border-stone-200 ml-3 pl-8 py-2 relative">
-                                            {activity.program.map((step: any, i: number) => (
+                                            {event.program.map((step: any, i: number) => (
                                                 <div key={i} className="relative group">
                                                     <div className="absolute -left-[43px] top-1 w-7 h-7 rounded-full bg-white border-4 border-stone-100 group-hover:border-[var(--brand-water)] transition-colors flex items-center justify-center">
                                                         <div className="w-2 h-2 rounded-full bg-[var(--brand-water)]"></div>
@@ -197,7 +198,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                 )}
 
                                 {/* Equipment Tab */}
-                                {(activity.equipment || activity.providedEquipment) && (
+                                {(event.equipment || event.providedEquipment) && (
                                     <TabsContent value="equipment" className="outline-none animate-in fade-in-50 duration-500">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                             <div className="bg-stone-50 p-6 rounded-2xl border border-stone-100">
@@ -205,9 +206,9 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                                     <CheckCircle2 className="w-5 h-5 text-green-600" />
                                                     Fourni par le guide
                                                 </h4>
-                                                {activity.providedEquipment && activity.providedEquipment.length > 0 ? (
+                                                {event.providedEquipment && event.providedEquipment.length > 0 ? (
                                                     <ul className="space-y-3">
-                                                        {activity.providedEquipment.map((item: string, i: number) => (
+                                                        {event.providedEquipment.map((item: string, i: number) => (
                                                             <li key={i} className="text-stone-700 text-sm pl-2 border-l-2 border-green-200">
                                                                 {item}
                                                             </li>
@@ -220,9 +221,9 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
 
                                             <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
                                                 <h4 className="font-bold text-stone-900 mb-4">À prévoir</h4>
-                                                {activity.equipment && activity.equipment.length > 0 ? (
+                                                {event.equipment && event.equipment.length > 0 ? (
                                                     <ul className="space-y-3">
-                                                        {activity.equipment.map((item: string, i: number) => (
+                                                        {event.equipment.map((item: string, i: number) => (
                                                             <li key={i} className="flex items-start gap-3 text-stone-600 text-sm">
                                                                 <span className="w-1.5 h-1.5 rounded-full bg-stone-300 mt-1.5 shrink-0"></span>
                                                                 {item}
@@ -239,21 +240,21 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
 
                                 {/* Infos Tab */}
                                 <TabsContent value="infos" className="outline-none animate-in fade-in-50 duration-500 space-y-8">
-                                    {activity.locationInfo && (
+                                    {event.locationInfo && (
                                         <div>
                                             <h3 className="font-bold text-lg mb-3">Informations d'accès</h3>
                                             <div className="bg-stone-50 p-6 rounded-xl text-stone-700 leading-relaxed border-l-4 border-[var(--brand-water)]">
-                                                {activity.locationInfo}
+                                                {event.locationInfo}
                                             </div>
                                         </div>
                                     )}
 
-                                    {activity.locationEmbedUrl && (
+                                    {event.locationEmbedUrl && (
                                         <div>
                                             <h3 className="font-bold text-lg mb-3">Carte</h3>
                                             <div className="aspect-video w-full rounded-xl overflow-hidden shadow-lg border border-stone-200 bg-stone-100">
                                                 <iframe
-                                                    src={getMapSrc(activity.locationEmbedUrl)}
+                                                    src={getMapSrc(event.locationEmbedUrl)}
                                                     width="100%"
                                                     height="100%"
                                                     style={{ border: 0 }}
@@ -265,7 +266,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                         </div>
                                     )}
 
-                                    {!activity.locationInfo && !activity.locationEmbedUrl && (
+                                    {!event.locationInfo && !event.locationEmbedUrl && (
                                         <p className="text-stone-400 italic">Pas d'informations spécifiques pour le moment.</p>
                                     )}
                                 </TabsContent>
@@ -305,16 +306,16 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                             <BookingForm
                                 eventId={event._id}
                                 activityTitle={activity.title}
-                                price={activity.price}
+                                price={event.price} // Use event price
                                 date={event.date}
                                 image={activity.imageUrl}
                                 maxParticipants={event.maxParticipants}
                                 seatsAvailable={event.seatsAvailable}
                                 bookedCount={event.bookedCount}
-                                difficultyTitle={activity.difficulty?.title}
-                                difficultyColor={activity.difficulty?.color}
-                                difficultyLevel={activity.difficulty?.level}
-                                difficultyDescription={activity.difficulty?.description}
+                                difficultyTitle={event.difficulty?.title}
+                                difficultyColor={event.difficulty?.color}
+                                difficultyLevel={event.difficulty?.level}
+                                difficultyDescription={event.difficulty?.description}
                                 requiresHeightWeight={activity.requiresHeightWeight}
                                 availableBikes={activity.availableBikes}
                                 eventDuration={event.duration}

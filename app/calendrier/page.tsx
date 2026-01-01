@@ -9,25 +9,26 @@ async function getUpcomingEvents() {
     return client.fetch(groq`
         *[_type == "event" && date >= now()] | order(date asc) {
             _id,
-           date,
-           status,
-           maxParticipants,
-           seatsAvailable,
-           bookedCount,
-           activity->{
-               title,
-               "slug": slug.current,
-               duration,
-               price,
-               "imageUrl": mainImage.asset->url,
-                difficulty->{
-                    title,
-                    level,
-                    color
-                }
-           }
-        }
-    `);
+            title,
+            date,
+            status,
+            maxParticipants,
+            seatsAvailable,
+            bookedCount,
+            price,
+            duration,
+            difficulty-> {
+                title,
+                level,
+                color
+            },
+            activity -> {
+                title,
+                "slug": slug.current,
+                "imageUrl": mainImage.asset -> url
+            }
+    }
+`);
 }
 
 export const revalidate = 60;

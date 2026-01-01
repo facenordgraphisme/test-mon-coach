@@ -12,6 +12,12 @@ export const event = defineType({
             to: [{ type: 'activity' }]
         }),
         defineField({
+            name: 'title',
+            title: 'Titre de la sortie (optionnel)',
+            type: 'string',
+            description: 'Ex: "Visite du Queyras". Si vide, seul le nom de l\'activité sera affiché.',
+        }),
+        defineField({
             name: 'date',
             title: 'Date et Heure',
             type: 'datetime',
@@ -29,6 +35,13 @@ export const event = defineType({
             type: 'number',
             description: 'Nombre de places disponibles pour cette session',
             validation: Rule => Rule.min(0)
+        }),
+        defineField({
+            name: 'price',
+            title: 'Prix par personne (€)',
+            type: 'number',
+            description: 'Prix pour cette séance spécifique. Remplace le prix par défaut de l\'activité.',
+            validation: Rule => Rule.required().min(0)
         }),
         defineField({
             name: 'duration',
@@ -56,7 +69,54 @@ export const event = defineType({
                 ],
             },
             initialValue: 'available'
-        })
+        }),
+        defineField({
+            name: 'description',
+            title: 'Description de la séance',
+            type: 'blockContent',
+        }),
+        defineField({
+            name: 'difficulty',
+            title: 'Niveau de difficulté',
+            type: 'reference',
+            to: { type: 'difficulty' },
+        }),
+        defineField({
+            name: 'equipment',
+            title: 'Matériel requis (à prévoir par le client)',
+            type: 'array',
+            of: [{ type: 'string' }],
+        }),
+        defineField({
+            name: 'providedEquipment',
+            title: 'Matériel fourni (par le guide)',
+            type: 'array',
+            of: [{ type: 'string' }],
+        }),
+        defineField({
+            name: 'program',
+            title: 'Programme',
+            type: 'array',
+            of: [
+                {
+                    type: 'object',
+                    fields: [
+                        { name: 'time', type: 'string', title: 'Horaire/Durée' },
+                        { name: 'description', type: 'string', title: 'Description de l\'étape' }
+                    ]
+                }
+            ]
+        }),
+        defineField({
+            name: 'locationInfo',
+            title: 'Infos lieu de RDV',
+            type: 'text',
+        }),
+        defineField({
+            name: 'locationEmbedUrl',
+            title: 'URL Google Maps Embed',
+            type: 'url',
+        }),
     ],
     preview: {
         select: {

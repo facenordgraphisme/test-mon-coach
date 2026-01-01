@@ -4,7 +4,9 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { ActivityFilterableList } from "@/components/ActivityFilterableList";
 import { PageHero } from "@/components/PageHero";
 import { Suspense } from 'react';
-import { Mountain, Waves, Bike, Gem, Sun, Map, Zap, CheckCircle2 } from "lucide-react";
+import { Mountain, Waves, Bike, Gem, Sun, Map, Zap, CheckCircle2, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 async function getActivities() {
     return client.fetch(groq`
@@ -12,17 +14,16 @@ async function getActivities() {
             title,
             "slug": slug.current,
             format,
-            difficulty->{
-                title,
-                level,
-                color
-            },
-            "imageUrl": mainImage.asset->url,
-            "categories": categories[]->{
-                title
-            },
-            price,
-            duration
+            // Fetch prices of upcoming events to determine "from" price
+            "upcomingEvents": *[_type == "event" && activity._ref == ^._id && date >= now()] {
+                price,
+                duration,
+                difficulty->{
+                    title,
+                    level,
+                    color
+                }
+            }
         }
     `);
 }
@@ -55,6 +56,13 @@ export default async function ActivitiesPage() {
                                 Découvrir, vous perfectionner ou juste profiter d’un moment autour d’une activité, d’un élément.
                                 Pour une expérience unique, concentrée.
                             </p>
+                            <div className="mt-8">
+                                <Button asChild className="rounded-full bg-[var(--brand-water)] text-white hover:bg-[var(--brand-water)]/90">
+                                    <Link href="/aventures/mono-activite">
+                                        Voir les Mono-Activités <ArrowRight className="ml-2 w-4 h-4" />
+                                    </Link>
+                                </Button>
+                            </div>
                         </div>
                         <div className="md:w-2/3 grid grid-cols-1 md:grid-cols-3 gap-6">
                             {/* Roche */}
@@ -107,6 +115,13 @@ export default async function ActivitiesPage() {
                                     Ici le vélo est utilisé comme un fabuleux moyen d’accéder aux sites d’escalade, de via ferrata ou encore au lac pour y naviguer. <br />
                                     Selon votre condition physique et votre envie, choisissez le musculaire ou l’assistance électrique.
                                 </p>
+                                <div className="pt-4">
+                                    <Button asChild variant="outline" className="rounded-full border-[var(--brand-water)] text-[var(--brand-water)] hover:bg-[var(--brand-water)] hover:text-white">
+                                        <Link href="/aventures/duo-activites">
+                                            Tout savoir sur les Duos <ArrowRight className="ml-2 w-4 h-4" />
+                                        </Link>
+                                    </Button>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -168,6 +183,13 @@ export default async function ActivitiesPage() {
                                     Construisons ensemble un week-end ou une semaine de folie dans les Hautes-Alpes, en adaptant le programme à vos envies.
                                     Pour un voyage local, sportif, sur mesure et en pleine nature.
                                 </p>
+                                <div className="pt-2">
+                                    <Button asChild className="rounded-full bg-white text-stone-900 hover:bg-stone-100">
+                                        <Link href="/aventures/sur-mesure">
+                                            Créer mon séjour sur-mesure <ArrowRight className="ml-2 w-4 h-4" />
+                                        </Link>
+                                    </Button>
+                                </div>
                             </div>
                             <div className="md:w-1/3 w-full">
                                 <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-6 rounded-2xl text-center">
@@ -202,6 +224,6 @@ export default async function ActivitiesPage() {
 
             </main>
             <SiteFooter />
-        </div>
+        </div >
     )
 }

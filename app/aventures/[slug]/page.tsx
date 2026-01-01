@@ -37,7 +37,7 @@ async function getData(slug: string) {
             },
             "mainImageUrl": mainImage.asset->url,
             "categories": categories[]->{title},
-            price,
+            // price removed
             duration,
             // description (shared name but potentially different content type if not careful, likely block array for both)
             equipment,
@@ -52,7 +52,7 @@ async function getData(slug: string) {
                 date,
                 status,
                 _id,
-                _id,
+                price,
                 bookedCount,
                 seatsAvailable,
                 maxParticipants
@@ -77,14 +77,14 @@ async function getData(slug: string) {
                     date,
                     status,
                     maxParticipants,
-                    maxParticipants,
                     seatsAvailable,
                     bookedCount,
+                    price,
                     activity->{
                         title,
                         "slug": slug.current,
+                        "imageUrl": mainImage.asset->url,
                         duration,
-                        price,
                         difficulty->{
                             level,
                             color
@@ -102,7 +102,6 @@ async function getData(slug: string) {
                     },
                     "imageUrl": mainImage.asset->url,
                     categories[]->{title},
-                    price,
                     duration
                 }
             }
@@ -230,6 +229,19 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     // Remap imageUrl to mainImageUrl used in query for Consistency check or just use mainImageUrl
     const heroImage = activity.mainImageUrl;
 
+    // Choose the event to display details from (e.g., the first upcoming one)
+    const displayEvent = activity.upcomingEvents && activity.upcomingEvents.length > 0 ? activity.upcomingEvents[0] : null;
+
+    // Fallback or empty states if no events
+    const displayDifficulty = displayEvent?.difficulty;
+    const displayDuration = displayEvent?.duration || "Durée variable";
+    const displayDescription = displayEvent?.description;
+    const displayProgram = displayEvent?.program;
+    const displayEquipment = displayEvent?.equipment;
+    const displayProvidedEquipment = displayEvent?.providedEquipment;
+    const displayLocationInfo = displayEvent?.locationInfo;
+    const displayLocationEmbedUrl = displayEvent?.locationEmbedUrl;
+
     return (
         <div className="min-h-screen bg-white">
             {/* Hero Header */}
@@ -263,7 +275,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                         <div className="flex flex-wrap gap-6 text-sm md:text-base text-gray-200">
                             <div className="flex items-center gap-2">
                                 <Clock className="w-5 h-5 text-[var(--brand-water)]" />
-                                <span>{activity.duration}</span>
+                                <span>{displayDuration}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Users className="w-5 h-5 text-[var(--brand-rock)]" />
@@ -289,7 +301,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                             >
                                 L'expérience
                             </TabsTrigger>
-                            {activity.program && (
+                            {displayProgram && (
                                 <TabsTrigger
                                     value="program"
                                     className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--brand-rock)] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-stone-600 data-[state=active]:text-[var(--brand-rock)] font-bold text-base bg-transparent"
@@ -297,7 +309,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                     Au programme
                                 </TabsTrigger>
                             )}
-                            {(activity.equipment || activity.providedEquipment) && (
+                            {(displayEquipment || displayProvidedEquipment) && (
                                 <TabsTrigger
                                     value="equipment"
                                     className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--brand-rock)] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-stone-600 data-[state=active]:text-[var(--brand-rock)] font-bold text-base bg-transparent"
@@ -328,19 +340,19 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                 Description
                             </h2>
                             <div className="prose prose-stone max-w-none text-gray-600 leading-relaxed min-h-[200px]">
-                                {Array.isArray(activity.description)
-                                    ? <PortableText value={activity.description} />
-                                    : <p>Description détaillée à venir.</p>
+                                {Array.isArray(displayDescription)
+                                    ? <PortableText value={displayDescription} />
+                                    : <p>Description détaillée à venir ou non disponible pour les sessions actuelles.</p>
                                 }
                             </div>
                         </TabsContent>
 
                         {/* Program Tab */}
-                        {activity.program && (
+                        {displayProgram && (
                             <TabsContent value="program" className="outline-none animate-in fade-in-50 duration-500">
                                 <h3 className="text-xl font-bold mb-6">Déroulement de la sortie</h3>
                                 <div className="space-y-8 border-l-2 border-stone-200 ml-3 pl-8 py-2 relative">
-                                    {activity.program.map((step: any, i: number) => (
+                                    {displayProgram.map((step: any, i: number) => (
                                         <div key={i} className="relative group">
                                             <div className="absolute -left-[43px] top-1 w-7 h-7 rounded-full bg-white border-4 border-stone-100 group-hover:border-[var(--brand-water)] transition-colors flex items-center justify-center">
                                                 <div className="w-2 h-2 rounded-full bg-[var(--brand-water)]"></div>
@@ -356,7 +368,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                         )}
 
                         {/* Equipment Tab */}
-                        {(activity.equipment || activity.providedEquipment) && (
+                        {(displayEquipment || displayProvidedEquipment) && (
                             <TabsContent value="equipment" className="outline-none animate-in fade-in-50 duration-500">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="bg-stone-50 p-6 rounded-2xl border border-stone-100">
@@ -364,9 +376,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                             <CheckCircle2 className="w-5 h-5 text-green-600" />
                                             Fourni par le guide
                                         </h4>
-                                        {activity.providedEquipment && activity.providedEquipment.length > 0 ? (
+                                        {displayProvidedEquipment && displayProvidedEquipment.length > 0 ? (
                                             <ul className="space-y-3">
-                                                {activity.providedEquipment.map((item: string, i: number) => (
+                                                {displayProvidedEquipment.map((item: string, i: number) => (
                                                     <li key={i} className="text-stone-700 text-sm pl-2 border-l-2 border-green-200">
                                                         {item}
                                                     </li>
@@ -379,9 +391,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
                                     <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
                                         <h4 className="font-bold text-stone-900 mb-4">À prévoir</h4>
-                                        {activity.equipment && activity.equipment.length > 0 ? (
+                                        {displayEquipment && displayEquipment.length > 0 ? (
                                             <ul className="space-y-3">
-                                                {activity.equipment.map((item: string, i: number) => (
+                                                {displayEquipment.map((item: string, i: number) => (
                                                     <li key={i} className="flex items-start gap-3 text-stone-600 text-sm">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-stone-300 mt-1.5 shrink-0"></span>
                                                         {item}
@@ -398,21 +410,21 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
                         {/* Infos Tab */}
                         <TabsContent value="infos" className="outline-none animate-in fade-in-50 duration-500 space-y-8">
-                            {activity.locationInfo && (
+                            {displayLocationInfo && (
                                 <div>
                                     <h3 className="font-bold text-lg mb-3">Informations d'accès</h3>
                                     <div className="bg-stone-50 p-6 rounded-xl text-stone-700 leading-relaxed border-l-4 border-[var(--brand-water)]">
-                                        {activity.locationInfo}
+                                        {displayLocationInfo}
                                     </div>
                                 </div>
                             )}
 
-                            {activity.locationEmbedUrl && (
+                            {displayLocationEmbedUrl && (
                                 <div>
                                     <h3 className="font-bold text-lg mb-3">Carte</h3>
                                     <div className="aspect-video w-full rounded-xl overflow-hidden shadow-lg border border-stone-200 bg-stone-100">
                                         <iframe
-                                            src={getMapSrc(activity.locationEmbedUrl)}
+                                            src={getMapSrc(displayLocationEmbedUrl)}
                                             width="100%"
                                             height="100%"
                                             style={{ border: 0 }}
@@ -424,7 +436,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                 </div>
                             )}
 
-                            {!activity.locationInfo && !activity.locationEmbedUrl && (
+                            {!displayLocationInfo && !displayLocationEmbedUrl && (
                                 <p className="text-stone-400 italic">Pas d'informations spécifiques pour le moment.</p>
                             )}
                         </TabsContent>
@@ -463,24 +475,29 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                         <div className="bg-white rounded-2xl border border-stone-200 shadow-xl p-6">
                             <div className="flex justify-between items-end mb-6">
                                 <div>
-                                    <p className="text-stone-500 text-sm">Prix par personne</p>
-                                    <p className="text-3xl font-bold text-stone-900">{activity.price}€</p>
+                                    <p className="text-stone-500 text-sm">Prix par personne à partir de</p>
+                                    <p className="text-3xl font-bold text-stone-900">
+                                        {activity.upcomingEvents && activity.upcomingEvents.length > 0
+                                            ? `${Math.min(...activity.upcomingEvents.map((e: any) => e.price))}€`
+                                            : <span className="text-xl">Sur devis / Voir calendrier</span>
+                                        }
+                                    </p>
                                 </div>
-                                {activity.difficulty && (
+                                {displayDifficulty && (
                                     <div className="text-right">
-                                        <div className={`text-${activity.difficulty.color}-600 font-bold`}>
-                                            Niveau {activity.difficulty.level}
+                                        <div className={`text-${displayDifficulty.color}-600 font-bold`}>
+                                            Niveau {displayDifficulty.level}
                                         </div>
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
                                                     <div className="text-xs text-stone-400 cursor-help border-b border-dashed border-stone-300 inline-block">
-                                                        {activity.difficulty.title}
+                                                        {displayDifficulty.title}
                                                     </div>
                                                 </TooltipTrigger>
-                                                {activity.difficulty.description && (
+                                                {displayDifficulty.description && (
                                                     <TooltipContent>
-                                                        <p className="max-w-xs text-sm">{activity.difficulty.description}</p>
+                                                        <p className="max-w-xs text-sm">{displayDifficulty.description}</p>
                                                     </TooltipContent>
                                                 )}
                                             </Tooltip>
@@ -500,9 +517,12 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                         {activity.upcomingEvents.map((event: any) => (
                                             <div key={event._id} className="flex items-center justify-between p-3 bg-stone-50 rounded-lg border border-stone-100">
                                                 <div className="flex flex-col">
-                                                    <span className="font-bold text-stone-900">
-                                                        {new Date(event.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
-                                                    </span>
+                                                    <div className="flex items-baseline gap-2">
+                                                        <span className="font-bold text-stone-900">
+                                                            {new Date(event.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
+                                                        </span>
+                                                        <span className="text-sm font-semibold text-[var(--brand-rock)]">{event.price}€</span>
+                                                    </div>
                                                     <span className="text-xs text-stone-500">
                                                         {event.seatsAvailable ?? (event.maxParticipants - (event.bookedCount || 0))} places restantes
                                                     </span>
@@ -510,7 +530,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                                 <BookingButton
                                                     eventId={event._id}
                                                     activityTitle={activity.title}
-                                                    price={activity.price}
+                                                    price={event.price}
                                                     date={event.date}
                                                     image={heroImage}
                                                     size="sm"

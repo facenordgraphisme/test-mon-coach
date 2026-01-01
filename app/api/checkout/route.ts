@@ -5,7 +5,7 @@ import { writeClient } from '@/lib/sanity.server';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { eventId, activityTitle, price, rentalPriceTotal = 0, date, image, quantity = 1, customerName, email, phone, medicalInfo, height, weight } = body;
+        const { eventId, activityTitle, price, rentalPriceTotal = 0, date, image, quantity = 1, customerName, email, phone, medicalInfo, height, weight, participantsNames } = body;
 
         console.log("Checkout init:", { eventId, customerName, rentalPriceTotal });
 
@@ -13,9 +13,15 @@ export async function POST(req: Request) {
             return new NextResponse('Missing required fields', { status: 400 });
         }
 
-        // 0. Check Stock
+        // 0. Check Stock & Price
         const event = await writeClient.fetch(`*[_type == "event" && _id == $eventId][0]`, { eventId });
         if (!event) return new NextResponse('Event not found', { status: 404 });
+
+        // Use server-side price
+        const serverPrice = event.price;
+        if (!serverPrice) {
+            return new NextResponse('Prix non défini pour cette séance.', { status: 400 });
+        }
 
         // ... stock check ...
         const seatsAvailable = event.seatsAvailable ?? 0;
@@ -24,7 +30,7 @@ export async function POST(req: Request) {
         }
 
         // 1. Create Booking in Sanity
-        const finalTotalPrice = (price * quantity) + rentalPriceTotal;
+        const finalTotalPrice = (serverPrice * quantity) + rentalPriceTotal;
 
         let bookingId = null;
         try {
@@ -36,6 +42,7 @@ export async function POST(req: Request) {
                 medicalInfo, // New
                 height,      // New
                 weight,      // New
+                participantsNames, // New
                 event: {
                     _type: 'reference',
                     _ref: eventId
@@ -64,7 +71,7 @@ export async function POST(req: Request) {
                             description: `Sortie du ${new Date(date).toLocaleDateString('fr-FR')} (${quantity} pers.) - ${customerName}`,
                             images: image ? [image] : [],
                         },
-                        unit_amount: price * 100, // Stripe expects cents
+                        unit_amount: serverPrice * 100, // Stripe expects cents
                     },
                     quantity: quantity,
                 },
@@ -90,7 +97,8 @@ export async function POST(req: Request) {
                 phone,
                 medicalInfo: medicalInfo ? medicalInfo.substring(0, 100) : "",
                 height,
-                weight
+                weight,
+                participantsNames
             },
             success_url: `${process.env.NEXT_PUBLIC_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.NEXT_PUBLIC_URL}/calendrier`,

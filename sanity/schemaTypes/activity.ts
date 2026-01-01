@@ -37,12 +37,7 @@ export const activity = defineType({
             type: 'array',
             of: [{ type: 'reference', to: { type: 'category' } }]
         }),
-        defineField({
-            name: 'difficulty',
-            title: 'Niveau de difficulté',
-            type: 'reference',
-            to: { type: 'difficulty' },
-        }),
+
         defineField({
             name: 'mainImage',
             title: 'Image principale',
@@ -58,40 +53,7 @@ export const activity = defineType({
                 }
             ]
         }),
-        defineField({
-            name: 'description',
-            title: 'Description',
-            type: 'array',
-            of: [{ type: 'block' }]
-        }),
-        defineField({
-            name: 'price',
-            title: 'Prix par personne',
-            type: 'number',
-        }),
-        defineField({
-            name: 'duration',
-            title: 'Durée',
-            type: 'string', // e.g. "1/2 Day", "Full Day", "2 Days"
-        }),
-        defineField({
-            name: 'equipment',
-            title: 'Matériel requis',
-            type: 'array',
-            of: [{ type: 'string' }]
-        }),
-        defineField({
-            name: 'program',
-            title: 'Déroulement',
-            type: 'array',
-            of: [{
-                type: 'object',
-                fields: [
-                    { name: 'time', type: 'string', title: 'Horaire / Durée' },
-                    { name: 'description', type: 'string', title: 'Description' }
-                ]
-            }]
-        }),
+
         defineField({
             name: 'requiresHeightWeight',
             title: 'Demander Taille / Poids ?',
@@ -106,24 +68,7 @@ export const activity = defineType({
             type: 'array',
             of: [{ type: 'reference', to: { type: 'bike' } }]
         }),
-        defineField({
-            name: 'providedEquipment',
-            title: 'Matériel fourni',
-            type: 'array',
-            of: [{ type: 'string' }]
-        }),
-        defineField({
-            name: 'locationInfo',
-            title: 'Plan et accès',
-            type: 'text',
-            rows: 3
-        }),
-        defineField({
-            name: 'locationEmbedUrl',
-            title: 'URL Embed Google Maps',
-            type: 'url',
-            description: 'Collez le lien "src" du code d\'intégration Google Maps (iframe).',
-        }),
+
         defineField({
             name: 'reviews',
             title: 'Avis Clients',

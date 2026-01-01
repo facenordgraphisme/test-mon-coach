@@ -69,6 +69,12 @@ export const booking = defineType({
             readOnly: true
         }),
         defineField({
+            name: 'participantsNames',
+            title: 'Noms des participants',
+            type: 'string',
+            readOnly: true
+        }),
+        defineField({
             name: 'price',
             title: 'Prix total',
             type: 'number',

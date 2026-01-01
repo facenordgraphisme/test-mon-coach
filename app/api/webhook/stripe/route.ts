@@ -57,7 +57,7 @@ export async function POST(req: Request) {
                         const customerEmail = session.customer_details?.email || booking.email;
                         const customerName = session.customer_details?.name || booking.customerName;
 
-                        console.log(`Sending emails to: Client=${customerEmail}, Admin=facenordgraphisme@gmail.com`);
+                        console.log(`Sending emails to: Client=${customerEmail}, Admins=facenordgraphisme@gmail.com, fredbuet@gmail.com`);
 
                         // Email to Customer
                         await resend.emails.send({
@@ -72,6 +72,7 @@ export async function POST(req: Request) {
                                     <ul>
                                         <li>Activité : ${session.metadata?.activityTitle || 'Activité de plein air'}</li>
                                         <li>Quantité : ${quantity} personne(s)</li>
+                                        <li>Participants : ${session.metadata?.participantsNames || 'Non spécifié'}</li>
                                         <li>Montant réglé : ${session.amount_total ? session.amount_total / 100 : 0} €</li>
                                     </ul>
                                     <p>Nous avons hâte de vous retrouver pour cette aventure.</p>
@@ -83,7 +84,7 @@ export async function POST(req: Request) {
                         // Email to Admin
                         await resend.emails.send({
                             from: 'Mon Coach Plein Air <onboarding@resend.dev>',
-                            to: 'facenordgraphisme@gmail.com',
+                            to: ['facenordgraphisme@gmail.com', 'fredbuet@gmail.com'],
                             subject: `Nouvelle Réservation : ${customerName} - ${session.metadata?.activityTitle}`,
                             html: `
                                 <div style="font-family: sans-serif; color: #333;">
@@ -97,6 +98,10 @@ export async function POST(req: Request) {
                                     <p><strong>Téléphone :</strong> ${session.metadata?.phone || 'Non renseigné'}</p>
                                     <hr />
                                     <p><strong>Places réservées :</strong> ${quantity}</p>
+                                    <p><strong>Participants :</strong> ${booking.participantsNames || session.metadata?.participantsNames || 'Non spécifié'}</p>
+                                    <p><strong>Infos Médicales / Location :</strong> ${booking.medicalInfo || 'R.A.S'}</p>
+                                    <p><strong>Tailles :</strong> ${booking.height || '?'}</p>
+                                    <p><strong>Poids :</strong> ${booking.weight || '?'}</p>
                                     <p><strong>Montant total :</strong> ${session.amount_total ? session.amount_total / 100 : 0} €</p>
                                     <br />
                                     <p><a href="https://mon-coach-plein-air.sanity.studio" style="background-color: #0ea5e9; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Accéder au Dashboard Sanity</a></p>

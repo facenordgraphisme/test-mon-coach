@@ -14,22 +14,23 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 type Event = {
     _id: string
+    title?: string
     date: string
     status: 'available' | 'lastSpots' | 'full'
     maxParticipants: number
     seatsAvailable?: number
     bookedCount: number
+    price: number
+    duration: string
+    difficulty: {
+        title: string
+        level: string
+        color: string
+    }
     activity: {
         title: string
         slug: string
-        duration: string
-        price: number
         imageUrl: string
-        difficulty: {
-            title: string
-            level: string
-            color: string
-        }
     }
 }
 
@@ -148,18 +149,18 @@ export function EventsCalendar({ events }: { events: Event[] }) {
                                         <div className="p-6 flex-1 flex flex-col justify-between">
                                             <div className="space-y-3">
                                                 <div className="flex flex-wrap gap-2 text-xs mb-1">
-                                                    {event.activity.difficulty && (
+                                                    {event.difficulty && (
                                                         <TooltipProvider>
                                                             <Tooltip delayDuration={300}>
                                                                 <TooltipTrigger asChild>
                                                                     <div className="cursor-help">
-                                                                        <Badge variant="outline" className={`bg-${event.activity.difficulty.color}-50 text-${event.activity.difficulty.color}-700 border-${event.activity.difficulty.color}-200 hover:bg-${event.activity.difficulty.color}-100 transition-colors`}>
-                                                                            Niveau {event.activity.difficulty.level}
+                                                                        <Badge variant="outline" className={`bg-${event.difficulty.color}-50 text-${event.difficulty.color}-700 border-${event.difficulty.color}-200 hover:bg-${event.difficulty.color}-100 transition-colors`}>
+                                                                            Niveau {event.difficulty.level}
                                                                         </Badge>
                                                                     </div>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent className="max-w-[200px] p-4">
-                                                                    <p className="font-bold mb-1">{event.activity.difficulty.title}</p>
+                                                                    <p className="font-bold mb-1">{event.difficulty.title}</p>
                                                                     <p className="text-xs text-stone-500 mb-2">Cliquez pour voir les détails des niveaux.</p>
                                                                     <Link href="/niveaux" className="text-xs text-[var(--brand-water)] underline underline-offset-2 hover:text-stone-900">
                                                                         En savoir plus
@@ -169,7 +170,10 @@ export function EventsCalendar({ events }: { events: Event[] }) {
                                                         </TooltipProvider>
                                                     )}
                                                     <Badge variant="secondary" className="bg-stone-100 text-stone-600">
-                                                        {event.activity.duration}
+                                                        {{
+                                                            'half_day': 'Demi Journée',
+                                                            'full_day': 'Journée Complète'
+                                                        }[event.duration] || event.duration}
                                                     </Badge>
                                                     <Badge variant="outline" className={`
                                                         ${computedStatus === 'available' ? 'border-green-200 text-green-700 bg-green-50' : ''}
@@ -183,7 +187,13 @@ export function EventsCalendar({ events }: { events: Event[] }) {
                                                 </div>
 
                                                 <h4 className="text-xl font-bold text-stone-900 group-hover:text-[var(--brand-water)] transition-colors leading-tight">
-                                                    {event.activity.title}
+                                                    {event.title ? (
+                                                        <>
+                                                            {event.title} <span className="text-stone-500 font-normal text-base block md:inline md:ml-1">- {event.activity.title}</span>
+                                                        </>
+                                                    ) : (
+                                                        event.activity.title
+                                                    )}
                                                 </h4>
 
                                                 <div className="flex items-center gap-2 text-sm text-stone-500">
@@ -193,7 +203,7 @@ export function EventsCalendar({ events }: { events: Event[] }) {
                                             </div>
 
                                             <div className="w-full md:w-auto flex flex-row md:flex-col items-center md:items-end justify-between gap-3 border-t md:border-t-0 border-stone-100 pt-4 md:pt-0 mt-2 md:mt-0">
-                                                <span className="font-bold text-2xl text-[var(--brand-rock)]">{event.activity.price}€</span>
+                                                <span className="font-bold text-2xl text-[var(--brand-rock)]">{event.price}€</span>
 
                                                 {computedStatus === 'full' ? (
                                                     <Button disabled className="bg-stone-200 text-stone-400">
@@ -203,7 +213,7 @@ export function EventsCalendar({ events }: { events: Event[] }) {
                                                     <BookingButton
                                                         eventId={event._id}
                                                         activityTitle={event.activity.title}
-                                                        price={event.activity.price}
+                                                        price={event.price}
                                                         date={event.date}
                                                         className="bg-[var(--brand-water)] hover:brightness-90 text-white"
                                                     >

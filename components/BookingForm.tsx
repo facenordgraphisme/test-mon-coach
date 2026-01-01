@@ -34,10 +34,11 @@ interface BookingFormProps {
 }
 
 type ParticipantData = {
+    name: string; // New field
     medicalInfo: string;
     height: string;
     weight: string;
-    bikeRentalId?: string; // Stores the _id of the selected bike, or 'none'
+    bikeRentalId?: string;
 };
 
 export function BookingForm({
@@ -73,7 +74,7 @@ export function BookingForm({
 
     // Create initial state for 1 participant
     const [participantsData, setParticipantsData] = useState<ParticipantData[]>([
-        { medicalInfo: '', height: '', weight: '', bikeRentalId: 'none' }
+        { name: '', medicalInfo: '', height: '', weight: '', bikeRentalId: 'none' }
     ]);
 
     const [formData, setFormData] = useState({
@@ -90,7 +91,7 @@ export function BookingForm({
             if (newQuantity > prev.length) {
                 // Add new participants
                 for (let i = prev.length; i < newQuantity; i++) {
-                    newData.push({ medicalInfo: '', height: '', weight: '', bikeRentalId: 'none' });
+                    newData.push({ name: '', medicalInfo: '', height: '', weight: '', bikeRentalId: 'none' });
                 }
             } else {
                 // Remove participants
@@ -131,6 +132,10 @@ export function BookingForm({
             // Validate participants data
             for (let i = 0; i < quantity; i++) {
                 const p = participantsData[i];
+                if (!p.name.trim()) {
+                    alert(`Merci de renseigner le nom du participant ${i + 1}.`);
+                    return;
+                }
                 if (requiresHeightWeight && (!p.height || !p.weight)) {
                     alert(`Merci de renseigner la taille et le poids pour le participant ${i + 1}.`);
                     return;
@@ -138,6 +143,10 @@ export function BookingForm({
             }
 
             // Serialize data
+            const participantsNames = participantsData
+                .map((p, i) => `P${i + 1}: ${p.name}`)
+                .join(' | ');
+
             const medicalInfoString = participantsData
                 .map((p, i) => `P${i + 1}: ${p.medicalInfo || 'RAS'}`)
                 .join(' | ');
@@ -175,6 +184,7 @@ export function BookingForm({
                     customerName: formData.name,
                     email: formData.email,
                     phone: formData.phone,
+                    participantsNames, // New field
                     medicalInfo: medicalInfoString + (rentalString ? ` | LOC: ${rentalString}` : ""),
                     height: heightString,
                     weight: weightString,
@@ -280,8 +290,18 @@ export function BookingForm({
                                 {index + 1}
                             </span>
                             Participant {index + 1}
-                            {index === 0 && <span className="text-stone-400 font-normal text-xs ml-1">(Vous)</span>}
                         </h4>
+
+                        <div className="mb-3">
+                            <label className="text-xs font-medium text-stone-600 mb-1 block">Nom & Prénom</label>
+                            <input
+                                type="text"
+                                className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-[var(--brand-water)] focus:border-transparent outline-none"
+                                placeholder="ex: Thomas Martin"
+                                value={participant.name}
+                                onChange={(e) => updateParticipant(index, 'name', e.target.value)}
+                            />
+                        </div>
 
                         {/* Bike Rental (if available) */}
                         {availableBikes.length > 0 && (

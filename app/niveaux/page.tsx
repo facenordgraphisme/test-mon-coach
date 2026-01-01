@@ -45,8 +45,8 @@ export default async function NiveauxPage() {
     const heroImage = pageContent?.heroImageUrl || 'https://images.unsplash.com/photo-1541447271487-09612b3f49f7?q=80&w=2000&auto=format&fit=crop';
 
     return (
-        <div className="min-h-screen bg-stone-50">
-            {/* Header Section */}
+        <div className="min-h-screen bg-stone-50" suppressHydrationWarning>
+            {/* Header Section - Force Recompile */}
             <div className="bg-stone-900 text-white py-24 md:py-32 relative overflow-hidden flex flex-col items-center justify-center text-center">
                 <div className="absolute inset-0 z-0">
                     <img
@@ -84,7 +84,7 @@ export default async function NiveauxPage() {
                     const headingColor = isGreen ? 'text-emerald-900' : isOrange ? 'text-amber-900' : 'text-red-900';
 
                     return (
-                        <div key={lvl.level} className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+                        <div key={lvl.level} className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
 
                             {/* Sticky Left Column: Title & Badge */}
                             <div className="lg:col-span-4 lg:sticky lg:top-32 flex flex-col items-center text-center">

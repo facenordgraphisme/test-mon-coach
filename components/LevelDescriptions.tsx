@@ -29,17 +29,26 @@ export async function LevelDescriptions() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {levels.map((lvl: any) => (
-                        <div key={lvl.level} className="bg-white p-6 rounded-xl border border-stone-100 shadow-sm flex flex-col items-center text-center">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-4 bg-${lvl.color}-100 text-${lvl.color}-700`}>
-                                {lvl.level}
+                    {levels.map((lvl: any) => {
+                        const colorClasses: Record<string, string> = {
+                            green: "bg-green-100 text-green-700",
+                            orange: "bg-orange-100 text-orange-700",
+                            red: "bg-red-100 text-red-700",
+                        };
+                        const activeColorClass = colorClasses[lvl.color] || "bg-stone-100 text-stone-700";
+
+                        return (
+                            <div key={lvl.level} className="bg-white p-6 rounded-xl border border-stone-100 shadow-sm flex flex-col items-center text-center">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-4 ${activeColorClass}`}>
+                                    {lvl.level}
+                                </div>
+                                <h4 className="font-bold text-lg mb-2">{lvl.title}</h4>
+                                <p className="text-stone-500 text-sm leading-relaxed">
+                                    {lvl.description}
+                                </p>
                             </div>
-                            <h4 className="font-bold text-lg mb-2">{lvl.title}</h4>
-                            <p className="text-stone-500 text-sm leading-relaxed">
-                                {lvl.description}
-                            </p>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
 
                 <div className="mt-10 text-center">

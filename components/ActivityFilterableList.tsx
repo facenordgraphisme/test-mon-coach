@@ -90,7 +90,7 @@ export function ActivityFilterableList({ initialActivities, hideFilters = false 
                     filteredActivities.map((activity) => {
                         // Calculate "from" price and other derived info
                         let minPrice = null;
-                        let displayDuration = "Durée variable";
+                        // let displayDuration = "Durée variable"; // Removed
                         let displayDifficulty = null;
 
                         if (activity.upcomingEvents && activity.upcomingEvents.length > 0) {
@@ -100,7 +100,6 @@ export function ActivityFilterableList({ initialActivities, hideFilters = false 
                             }
                             // Use the first event's info as a representative or logic to summarize
                             if (activity.upcomingEvents[0]) {
-                                displayDuration = activity.upcomingEvents[0].duration;
                                 displayDifficulty = activity.upcomingEvents[0].difficulty;
                             }
                         }
@@ -142,14 +141,7 @@ export function ActivityFilterableList({ initialActivities, hideFilters = false 
                                                 Niveau {displayDifficulty.level}
                                             </span>
                                         )}
-                                        {upcomingEventTitle && (
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                                {upcomingEventTitle}
-                                            </span>
-                                        )}
-                                        <span className="text-xs text-stone-500 bg-stone-100 px-2 py-0.5 rounded">
-                                            {displayDuration}
-                                        </span>
+
                                         {/* Categories */}
                                         {activity.categories && activity.categories.length > 0 && (
                                             <span className="text-xs text-stone-500 bg-stone-100 px-2 py-0.5 rounded">

@@ -44,6 +44,45 @@ export const event = defineType({
             validation: Rule => Rule.required().min(0)
         }),
         defineField({
+            name: 'privatizationPrice',
+            title: 'Prix de privatisation (€)',
+            type: 'number',
+            description: 'Si renseigné, une option de privatisation sera proposée (uniquement si aucune place n\'est encore réservée).',
+            validation: Rule => Rule.min(0)
+        }),
+        defineField({
+            name: 'discounts',
+            title: 'Tarifs dégressifs',
+            type: 'array',
+            description: 'Définir des réductions basées sur le nombre de participants (ex: -10% pour 2 pers). S\'ils ne sont pas privatisés.',
+            of: [{
+                type: 'object',
+                fields: [
+                    {
+                        name: 'minParticipants',
+                        title: 'Participants minimum',
+                        type: 'number',
+                        validation: Rule => Rule.required().min(1)
+                    },
+                    {
+                        name: 'discountPercentage',
+                        title: 'Réduction (%)',
+                        type: 'number',
+                        validation: Rule => Rule.required().min(0).max(100)
+                    }
+                ],
+                preview: {
+                    select: {
+                        min: 'minParticipants',
+                        percent: 'discountPercentage'
+                    },
+                    prepare({ min, percent }) {
+                        return { title: `-${percent}% dès ${min} personne(s)` }
+                    }
+                }
+            }]
+        }),
+        defineField({
             name: 'duration',
             title: 'Durée de la séance',
             type: 'string',

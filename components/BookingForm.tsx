@@ -31,6 +31,8 @@ interface BookingFormProps {
     requiresHeightWeight?: boolean;
     availableBikes?: Bike[]; // Dynamic bikes from Sanity
     eventDuration?: string; // 'half_day' or 'full_day' from Event
+    privatizationPrice?: number;
+    discounts?: { minParticipants: number; discountPercentage: number }[];
 }
 
 type ParticipantData = {
@@ -56,11 +58,14 @@ export function BookingForm({
     seatsAvailable,
     requiresHeightWeight,
     availableBikes = [],
-    eventDuration
+    eventDuration,
+    privatizationPrice,
+    discounts = []
 }: BookingFormProps) {
     const [loading, setLoading] = useState(false);
     const [quantity, setQuantity] = useState(1);
     const [isGift, setIsGift] = useState(false);
+    const [isPrivatized, setIsPrivatized] = useState(false);
 
     // Determine if it is a full day event based on event schema
     const isFullDay = eventDuration === 'full_day';
@@ -109,11 +114,37 @@ export function BookingForm({
         });
     };
 
-    const availableSpots = seatsAvailable ?? Math.max(0, maxParticipants - bookedCount);
+    const availableSpots = seatsAvailable ?? Math.max(0, maxParticipants - (bookedCount || 0));
     const maxSelectable = Math.min(availableSpots, 10);
 
+    // Calculate Price
+    let finalPricePerPerson = price;
+    let appliedDiscount = 0;
+
+    if (!isPrivatized && (discounts || []).length > 0) {
+        // Find highest applicable discount
+        const applicableDiscount = (discounts || [])
+            .filter(d => quantity >= d.minParticipants)
+            .sort((a, b) => b.minParticipants - a.minParticipants)[0];
+
+        if (applicableDiscount) {
+            appliedDiscount = applicableDiscount.discountPercentage;
+            finalPricePerPerson = price * (1 - appliedDiscount / 100);
+        }
+    }
+
     const totalRentalPrice = participantsData.reduce((sum, p) => sum + getRentalPrice(p.bikeRentalId), 0);
-    const totalPrice = (price * quantity) + totalRentalPrice;
+
+    // Total calculation
+    // If privatized: Fixed price (privatizationPrice) + Rentals? 
+    // Usually privatization includes everything or is just the base fee. 
+    // Let's assume rentals are EXTRA if not explicitly covered. User said "privatization price defined on sanity". 
+    // Usually privatization implies bringing own gear or custom quote, but let's keep rental logic separate for flexibility unless user specified.
+    // User said: "Privatization fee defined on sanity". 
+    // Let's assume: Total = (isPrivatized ? privatizationPrice : (finalPricePerPerson * quantity)) + totalRentalPrice;
+
+    const baseTotal = isPrivatized ? (privatizationPrice || 0) : (finalPricePerPerson * quantity);
+    const totalPrice = baseTotal + totalRentalPrice;
 
     const onCheckout = async () => {
         try {
@@ -176,7 +207,7 @@ export function BookingForm({
                 body: JSON.stringify({
                     eventId,
                     activityTitle,
-                    price,
+                    price: isPrivatized ? (privatizationPrice! / quantity) : finalPricePerPerson,
                     rentalPriceTotal: totalRentalPrice,
                     date,
                     image,
@@ -184,7 +215,7 @@ export function BookingForm({
                     customerName: formData.name,
                     email: formData.email,
                     phone: formData.phone,
-                    participantsNames, // New field
+                    participantsNames,
                     medicalInfo: medicalInfoString + (rentalString ? ` | LOC: ${rentalString}` : ""),
                     height: heightString,
                     weight: weightString,
@@ -262,24 +293,98 @@ export function BookingForm({
                     </span>
                 </div>
 
+                {/* Privatization Option */}
+                {(!bookedCount || bookedCount === 0) && privatizationPrice !== undefined && privatizationPrice > 0 && (
+                    <div className="pt-4 border-t border-stone-50">
+                        <label className="text-sm font-medium text-stone-700 mb-2 block">Type de réservation</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div
+                                onClick={() => setIsPrivatized(false)}
+                                className={`cursor-pointer border rounded-lg p-3 text-sm transition-all ${!isPrivatized ? 'bg-[var(--brand-water)] border-[var(--brand-water)] text-white' : 'bg-white border-stone-200 text-stone-600 hover:border-[var(--brand-water)]'}`}
+                            >
+                                <div className="font-bold mb-1">Standard</div>
+                                <div className="text-xs opacity-90">{price}€ / pers</div>
+                            </div>
+                            <div
+                                onClick={() => {
+                                    setIsPrivatized(true);
+                                    updateQuantity(1); // Force to 1 participant
+                                }}
+                                className={`cursor-pointer border rounded-lg p-3 text-sm transition-all ${isPrivatized ? 'bg-[var(--brand-rock)] border-[var(--brand-rock)] text-white' : 'bg-white border-stone-200 text-stone-600 hover:border-[var(--brand-rock)]'}`}
+                            >
+                                <div className="font-bold mb-1 flex items-center gap-1">Privatisé <Lock className="w-3 h-3" /></div>
+                                <div className="text-xs opacity-90">{privatizationPrice}€ (Fixe)</div>
+                            </div>
+
+                            {/* Discount Info Badge */}
+                            {!isPrivatized && (discounts || []).length > 0 && (
+                                <div className="col-span-2 mt-2 bg-green-50 border border-green-100 rounded-lg p-3 text-xs text-green-800 animate-fadeIn">
+                                    <div className="font-bold mb-1 flex items-center gap-1">
+                                        <Users className="w-3 h-3" />
+                                        Tarifs dégressifs disponibles :
+                                    </div>
+                                    <ul className="space-y-1 ml-4 list-disc">
+                                        {(discounts || []).sort((a, b) => a.minParticipants - b.minParticipants).map((d, i) => (
+                                            <li key={i}>
+                                                <span className="font-bold">{d.minParticipants} personnes ou +</span> : <span className="font-bold">-{d.discountPercentage}%</span> (soit {(price * (1 - d.discountPercentage / 100)).toFixed(2)}€/pers)
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 {/* Quantity Selector */}
                 <div className="pt-4 border-t border-stone-50">
                     <label className="text-sm font-medium text-stone-700 mb-2 block">Nombre de participants</label>
                     <Select
                         value={quantity.toString()}
                         onValueChange={(val) => updateQuantity(parseInt(val))}
+                        disabled={isPrivatized}
                     >
                         <SelectTrigger className="w-full">
                             <SelectValue placeholder="Sélectionner" />
                         </SelectTrigger>
                         <SelectContent>
-                            {Array.from({ length: maxSelectable }, (_, i) => i + 1).map((num) => (
-                                <SelectItem key={num} value={num.toString()}>
-                                    {num} personne{num > 1 ? 's' : ''} - {price * num}€
-                                </SelectItem>
-                            ))}
+                            {Array.from({ length: maxSelectable }, (_, i) => i + 1).map((num) => {
+                                let currentPricePerPerson = price;
+                                let currentDiscount = 0;
+
+                                if (!isPrivatized && (discounts || []).length > 0) {
+                                    const applicable = (discounts || [])
+                                        .filter(d => num >= d.minParticipants)
+                                        .sort((a, b) => b.minParticipants - a.minParticipants)[0];
+                                    if (applicable) {
+                                        currentDiscount = applicable.discountPercentage;
+                                        currentPricePerPerson = price * (1 - currentDiscount / 100);
+                                    }
+                                }
+
+                                const totalForNum = currentPricePerPerson * num;
+
+                                return (
+                                    <SelectItem key={num} value={num.toString()}>
+                                        {num} personne{num > 1 ? 's' : ''}
+                                        {isPrivatized ? '' : (
+                                            <>
+                                                {currentDiscount > 0 && <span className="text-green-600 font-bold ml-1">(-{currentDiscount}%)</span>}
+                                                {' - '}
+                                                <span className="font-bold">{totalForNum.toFixed(2)}€</span>
+                                            </>
+                                        )}
+                                    </SelectItem>
+                                )
+                            })}
                         </SelectContent>
                     </Select>
+                    {isPrivatized && (
+                        <p className="text-xs text-[var(--brand-rock)] mt-2 flex items-center gap-1">
+                            <Lock className="w-3 h-3" />
+                            Privatisation inclut 1 personne (le coach sera uniquement avec vous).
+                        </p>
+                    )}
                 </div>
 
                 {/* Participants Info Loop */}
@@ -452,7 +557,12 @@ export function BookingForm({
                     <div className="flex justify-between items-end">
                         <span className="text-stone-600 font-medium">Total à payer</span>
                         <div className="text-right">
-                            <span className="block text-3xl font-bold text-[var(--brand-rock)]">{totalPrice}€</span>
+                            <span className="block text-3xl font-bold text-[var(--brand-rock)]">{totalPrice.toFixed(2)}€</span>
+                            {!isPrivatized && appliedDiscount > 0 && (
+                                <span className="block text-xs text-green-600 font-medium mb-1">
+                                    Réduction de {appliedDiscount}% appliquée
+                                </span>
+                            )}
                             {totalRentalPrice > 0 && <span className="text-xs text-stone-500">dont {totalRentalPrice}€ de location</span>}
                         </div>
                     </div>
@@ -475,6 +585,6 @@ export function BookingForm({
                     Paiement sécurisé via Stripe. Vous recevrez un email de confirmation après le paiement.
                 </p>
             </div>
-        </div>
+        </div >
     );
 }

@@ -14,6 +14,7 @@ import {
     MessageSquare,
     FileText
 } from 'lucide-react'
+import { BookingPrintView } from './components/BookingPrintView'
 
 export const structure = (S: StructureBuilder) =>
     S.list()
@@ -83,5 +84,20 @@ export const structure = (S: StructureBuilder) =>
             S.divider(),
 
             // --- GROUPE 3 : RÉSERVATIONS ---
-            S.documentTypeListItem('booking').title('Réservations').icon(TicketCheck),
+            S.documentTypeListItem('booking')
+                .title('Réservations')
+                .icon(TicketCheck)
+                .child(
+                    S.documentTypeList('booking')
+                        .title('Réservations')
+                        .child(documentId =>
+                            S.document()
+                                .documentId(documentId)
+                                .schemaType('booking')
+                                .views([
+                                    S.view.form(),
+                                    S.view.component(BookingPrintView).title('Imprimer / Export')
+                                ])
+                        )
+                ),
         ])

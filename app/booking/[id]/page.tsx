@@ -29,9 +29,10 @@ async function getEventDetails(eventId: string) {
             seatsAvailable,
             bookedCount,
             status,
-            status,
             duration,
             price,
+            privatizationPrice,
+            discounts,
             description,
             difficulty->{
                 level,
@@ -320,6 +321,8 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                 requiresHeightWeight={activity.requiresHeightWeight}
                                 availableBikes={activity.availableBikes}
                                 eventDuration={event.duration}
+                                privatizationPrice={event.privatizationPrice}
+                                discounts={event.discounts}
                             />
                         </div>
                     </div>

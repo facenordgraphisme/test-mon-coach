@@ -21,6 +21,7 @@ type Event = {
     seatsAvailable?: number
     bookedCount: number
     price: number
+    privatizationPrice?: number
     duration: string
     difficulty: {
         title: string
@@ -184,6 +185,11 @@ export function EventsCalendar({ events }: { events: Event[] }) {
                                                         {computedStatus === 'lastSpots' && 'Dernières places'}
                                                         {computedStatus === 'full' && 'Complet'}
                                                     </Badge>
+                                                    {seatsLeft > 0 && event.privatizationPrice && event.privatizationPrice > 0 && booked === 0 && (
+                                                        <Badge variant="outline" className="border-amber-200 text-amber-700 bg-amber-50">
+                                                            Privatisable
+                                                        </Badge>
+                                                    )}
                                                 </div>
 
                                                 <h4 className="text-xl font-bold text-stone-900 group-hover:text-[var(--brand-water)] transition-colors leading-tight">

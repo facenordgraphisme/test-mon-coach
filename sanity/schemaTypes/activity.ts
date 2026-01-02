@@ -39,6 +39,32 @@ export const activity = defineType({
         }),
 
         defineField({
+            name: 'hasRental',
+            title: 'Proposer de la location de matériel ?',
+            description: 'Si coché, un onglet "Location" apparaîtra sur la page de l\'activité.',
+            type: 'boolean',
+            initialValue: false
+        }),
+        defineField({
+            name: 'rentalDescription',
+            title: 'Détails de la location',
+            type: 'blockContent',
+            hidden: ({ document }) => !document?.hasRental
+        }),
+
+        defineField({
+            name: 'description',
+            title: 'Description (L\'expérience)',
+            type: 'blockContent',
+        }),
+        defineField({
+            name: 'practicalInfo',
+            title: 'Infos pratiques du catalogue',
+            description: 'Informations générales (parking, accès...). Pour le lieu de RDV spécifique, utilisez la fiche Séance.',
+            type: 'blockContent',
+        }),
+
+        defineField({
             name: 'mainImage',
             title: 'Image principale',
             type: 'image',

@@ -40,14 +40,11 @@ async function getData(slug: string) {
             // price removed
             duration,
             // description (shared name but potentially different content type if not careful, likely block array for both)
-            equipment,
-            program,
-            providedEquipment,
-            locationInfo,
-            locationEmbedUrl,
-            reviews,
-            
-            // For Activity: Upcoming events specific to this activity
+            description,
+            "practicalInfo": practicalInfo,
+            hasRental,
+            rentalDescription,
+
             "upcomingEvents": *[_type == "event" && activity->slug.current == $slug && date >= now()] | order(date asc) [0...3] {
                 date,
                 status,
@@ -56,7 +53,16 @@ async function getData(slug: string) {
                 price,
                 bookedCount,
                 seatsAvailable,
-                maxParticipants
+                maxParticipants,
+                privatizationPrice,
+                difficulty->,
+                duration,
+                description,
+                program,
+                equipment,
+                providedEquipment,
+                locationInfo,
+                locationEmbedUrl
             },
             // For Activity: Related activities
             "relatedActivities": *[_type == "activity" && count((categories[]->title)[@ in ^.categories[]->title]) > 0 && slug.current != $slug][0...3] {
@@ -235,14 +241,20 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     const displayEvent = activity.upcomingEvents && activity.upcomingEvents.length > 0 ? activity.upcomingEvents[0] : null;
 
     // Fallback or empty states if no events
-    const displayDifficulty = displayEvent?.difficulty;
-    const displayDuration = displayEvent?.duration || "Durée variable";
-    const displayDescription = displayEvent?.description;
+    // Fallback or empty states if no events
+    const displayDifficulty = activity.difficulty; // Prefer activity difficulty
+    const displayDuration = activity.duration || displayEvent?.duration || "Durée variable";
+    const displayDescription = activity.description || displayEvent?.description;
+
+    // For these, we rely on the session (event) data as they are no longer on the activity
     const displayProgram = displayEvent?.program;
     const displayEquipment = displayEvent?.equipment;
     const displayProvidedEquipment = displayEvent?.providedEquipment;
     const displayLocationInfo = displayEvent?.locationInfo;
     const displayLocationEmbedUrl = displayEvent?.locationEmbedUrl;
+    const displayPracticalInfo = activity.practicalInfo;
+
+
 
     return (
         <div className="min-h-screen bg-white">
@@ -325,6 +337,14 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                             >
                                 Infos pratiques
                             </TabsTrigger>
+                            {activity.hasRental && (
+                                <TabsTrigger
+                                    value="rental"
+                                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--brand-rock)] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-stone-600 data-[state=active]:text-[var(--brand-rock)] font-bold text-base bg-transparent"
+                                >
+                                    Location
+                                </TabsTrigger>
+                            )}
                             {activity.reviews && activity.reviews.length > 0 && (
                                 <TabsTrigger
                                     value="reviews"
@@ -412,9 +432,19 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
                         {/* Infos Tab */}
                         <TabsContent value="infos" className="outline-none animate-in fade-in-50 duration-500 space-y-8">
+                            {/* Generic Practical Info from Activity */}
+                            {displayPracticalInfo && (
+                                <div>
+                                    <h3 className="font-bold text-lg mb-3">Informations pratiques</h3>
+                                    <div className="prose prose-stone max-w-none text-gray-600 leading-relaxed bg-stone-50 p-6 rounded-xl border border-stone-100">
+                                        <PortableText value={displayPracticalInfo} />
+                                    </div>
+                                </div>
+                            )}
+
                             {displayLocationInfo && (
                                 <div>
-                                    <h3 className="font-bold text-lg mb-3">Informations d'accès</h3>
+                                    <h3 className="font-bold text-lg mb-3">Infos lieu de RDV (Séance)</h3>
                                     <div className="bg-stone-50 p-6 rounded-xl text-stone-700 leading-relaxed border-l-4 border-[var(--brand-water)]">
                                         {displayLocationInfo}
                                     </div>
@@ -438,10 +468,23 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                 </div>
                             )}
 
-                            {!displayLocationInfo && !displayLocationEmbedUrl && (
+                            {!displayPracticalInfo && !displayLocationInfo && !displayLocationEmbedUrl && (
                                 <p className="text-stone-400 italic">Pas d'informations spécifiques pour le moment.</p>
                             )}
                         </TabsContent>
+
+                        {/* Rental Tab */}
+                        {activity.hasRental && activity.rentalDescription && (
+                            <TabsContent value="rental" className="outline-none animate-in fade-in-50 duration-500">
+                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                                    <span className="w-8 h-1 bg-[var(--brand-rock)] rounded-full block"></span>
+                                    Location de matériel
+                                </h3>
+                                <div className="prose prose-stone max-w-none text-gray-600 leading-relaxed">
+                                    <PortableText value={activity.rentalDescription} />
+                                </div>
+                            </TabsContent>
+                        )}
 
                         {/* Reviews Tab */}
                         {activity.reviews && activity.reviews.length > 0 && (
@@ -517,30 +560,49 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                 {activity.upcomingEvents && activity.upcomingEvents.length > 0 ? (
                                     <div className="space-y-2">
                                         {activity.upcomingEvents.map((event: any) => (
-                                            <div key={event._id} className="flex items-center justify-between p-3 bg-stone-50 rounded-lg border border-stone-100">
-                                                <div className="flex flex-col">
-                                                    <div className="flex items-baseline gap-2 flex-wrap">
-                                                        <span className="font-bold text-stone-900">
-                                                            {new Date(event.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
-                                                            {event.title && <span className="font-normal text-stone-600 block text-xs">{event.title}</span>}
-                                                        </span>
-                                                        <span className="text-sm font-semibold text-[var(--brand-rock)]">{event.price}€</span>
-                                                    </div>
-                                                    <span className="text-xs text-stone-500">
-                                                        {event.seatsAvailable ?? (event.maxParticipants - (event.bookedCount || 0))} places restantes
+                                            <div key={event._id} className="flex items-center justify-between p-4 bg-stone-50 rounded-lg border border-stone-100 gap-4 transition-colors hover:bg-stone-100">
+                                                {/* Left: Date & Title & Seats */}
+                                                <div className="flex flex-col min-w-0 flex-1">
+                                                    <span className="font-bold text-stone-900 text-base">
+                                                        {new Date(event.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
                                                     </span>
+                                                    {event.title && (
+                                                        <span className="font-bold text-stone-800 text-sm mt-0.5">
+                                                            {event.title}
+                                                        </span>
+                                                    )}
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <span className="text-xs text-stone-500">
+                                                            {event.seatsAvailable ?? (event.maxParticipants - (event.bookedCount || 0))} places
+                                                        </span>
+                                                        {event.bookedCount === 0 && event.privatizationPrice > 0 && (
+                                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 uppercase tracking-wide">
+                                                                Privatisable
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <BookingButton
-                                                    eventId={event._id}
-                                                    activityTitle={activity.title}
-                                                    price={event.price}
-                                                    date={event.date}
-                                                    image={heroImage}
-                                                    size="sm"
-                                                    className="bg-[var(--brand-rock)] text-white hover:bg-stone-800"
-                                                >
-                                                    Réserver
-                                                </BookingButton>
+
+                                                {/* Center: Price */}
+                                                <div className="flex flex-col items-center justify-center shrink-0 px-2">
+                                                    <span className="font-bold text-xl text-[var(--brand-rock)]">{event.price}€</span>
+                                                    <span className="text-[10px] text-stone-400 uppercase font-medium">/pers</span>
+                                                </div>
+
+                                                {/* Right: Button */}
+                                                <div className="shrink-0">
+                                                    <BookingButton
+                                                        eventId={event._id}
+                                                        activityTitle={activity.title}
+                                                        price={event.price}
+                                                        date={event.date}
+                                                        image={heroImage}
+                                                        size="sm"
+                                                        className="bg-[var(--brand-rock)] text-white hover:bg-stone-800 shadow-sm"
+                                                    >
+                                                        Réserver
+                                                    </BookingButton>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>

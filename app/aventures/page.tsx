@@ -25,6 +25,12 @@ async function getActivities() {
                     level,
                     color
                 }
+            },
+            "difficulties": difficulties[]->{
+                title,
+                level,
+                color,
+                description
             }
         }
     `);
@@ -219,7 +225,11 @@ export default async function ActivitiesPage() {
                             Catalogue complet
                         </h2>
                         <Suspense fallback={<div>Chargement...</div>}>
-                            <ActivityFilterableList initialActivities={activities} />
+                            <ActivityFilterableList
+                                initialActivities={activities}
+                                hideElementFilter={true}
+                                hiddenFormats={['multi']}
+                            />
                         </Suspense>
                     </div>
                 </section>

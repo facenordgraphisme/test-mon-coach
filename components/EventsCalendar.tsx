@@ -65,6 +65,7 @@ export function EventsCalendar({ events }: { events: Event[] }) {
                                 hasEvent: "bg-[var(--brand-water)] font-bold text-white hover:bg-[var(--brand-water)]/90",
                                 today: "bg-emerald-100 text-emerald-900 font-bold border border-emerald-200"
                             }}
+                            locale={fr}
                         />
                     </div>
                     <div className="mt-6 px-4 space-y-3 text-sm text-stone-500 border-t border-stone-50 pt-4">

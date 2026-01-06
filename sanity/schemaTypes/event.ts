@@ -18,6 +18,20 @@ export const event = defineType({
             description: 'Ex: "Visite du Queyras". Si vide, seul le nom de l\'activité sera affiché.',
         }),
         defineField({
+            name: 'image',
+            title: 'Image spécifique (optionnel)',
+            type: 'image',
+            options: { hotspot: true },
+            description: "Si renseignée, remplace l'image par défaut de l'activité sur la page de réservation.",
+            fields: [
+                {
+                    name: 'alt',
+                    type: 'string',
+                    title: 'Texte alternatif',
+                }
+            ]
+        }),
+        defineField({
             name: 'date',
             title: 'Date et Heure',
             type: 'datetime',

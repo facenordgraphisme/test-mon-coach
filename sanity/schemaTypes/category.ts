@@ -24,5 +24,20 @@ export const category = defineType({
             title: 'Description',
             type: 'text',
         }),
+        defineField({
+            name: 'element',
+            title: 'Élément',
+            type: 'string',
+            options: {
+                list: [
+                    { title: 'Eau', value: 'eau' },
+                    { title: 'Terre', value: 'terre' },
+                    { title: 'Roche', value: 'roche' },
+                    { title: 'Neutre', value: 'neutre' },
+                ],
+                layout: 'radio'
+            },
+            initialValue: 'neutre'
+        }),
     ],
 })

@@ -4,19 +4,29 @@ import { useState, useEffect } from 'react';
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Activity {
     title: string;
     slug: string;
     format: string;
+    durationMode?: string | string[];
     difficulty?: {
         title: string;
         level: number;
         color: string;
+        description?: string;
     };
+    difficulties?: {
+        title: string;
+        level: number;
+        color: string;
+        description?: string;
+    }[];
     imageUrl?: string;
     categories?: {
         title: string;
+        element?: string;
     }[];
     upcomingEvents?: {
         price: number;
@@ -26,63 +36,116 @@ interface Activity {
             title: string;
             level: number;
             color: string;
+            description?: string;
         };
     }[];
 }
 
 interface ActivityFilterableListProps {
     initialActivities: Activity[];
-    hideFilters?: boolean;
+    hideFilters?: boolean; // Deprecated, strictly hides everything if true
+    hideFormatFilter?: boolean;
+    hideElementFilter?: boolean;
+    hiddenFormats?: string[];
 }
 
-export function ActivityFilterableList({ initialActivities, hideFilters = false }: ActivityFilterableListProps) {
+export function ActivityFilterableList({
+    initialActivities,
+    hideFilters = false,
+    hideFormatFilter = false,
+    hideElementFilter = false,
+    hiddenFormats = []
+}: ActivityFilterableListProps) {
     const searchParams = useSearchParams();
     const initialFilter = searchParams.get('format');
 
+    // Logic: if hideFilters is true, we effectively hide both.
+    const effectiveHideFormat = hideFilters || hideFormatFilter;
+    const effectiveHideElement = hideFilters || hideElementFilter;
+
+    // Map 'mono'/'duo' from URL to the correct initial state. Default to 'Tous'.
+
     // Map 'mono'/'duo' from URL to the correct initial state. Default to 'Tous'.
     // URL params are lowercase 'mono', 'duo'. internal state uses 'Tous', 'mono', 'duo', 'multi'
-    // If hideFilters is true, we assume the initialActivities are already filtered, so we default to 'Tous' (meaning "all of the provided")
-    const [filter, setFilter] = useState(initialFilter && !hideFilters ? initialFilter.toLowerCase() : 'Tous');
+    // If filters are hidden (format specifically), we assume pre-filtered or "Tous"
+    const [filter, setFilter] = useState(initialFilter && !effectiveHideFormat ? initialFilter.toLowerCase() : 'Tous');
+    const [activeElement, setActiveElement] = useState('Tous');
 
     useEffect(() => {
-        if (!hideFilters) {
+        if (!effectiveHideFormat) {
             const param = searchParams.get('format');
             if (param) {
                 setFilter(param.toLowerCase());
             }
         }
-    }, [searchParams, hideFilters]);
+    }, [searchParams, effectiveHideFormat]);
 
-    const filteredActivities = filter === 'Tous'
-        ? initialActivities
-        : initialActivities.filter(activity => activity.format === filter.toLowerCase());
+    const filteredActivities = initialActivities.filter(activity => {
+        // Filter by format
+        const matchesFormat = filter === 'Tous' || activity.format === filter.toLowerCase();
+
+        // Filter by element
+        // Match against 'element' field on category OR the category 'title' itself (e.g. if category is named "Eau")
+        const matchesElement = activeElement === 'Tous' || (
+            activity.categories && activity.categories.some(cat => {
+                const search = activeElement.toLowerCase();
+                return (
+                    (cat.element && cat.element.toLowerCase() === search) ||
+                    (cat.title && cat.title.toLowerCase() === search)
+                );
+            })
+        );
+
+        return matchesFormat && matchesElement;
+    });
 
     const filters = [
         { label: 'Tous', value: 'Tous' },
         { label: 'Mono', value: 'mono' },
         { label: 'Duo', value: 'duo' },
         { label: 'Multi', value: 'multi' },
-    ];
+    ].filter(f => !hiddenFormats.includes(f.value));
 
     return (
         <div>
             {/* Filters */}
-            {!hideFilters && (
-                <div className="mb-8 flex gap-2 overflow-x-auto pb-2">
-                    {filters.map((f) => (
-                        <button
-                            key={f.value}
-                            onClick={() => setFilter(f.value === 'Tous' ? 'Tous' : f.value)}
-                            className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors whitespace-nowrap ${(filter.toLowerCase() === f.value.toLowerCase() || (filter === 'Tous' && f.value === 'Tous'))
-                                ? 'bg-[var(--brand-rock)] text-white border-[var(--brand-rock)]'
-                                : 'border-stone-200 text-stone-600 hover:bg-stone-100'
-                                }`}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
-                </div>
-            )}
+            <div className="mb-8 space-y-4">
+                {/* Format Filters */}
+                {!effectiveHideFormat && (
+                    <div className="flex gap-2 overflow-x-auto pb-2">
+                        {filters.map((f) => (
+                            <button
+                                key={f.value}
+                                onClick={() => setFilter(f.value === 'Tous' ? 'Tous' : f.value)}
+                                className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors whitespace-nowrap ${(filter.toLowerCase() === f.value.toLowerCase() || (filter === 'Tous' && f.value === 'Tous'))
+                                    ? 'bg-[var(--brand-rock)] text-white border-[var(--brand-rock)]'
+                                    : 'border-stone-200 text-stone-600 hover:bg-stone-100'
+                                    }`}
+                            >
+                                {f.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                {/* Element Filters */}
+                {!effectiveHideElement && (
+                    <div className="flex gap-2 overflow-x-auto pb-2">
+                        {['Tous', 'Eau', 'Terre', 'Roche'].map((element) => (
+                            <button
+                                key={element}
+                                onClick={() => setActiveElement(element)}
+                                className={`px-4 py-1.5 rounded-full border text-xs font-bold uppercase tracking-wider transition-colors whitespace-nowrap ${activeElement === element
+                                    ? 'bg-[var(--brand-water)] text-white border-[var(--brand-water)]'
+                                    : 'border-stone-200 text-stone-500 hover:bg-stone-50'
+                                    }`}
+                            >
+                                {element}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
 
             {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -124,6 +187,24 @@ export function ActivityFilterableList({ initialActivities, hideFilters = false 
                                         <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-stone-900 shadow-sm border-0">
                                             {activity.format === 'mono' ? 'Mono' : activity.format === 'duo' ? 'Duo' : 'Multi'}
                                         </Badge>
+                                        {(() => {
+                                            const dm = activity.durationMode;
+                                            const hasMode = (mode: string) => Array.isArray(dm) ? dm.includes(mode) : dm === mode;
+
+                                            let badgeText = null;
+                                            if (hasMode('half_day') && hasMode('full_day')) badgeText = "1/2 ou Journée";
+                                            else if (hasMode('half_day')) badgeText = "1/2 Journée";
+                                            else if (hasMode('full_day')) badgeText = "Journée";
+
+                                            if (badgeText) {
+                                                return (
+                                                    <Badge variant="secondary" className="bg-[var(--brand-water)]/90 backdrop-blur-sm text-white shadow-sm border-0 ml-2">
+                                                        {badgeText}
+                                                    </Badge>
+                                                )
+                                            }
+                                            return null;
+                                        })()}
                                     </div>
                                 </div>
 
@@ -135,20 +216,25 @@ export function ActivityFilterableList({ initialActivities, hideFilters = false 
                                     </div>
 
                                     <div className="flex flex-wrap gap-2 mb-4">
-                                        {/* Difficulty Badge */}
-                                        {displayDifficulty && (
+                                        {/* Difficulty Badge(s) */}
+                                        {activity.difficulties && activity.difficulties.length > 0 ? (
+                                            activity.difficulties.map((diff, i) => (
+                                                <span key={i} className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-${diff.color}-100 text-${diff.color}-800`}>
+                                                    Niveau {diff.level}
+                                                </span>
+                                            ))
+                                        ) : displayDifficulty && (
                                             <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-${displayDifficulty.color}-100 text-${displayDifficulty.color}-800`}>
                                                 Niveau {displayDifficulty.level}
                                             </span>
                                         )}
 
                                         {/* Categories */}
-                                        {activity.categories && activity.categories.length > 0 && (
-                                            <span className="text-xs text-stone-500 bg-stone-100 px-2 py-0.5 rounded">
-                                                {activity.categories[0].title}
-                                                {activity.categories.length > 1 && ` +${activity.categories.length - 1}`}
+                                        {activity.categories && activity.categories.map((cat, i) => (
+                                            <span key={i} className="text-xs text-stone-500 bg-stone-100 px-2 py-0.5 rounded">
+                                                {cat.title}
                                             </span>
-                                        )}
+                                        ))}
                                     </div>
 
                                     <div className="flex justify-between items-center mt-6 pt-4 border-t border-stone-100">

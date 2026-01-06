@@ -44,15 +44,21 @@ async function getEventDetails(eventId: string) {
             providedEquipment,
             program,
             locationInfo,
+            locationInfo,
             locationEmbedUrl,
+            "eventImage": image.asset->url,
             activity->{
                 title,
                 requiresHeightWeight,
+                hasRental,
+                rentalDescription,
                 availableBikes[]->{
                     _id,
                     name,
+                    description,
                     priceHalfDay,
-                    priceFullDay
+                    priceFullDay,
+                    "imageUrl": image.asset->url
                 },
                 "imageUrl": mainImage.asset->url,
                 "categories": categories[]->{title},
@@ -72,10 +78,11 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
 
     const { activity } = event;
     const date = new Date(event.date);
+    const displayImage = event.eventImage || activity.imageUrl;
 
     return (
         <div className="min-h-screen bg-stone-50 py-24">
-            <div className="container px-4 md:px-6 mx-auto max-w-5xl">
+            <div className="container px-4 md:px-6 mx-auto">
 
                 {/* Back Link */}
                 <div className="mb-8">
@@ -87,37 +94,35 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-8">
-                        <div>
-                            <div className="flex gap-2 mb-4">
-                                {activity.categories && activity.categories.map((cat: { title: string }, i: number) => (
-                                    <Badge key={i} variant="outline" className="bg-white text-stone-500 border-stone-200">
-                                        {cat.title}
-                                    </Badge>
-                                ))}
+                        <div className="flex gap-2 mb-4">
+                            {activity.categories && activity.categories.map((cat: { title: string }, i: number) => (
+                                <Badge key={i} variant="outline" className="bg-white text-stone-500 border-stone-200">
+                                    {cat.title}
+                                </Badge>
+                            ))}
+                        </div>
+                        <h1 className="text-3xl md:text-5xl font-bold text-stone-900 mb-4">
+                            {event.title ? `${event.title} - ${activity.title}` : activity.title}
+                        </h1>
+                        <div className="flex flex-wrap gap-4 text-stone-600">
+                            <div className="flex items-center gap-2">
+                                <Calendar className="w-5 h-5 text-[var(--brand-water)]" />
+                                <span className="font-medium capitalize">
+                                    {format(date, 'EEEE d MMMM yyyy', { locale: fr })}
+                                </span>
                             </div>
-                            <h1 className="text-3xl md:text-5xl font-bold text-stone-900 mb-4">
-                                {event.title ? `${event.title} - ${activity.title}` : activity.title}
-                            </h1>
-                            <div className="flex flex-wrap gap-4 text-stone-600">
-                                <div className="flex items-center gap-2">
-                                    <Calendar className="w-5 h-5 text-[var(--brand-water)]" />
-                                    <span className="font-medium capitalize">
-                                        {format(date, 'EEEE d MMMM yyyy', { locale: fr })}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Clock className="w-5 h-5 text-[var(--brand-water)]" />
-                                    <span>{format(date, 'HH:mm')} • {activity.duration}</span>
-                                </div>
+                            <div className="flex items-center gap-2">
+                                <Clock className="w-5 h-5 text-[var(--brand-water)]" />
+                                <span>{format(date, 'HH:mm')} • {activity.duration}</span>
                             </div>
                         </div>
 
                         {/* Image */}
-                        {activity.imageUrl && (
+                        {displayImage && (
                             <div className="relative h-64 md:h-96 rounded-2xl overflow-hidden shadow-lg">
                                 <img
-                                    src={activity.imageUrl}
-                                    alt={activity.title}
+                                    src={displayImage}
+                                    alt={event.title || activity.title}
                                     className="w-full h-full object-cover"
                                 />
                             </div>
@@ -155,6 +160,14 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                     >
                                         Infos pratiques
                                     </TabsTrigger>
+                                    {activity.hasRental && (
+                                        <TabsTrigger
+                                            value="rental"
+                                            className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--brand-rock)] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-stone-600 data-[state=active]:text-[var(--brand-rock)] font-bold text-base bg-transparent"
+                                        >
+                                            Location (Matériel)
+                                        </TabsTrigger>
+                                    )}
                                     {activity.reviews && activity.reviews.length > 0 && (
                                         <TabsTrigger
                                             value="reviews"
@@ -273,6 +286,77 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                     )}
                                 </TabsContent>
 
+                                {/* Rental Tab */}
+                                {activity.hasRental && (
+                                    <TabsContent value="rental" className="outline-none animate-in fade-in-50 duration-500 space-y-8">
+                                        {activity.rentalDescription && (
+                                            <>
+                                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                                                    <span className="w-8 h-1 bg-[var(--brand-rock)] rounded-full block"></span>
+                                                    Location de matériel
+                                                </h3>
+                                                <div className="prose prose-stone max-w-none text-gray-600 leading-relaxed">
+                                                    <PortableText value={activity.rentalDescription} />
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {activity.availableBikes && activity.availableBikes.length > 0 && (
+                                            <div>
+                                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                                                    <span className="w-8 h-1 bg-[var(--brand-water)] rounded-full block"></span>
+                                                    Tarifs (Adaptés à la séance)
+                                                </h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    {activity.availableBikes.map((bike: any, i: number) => {
+                                                        const showHalfDay = event.duration === 'half_day';
+                                                        const showFullDay = event.duration === 'full_day';
+                                                        // Fallback: show both if unknown duration, or just show standard if flexible
+                                                        const showBoth = !showHalfDay && !showFullDay;
+
+                                                        return (
+                                                            <div key={i} className="bg-white rounded-xl overflow-hidden border border-stone-200 shadow-sm hover:shadow-md transition-shadow">
+                                                                {bike.imageUrl && (
+                                                                    <div className="h-48 overflow-hidden bg-stone-100">
+                                                                        <img
+                                                                            src={bike.imageUrl}
+                                                                            alt={bike.name}
+                                                                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                                                                        />
+                                                                    </div>
+                                                                )}
+                                                                <div className="p-5">
+                                                                    <h4 className="font-bold text-lg text-stone-900 mb-2">{bike.name}</h4>
+                                                                    {bike.description && (
+                                                                        <p className="text-stone-600 text-sm mb-4 line-clamp-2" title={bike.description}>
+                                                                            {bike.description}
+                                                                        </p>
+                                                                    )}
+                                                                    <div className="flex items-center justify-between pt-4 border-t border-stone-100">
+                                                                        {(showHalfDay || showBoth) && (
+                                                                            <div className="text-center flex-1">
+                                                                                <p className="text-xs text-stone-500 uppercase font-bold">1/2 Journée</p>
+                                                                                <p className="font-bold text-stone-900">{bike.priceHalfDay}€</p>
+                                                                            </div>
+                                                                        )}
+                                                                        {showBoth && <div className="w-px h-8 bg-stone-200 mx-2"></div>}
+                                                                        {(showFullDay || showBoth) && (
+                                                                            <div className="text-center flex-1">
+                                                                                <p className="text-xs text-stone-500 uppercase font-bold">Journée</p>
+                                                                                <p className="font-bold text-[var(--brand-rock)]">{bike.priceFullDay}€</p>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </TabsContent>
+                                )}
+
                                 {/* Reviews Tab */}
                                 {activity.reviews && activity.reviews.length > 0 && (
                                     <TabsContent value="reviews" className="outline-none animate-in fade-in-50 duration-500">
@@ -289,9 +373,9 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                                     <p className="text-stone-700 italic mb-4 leading-relaxed">"{review.text}"</p>
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 rounded-full bg-[var(--brand-rock)] text-white flex items-center justify-center font-bold text-xs">
-                                                            {review.author.charAt(0)}
+                                                            {review.author?.charAt(0) || '?'}
                                                         </div>
-                                                        <p className="text-stone-900 font-bold text-sm">{review.author}</p>
+                                                        <p className="text-stone-900 font-bold text-sm">{review.author || 'Anonyme'}</p>
                                                     </div>
                                                 </div>
                                             ))}
@@ -310,7 +394,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                 activityTitle={event.title ? `${event.title} - ${activity.title}` : activity.title}
                                 price={event.price} // Use event price
                                 date={event.date}
-                                image={activity.imageUrl}
+                                image={displayImage}
                                 maxParticipants={event.maxParticipants}
                                 seatsAvailable={event.seatsAvailable}
                                 bookedCount={event.bookedCount}

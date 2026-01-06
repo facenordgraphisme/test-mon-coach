@@ -32,6 +32,27 @@ export const activity = defineType({
             }
         }),
         defineField({
+            name: 'participantsRange',
+            title: 'Nombre de participants (Texte)',
+            description: 'Ex: "1 à 5 pers." ou "Groupe 4-12". Si vide, la valeur par défaut sera utilisée.',
+            type: 'string',
+        }),
+        defineField({
+            name: 'durationMode',
+            title: 'Mode de durée',
+            type: 'array',
+            of: [{ type: 'string' }],
+            options: {
+                list: [
+                    { title: 'Demi-journée', value: 'half_day' },
+                    { title: 'Journée', value: 'full_day' },
+                    { title: 'Variable / Autre', value: 'variable' },
+                ],
+                // layout: 'checkbox' removed as it is invalid. Default array UI will be used.
+            },
+            initialValue: ['variable']
+        }),
+        defineField({
             name: 'categories',
             title: 'Catégories',
             type: 'array',
@@ -49,6 +70,14 @@ export const activity = defineType({
             name: 'rentalDescription',
             title: 'Détails de la location',
             type: 'blockContent',
+            hidden: ({ document }) => !document?.hasRental
+        }),
+        defineField({
+            name: 'availableBikes',
+            title: 'Vélos disponibles à la location',
+            description: 'Sélectionnez les modèles de vélos proposés pour cette activité.',
+            type: 'array',
+            of: [{ type: 'reference', to: { type: 'bike' } }],
             hidden: ({ document }) => !document?.hasRental
         }),
 
@@ -88,12 +117,13 @@ export const activity = defineType({
             initialValue: false
         }),
         defineField({
-            name: 'availableBikes',
-            title: 'Vélos disponibles à la location',
-            description: 'Sélectionnez les modèles de vélos proposés pour cette activité.',
+            name: 'difficulties',
+            title: 'Niveaux de difficulté possibles',
+            description: 'Sélectionnez les niveaux de difficulté applicables à cette activité.',
             type: 'array',
-            of: [{ type: 'reference', to: { type: 'bike' } }]
+            of: [{ type: 'reference', to: { type: 'difficulty' } }]
         }),
+
 
         defineField({
             name: 'reviews',

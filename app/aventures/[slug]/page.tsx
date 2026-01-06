@@ -1,9 +1,9 @@
-import { client } from "@/lib/sanity";
+import { client, urlFor } from "@/lib/sanity";
 import { groq } from "next-sanity";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Users, CheckCircle2, ArrowRight } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, CheckCircle2, ArrowRight, Activity as ActivityIcon } from "lucide-react";
 import Link from "next/link";
 import { SiteFooter } from "@/components/SiteFooter";
 import { BookingButton } from "@/components/BookingButton";
@@ -22,6 +22,8 @@ async function getData(slug: string) {
             title,
             slug,
             format,
+            participantsRange,
+            durationMode,
             
             // Formula specific fields
             description, // Portable Text
@@ -30,6 +32,12 @@ async function getData(slug: string) {
 
             // Activity specific fields
             difficulty->{
+                title,
+                level,
+                color,
+                description
+            },
+            "difficulties": difficulties[]->{
                 title,
                 level,
                 color,
@@ -44,6 +52,13 @@ async function getData(slug: string) {
             "practicalInfo": practicalInfo,
             hasRental,
             rentalDescription,
+            "availableBikes": availableBikes[]->{
+                name,
+                description,
+                priceHalfDay,
+                priceFullDay,
+                image
+            },
 
             "upcomingEvents": *[_type == "event" && activity->slug.current == $slug && date >= now()] | order(date asc) [0...3] {
                 date,
@@ -109,8 +124,25 @@ async function getData(slug: string) {
                         color
                     },
                     "imageUrl": mainImage.asset->url,
-                    categories[]->{title},
-                    duration
+                    categories[]->{
+                        title,
+                        element
+                    },
+                    duration,
+                    durationMode,
+                    "difficulties": difficulties[]->{
+                        title,
+                        level,
+                        color
+                    },
+                    "upcomingEvents": *[_type == "event" && references(^._id) && date > now()] | order(date asc) {
+                        price,
+                        difficulty->{
+                            title,
+                            level,
+                            color
+                        }
+                    }
                 }
             }
         `, { format: doc.format });
@@ -129,6 +161,58 @@ function getMapSrc(input: string | undefined): string | undefined {
 }
 
 export const revalidate = 60;
+
+const ptComponents = {
+    types: {
+        image: ({ value }: any) => {
+            if (!value?.asset?._ref) {
+                return null;
+            }
+            return (
+                <div className="my-6 relative w-full flex justify-center">
+                    <img
+                        src={urlFor(value).url()}
+                        alt={value.alt || 'Image'}
+                        className="max-h-[500px] w-auto h-auto rounded-xl shadow-sm border border-stone-100"
+                    />
+                </div>
+            );
+        }
+    },
+    marks: {
+        link: ({ children, value }: any) => {
+            const rel = !value.href.startsWith('/') ? 'noreferrer noopener' : undefined;
+            const target = !value.href.startsWith('/') ? '_blank' : undefined;
+            return (
+                <a
+                    href={value.href}
+                    rel={rel}
+                    target={target}
+                    className="text-[var(--brand-water)] hover:underline font-medium transition-colors"
+                >
+                    {children}
+                </a>
+            );
+        },
+        strong: ({ children }: any) => <strong className="font-bold text-stone-900">{children}</strong>,
+    },
+    list: {
+        bullet: ({ children }: any) => <ul className="list-disc pl-5 space-y-2 my-4 text-stone-700">{children}</ul>,
+        number: ({ children }: any) => <ol className="list-decimal pl-5 space-y-2 my-4 text-stone-700">{children}</ol>,
+    },
+    listItem: {
+        bullet: ({ children }: any) => <li className="pl-1">{children}</li>,
+        number: ({ children }: any) => <li className="pl-1">{children}</li>,
+    },
+    block: {
+        h1: ({ children }: any) => <h1 className="text-3xl font-bold mt-8 mb-4 text-stone-900">{children}</h1>,
+        h2: ({ children }: any) => <h2 className="text-2xl font-bold mt-8 mb-4 text-stone-900 flex items-center gap-2"><span className="w-8 h-1 bg-[var(--brand-water)] rounded-full block"></span>{children}</h2>,
+        h3: ({ children }: any) => <h3 className="text-xl font-bold mt-6 mb-3 text-stone-900">{children}</h3>,
+        h4: ({ children }: any) => <h4 className="text-lg font-bold mt-4 mb-2 text-stone-900">{children}</h4>,
+        normal: ({ children }: any) => <p className="mb-4 leading-relaxed text-stone-600">{children}</p>,
+        blockquote: ({ children }: any) => <blockquote className="border-l-4 border-[var(--brand-water)] pl-4 italic my-6 bg-stone-50 py-3 rounded-r-lg text-stone-700">{children}</blockquote>,
+    }
+};
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
@@ -167,7 +251,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                     <div className="max-w-4xl mx-auto space-y-12">
                         {/* Description */}
                         <div className="prose prose-stone text-lg md:text-xl text-stone-700 text-center mx-auto">
-                            <PortableText value={formula.description} />
+                            <PortableText value={formula.description} components={ptComponents} />
                         </div>
 
                         {/* Benefits List */}
@@ -191,17 +275,6 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                     {/* Content based on Format */}
                     {formula.format !== 'multi' ? (
                         <>
-                            {/* Calendar */}
-                            <div className="space-y-8">
-                                <div className="text-center space-y-4">
-                                    <h2 className="text-3xl font-bold text-stone-900">Prochaines dates {formula.title}</h2>
-                                    <p className="text-stone-600 max-w-2xl mx-auto">
-                                        Retrouvez ici toutes les sessions programmées pour ce format.
-                                    </p>
-                                </div>
-                                <EventsCalendar events={formula.events} />
-                            </div>
-
                             {/* Activities List */}
                             <div className="space-y-8">
                                 <div className="text-center space-y-4">
@@ -211,8 +284,23 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                     </p>
                                 </div>
                                 <Suspense fallback={<div>Chargement...</div>}>
-                                    <ActivityFilterableList initialActivities={formula.activities} hideFilters={true} />
+                                    <ActivityFilterableList
+                                        initialActivities={formula.activities}
+                                        hideFormatFilter={true}
+                                        hideElementFilter={false}
+                                    />
                                 </Suspense>
+                            </div>
+
+                            {/* Calendar */}
+                            <div className="space-y-8">
+                                <div className="text-center space-y-4">
+                                    <h2 className="text-3xl font-bold text-stone-900">Prochaines dates {formula.title}</h2>
+                                    <p className="text-stone-600 max-w-2xl mx-auto">
+                                        Retrouvez ici toutes les sessions programmées pour ce format.
+                                    </p>
+                                </div>
+                                <EventsCalendar events={formula.events} />
                             </div>
                         </>
                     ) : (
@@ -241,9 +329,38 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     const displayEvent = activity.upcomingEvents && activity.upcomingEvents.length > 0 ? activity.upcomingEvents[0] : null;
 
     // Fallback or empty states if no events
-    // Fallback or empty states if no events
-    const displayDifficulty = activity.difficulty; // Prefer activity difficulty
-    const displayDuration = activity.duration || displayEvent?.duration || "Durée variable";
+    // Difficulty Logic: Prefer activity list, fallback to event default or null
+    let displayDifficultyLabel = "Niveau Variable";
+    if (activity.difficulties && activity.difficulties.length > 0) {
+        // Example: Sort by level and show range or list
+        const levels = activity.difficulties.map((d: any) => d.level).sort((a: any, b: any) => a - b);
+        if (levels.length > 1) {
+            displayDifficultyLabel = `Niveaux ${levels.join(', ')}`; // Simple comma list
+            // Or range: `Niveaux ${levels[0]} à ${levels[levels.length - 1]}`
+        } else {
+            displayDifficultyLabel = `Niveau ${levels[0]}`;
+        }
+    } else if (displayEvent?.difficulty) {
+        displayDifficultyLabel = `Niveau ${displayEvent.difficulty.level}`;
+    }
+
+    // Determine display duration based on mode
+    let displayDuration = activity.duration || displayEvent?.duration || "Durée variable";
+
+    // Helper to check duration mode safely (whether string, array, or undefined)
+    const hasMode = (mode: string) => {
+        if (Array.isArray(activity.durationMode)) return activity.durationMode.includes(mode);
+        return activity.durationMode === mode;
+    }
+
+    if (hasMode('half_day') && hasMode('full_day')) {
+        displayDuration = "Demi-journée ou Journée";
+    } else if (hasMode('half_day')) {
+        displayDuration = "Demi-journée";
+    } else if (hasMode('full_day')) {
+        displayDuration = "Journée";
+    }
+
     const displayDescription = activity.description || displayEvent?.description;
 
     // For these, we rely on the session (event) data as they are no longer on the activity
@@ -293,11 +410,33 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                             </div>
                             <div className="flex items-center gap-2">
                                 <Users className="w-5 h-5 text-[var(--brand-rock)]" />
-                                <span>1 à 5 pers.</span>
+                                <span>{activity.participantsRange || "1 à 5 pers."}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <MapPin className="w-5 h-5 text-[var(--brand-earth)]" />
                                 <span>Hautes-Alpes</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <TooltipProvider>
+                                    {(activity.difficulties && activity.difficulties.length > 0 ? activity.difficulties : (displayEvent?.difficulty ? [displayEvent.difficulty] : [])).map((diff: any, i: number) => (
+                                        <Tooltip key={i}>
+                                            <TooltipTrigger asChild>
+                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/20 backdrop-blur-md border border-white/30 text-white cursor-help hover:bg-white/30 transition-colors`}>
+                                                    Niveau {diff.level}
+                                                </span>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="bg-white text-stone-900 border border-stone-200 shadow-xl">
+                                                <div className="text-sm max-w-[200px] text-left">
+                                                    <p className="font-bold mb-1 pt-1 text-stone-900">{diff.title}</p>
+                                                    {diff.description && <p className="mb-2 text-xs font-normal text-stone-600">{diff.description}</p>}
+                                                    <Link href="/niveaux" className="text-[var(--brand-water)] hover:underline text-xs font-medium pb-1 block">
+                                                        En savoir plus
+                                                    </Link>
+                                                </div>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    ))}
+                                </TooltipProvider>
                             </div>
                         </div>
                     </div>
@@ -315,14 +454,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                             >
                                 L'expérience
                             </TabsTrigger>
-                            {displayProgram && (
-                                <TabsTrigger
-                                    value="program"
-                                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--brand-rock)] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-stone-600 data-[state=active]:text-[var(--brand-rock)] font-bold text-base bg-transparent"
-                                >
-                                    Au programme
-                                </TabsTrigger>
-                            )}
+
                             {(displayEquipment || displayProvidedEquipment) && (
                                 <TabsTrigger
                                     value="equipment"
@@ -331,12 +463,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                     Matériel
                                 </TabsTrigger>
                             )}
-                            <TabsTrigger
-                                value="infos"
-                                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--brand-rock)] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-stone-600 data-[state=active]:text-[var(--brand-rock)] font-bold text-base bg-transparent"
-                            >
-                                Infos pratiques
-                            </TabsTrigger>
+
                             {activity.hasRental && (
                                 <TabsTrigger
                                     value="rental"
@@ -363,31 +490,14 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                             </h2>
                             <div className="prose prose-stone max-w-none text-gray-600 leading-relaxed min-h-[200px]">
                                 {Array.isArray(displayDescription)
-                                    ? <PortableText value={displayDescription} />
+                                    ? <PortableText value={displayDescription} components={ptComponents} />
                                     : <p>Description détaillée à venir ou non disponible pour les sessions actuelles.</p>
                                 }
                             </div>
                         </TabsContent>
 
                         {/* Program Tab */}
-                        {displayProgram && (
-                            <TabsContent value="program" className="outline-none animate-in fade-in-50 duration-500">
-                                <h3 className="text-xl font-bold mb-6">Déroulement de la sortie</h3>
-                                <div className="space-y-8 border-l-2 border-stone-200 ml-3 pl-8 py-2 relative">
-                                    {displayProgram.map((step: any, i: number) => (
-                                        <div key={i} className="relative group">
-                                            <div className="absolute -left-[43px] top-1 w-7 h-7 rounded-full bg-white border-4 border-stone-100 group-hover:border-[var(--brand-water)] transition-colors flex items-center justify-center">
-                                                <div className="w-2 h-2 rounded-full bg-[var(--brand-water)]"></div>
-                                            </div>
-                                            <span className="inline-block px-2 py-1 bg-stone-100 text-[var(--brand-water)] text-xs font-bold rounded mb-2">
-                                                {step.time}
-                                            </span>
-                                            <h4 className="text-stone-900 font-bold text-lg mb-1">{step.description}</h4>
-                                        </div>
-                                    ))}
-                                </div>
-                            </TabsContent>
-                        )}
+
 
                         {/* Equipment Tab */}
                         {(displayEquipment || displayProvidedEquipment) && (
@@ -430,59 +540,82 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                             </TabsContent>
                         )}
 
-                        {/* Infos Tab */}
-                        <TabsContent value="infos" className="outline-none animate-in fade-in-50 duration-500 space-y-8">
-                            {/* Generic Practical Info from Activity */}
-                            {displayPracticalInfo && (
-                                <div>
-                                    <h3 className="font-bold text-lg mb-3">Informations pratiques</h3>
-                                    <div className="prose prose-stone max-w-none text-gray-600 leading-relaxed bg-stone-50 p-6 rounded-xl border border-stone-100">
-                                        <PortableText value={displayPracticalInfo} />
-                                    </div>
-                                </div>
-                            )}
 
-                            {displayLocationInfo && (
-                                <div>
-                                    <h3 className="font-bold text-lg mb-3">Infos lieu de RDV (Séance)</h3>
-                                    <div className="bg-stone-50 p-6 rounded-xl text-stone-700 leading-relaxed border-l-4 border-[var(--brand-water)]">
-                                        {displayLocationInfo}
-                                    </div>
-                                </div>
-                            )}
-
-                            {displayLocationEmbedUrl && (
-                                <div>
-                                    <h3 className="font-bold text-lg mb-3">Carte</h3>
-                                    <div className="aspect-video w-full rounded-xl overflow-hidden shadow-lg border border-stone-200 bg-stone-100">
-                                        <iframe
-                                            src={getMapSrc(displayLocationEmbedUrl)}
-                                            width="100%"
-                                            height="100%"
-                                            style={{ border: 0 }}
-                                            allowFullScreen
-                                            loading="lazy"
-                                            referrerPolicy="no-referrer-when-downgrade"
-                                        ></iframe>
-                                    </div>
-                                </div>
-                            )}
-
-                            {!displayPracticalInfo && !displayLocationInfo && !displayLocationEmbedUrl && (
-                                <p className="text-stone-400 italic">Pas d'informations spécifiques pour le moment.</p>
-                            )}
-                        </TabsContent>
 
                         {/* Rental Tab */}
-                        {activity.hasRental && activity.rentalDescription && (
-                            <TabsContent value="rental" className="outline-none animate-in fade-in-50 duration-500">
-                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                                    <span className="w-8 h-1 bg-[var(--brand-rock)] rounded-full block"></span>
-                                    Location de matériel
-                                </h3>
-                                <div className="prose prose-stone max-w-none text-gray-600 leading-relaxed">
-                                    <PortableText value={activity.rentalDescription} />
-                                </div>
+                        {activity.hasRental && (
+                            <TabsContent value="rental" className="outline-none animate-in fade-in-50 duration-500 space-y-8">
+                                {activity.rentalDescription && (
+                                    <>
+                                        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                                            <span className="w-8 h-1 bg-[var(--brand-rock)] rounded-full block"></span>
+                                            Location de matériel
+                                        </h3>
+                                        <div className="prose prose-stone max-w-none text-gray-600 leading-relaxed">
+                                            <PortableText value={activity.rentalDescription} components={ptComponents} />
+                                        </div>
+                                    </>
+                                )}
+
+                                {activity.availableBikes && activity.availableBikes.length > 0 && (
+                                    <div>
+                                        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                                            <span className="w-8 h-1 bg-[var(--brand-water)] rounded-full block"></span>
+                                            Tarifs
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            {activity.availableBikes.map((bike: any, i: number) => (
+                                                <div key={i} className="bg-white rounded-xl overflow-hidden border border-stone-200 shadow-sm hover:shadow-md transition-shadow">
+                                                    {bike.image && (
+                                                        <div className="h-48 overflow-hidden bg-stone-100">
+                                                            <img
+                                                                src={urlFor(bike.image).url()}
+                                                                alt={bike.name}
+                                                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    <div className="p-5">
+                                                        <h4 className="font-bold text-lg text-stone-900 mb-2">{bike.name}</h4>
+                                                        {bike.description && (
+                                                            <p className="text-stone-600 text-sm mb-4 line-clamp-2" title={bike.description}>
+                                                                {bike.description}
+                                                            </p>
+                                                        )}
+                                                        <div className="flex items-center justify-between pt-4 border-t border-stone-100">
+                                                            {/* Logic for Half Day */}
+                                                            {(
+                                                                (!activity.durationMode || (Array.isArray(activity.durationMode) ? activity.durationMode.includes('half_day') : activity.durationMode === 'half_day') || (Array.isArray(activity.durationMode) ? activity.durationMode.includes('variable') : activity.durationMode === 'variable'))
+                                                            ) && (
+                                                                    <div className="text-center flex-1">
+                                                                        <p className="text-xs text-stone-500 uppercase font-bold">1/2 Journée</p>
+                                                                        <p className="font-bold text-stone-900">{bike.priceHalfDay}€</p>
+                                                                    </div>
+                                                                )}
+
+                                                            {/* Divider if both shown */}
+                                                            {(
+                                                                (!activity.durationMode || (Array.isArray(activity.durationMode) ? (activity.durationMode.includes('half_day') && activity.durationMode.includes('full_day')) : activity.durationMode === 'variable'))
+                                                            ) && (
+                                                                    <div className="w-px h-8 bg-stone-200 mx-2"></div>
+                                                                )}
+
+                                                            {/* Logic for Full Day */}
+                                                            {(
+                                                                (!activity.durationMode || (Array.isArray(activity.durationMode) ? activity.durationMode.includes('full_day') : activity.durationMode === 'full_day') || (Array.isArray(activity.durationMode) ? activity.durationMode.includes('variable') : activity.durationMode === 'variable'))
+                                                            ) && (
+                                                                    <div className="text-center flex-1">
+                                                                        <p className="text-xs text-stone-500 uppercase font-bold">Journée</p>
+                                                                        <p className="font-bold text-[var(--brand-rock)]">{bike.priceFullDay}€</p>
+                                                                    </div>
+                                                                )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </TabsContent>
                         )}
 
@@ -528,27 +661,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                         }
                                     </p>
                                 </div>
-                                {displayDifficulty && (
-                                    <div className="text-right">
-                                        <div className={`text-${displayDifficulty.color}-600 font-bold`}>
-                                            Niveau {displayDifficulty.level}
-                                        </div>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <div className="text-xs text-stone-400 cursor-help border-b border-dashed border-stone-300 inline-block">
-                                                        {displayDifficulty.title}
-                                                    </div>
-                                                </TooltipTrigger>
-                                                {displayDifficulty.description && (
-                                                    <TooltipContent>
-                                                        <p className="max-w-xs text-sm">{displayDifficulty.description}</p>
-                                                    </TooltipContent>
-                                                )}
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    </div>
-                                )}
+
                             </div>
 
                             <div className="space-y-4">
@@ -570,6 +683,28 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                                         <span className="font-bold text-stone-800 text-sm mt-0.5">
                                                             {event.title}
                                                         </span>
+                                                    )}
+                                                    {event.difficulty && (
+                                                        <div className="mt-1">
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-${event.difficulty.color}-100 text-${event.difficulty.color}-800 cursor-help border border-${event.difficulty.color}-200`}>
+                                                                            Niveau {event.difficulty.level}
+                                                                        </span>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent className="bg-white text-stone-900 border border-stone-200 shadow-xl">
+                                                                        <div className="text-sm max-w-[200px] text-left">
+                                                                            <p className="font-bold mb-1 text-stone-900">{event.difficulty.title}</p>
+                                                                            {event.difficulty.description && <p className="mb-2 text-xs font-normal text-stone-600">{event.difficulty.description}</p>}
+                                                                            <Link href="/niveaux" className="text-[var(--brand-water)] hover:underline text-xs font-medium block">
+                                                                                En savoir plus
+                                                                            </Link>
+                                                                        </div>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                        </div>
                                                     )}
                                                     <div className="flex items-center gap-2 mt-1">
                                                         <span className="text-xs text-stone-500">
@@ -644,6 +779,6 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
             </main>
 
             <SiteFooter />
-        </div>
+        </div >
     )
 }

@@ -42,7 +42,7 @@ export default async function ActivitiesPage() {
             </header>
 
             <main className="flex-1 container mx-auto px-4 md:px-6 py-12">
-                <Suspense fallback={<div>Chargement...</div>}>
+                <Suspense fallback={<div>Chargement..</div>}>
                     <ActivityFilterableList initialActivities={activities} />
                 </Suspense>
             </main>

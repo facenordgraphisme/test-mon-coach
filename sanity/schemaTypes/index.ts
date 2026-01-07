@@ -11,6 +11,8 @@ import { formula } from './formula'
 import { levelsPage } from './levelsPage'
 import { review } from './review'
 import { accessPage } from './accessPage'
+import { legalPage } from './legalPage'
+import { cgvPage } from './cgvPage'
 import { blockContent } from './blockContent'
 
 export const schemaTypes: SchemaTypeDefinition[] = [
@@ -25,6 +27,8 @@ export const schemaTypes: SchemaTypeDefinition[] = [
     levelsPage,
     review,
     accessPage,
+    legalPage,
+    cgvPage,
     bike,
     blockContent,
 ]

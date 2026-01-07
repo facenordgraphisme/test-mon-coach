@@ -27,6 +27,8 @@ export const metadata: Metadata = {
 };
 
 import { Navbar } from "@/components/Navbar";
+import { CookieBanner } from "@/components/CookieBanner";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 
 export default function RootLayout({
   children,
@@ -40,6 +42,8 @@ export default function RootLayout({
       >
         <Navbar />
         <main className="flex-grow">{children}</main>
+        <GoogleAnalytics />
+        <CookieBanner />
       </body>
     </html>
   );

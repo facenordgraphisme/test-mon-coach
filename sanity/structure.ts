@@ -55,6 +55,24 @@ export const structure = (S: StructureBuilder) =>
                                         .documentId('accessPage')
                                         .title("Page Accès")
                                 ),
+                            S.listItem()
+                                .title("Mentions Légales")
+                                .icon(FileText)
+                                .child(
+                                    S.document()
+                                        .schemaType('legalPage')
+                                        .documentId('legalPage')
+                                        .title("Mentions Légales")
+                                ),
+                            S.listItem()
+                                .title("CGV")
+                                .icon(FileText)
+                                .child(
+                                    S.document()
+                                        .schemaType('cgvPage')
+                                        .documentId('cgvPage')
+                                        .title("Conditions Générales de Vente")
+                                ),
                             S.documentTypeListItem('formula').title('Formules').icon(BookOpen),
                             S.documentTypeListItem('guide').title('Profil Guide').icon(User),
                             S.documentTypeListItem('review').title('Avis Clients').icon(MessageSquare),

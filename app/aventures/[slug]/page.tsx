@@ -88,6 +88,9 @@ async function getData(slug: string) {
         }
     `, { slug });
 
+    // Fetch global page content (for overrides on specific slugs)
+    const pageContent = await client.fetch(groq`*[_type == "adventuresPage"][0]`);
+
     if (!doc) return null;
 
     // 2. If it's a Formula, we need to fetch related Events and Activities for that format
@@ -147,10 +150,10 @@ async function getData(slug: string) {
             }
         `, { format: doc.format });
 
-        return { ...doc, ...extraData };
+        return { ...doc, ...extraData, pageContent };
     }
 
-    return doc;
+    return { ...doc, pageContent };
 }
 
 function getMapSrc(input: string | undefined): string | undefined {
@@ -214,6 +217,77 @@ const ptComponents = {
     }
 };
 
+import { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+    const { slug } = await params;
+
+    // Fetch both the document and the page content
+    const data = await client.fetch(groq`{
+        "doc": *[( _type == "activity" || _type == "formula" ) && slug.current == $slug][0] {
+            title,
+            description,
+            "imageUrl": coalesce(mainImage.asset->url, heroImage.asset->url)
+        },
+        "pageContent": *[_type == "adventuresPage"][0] {
+            pageMonoSeoTitle,
+            pageMonoSeoDescription,
+            "pageMonoHeroImage": pageMonoHeroImage.asset->url,
+            pageDuoSeoTitle,
+            pageDuoSeoDescription,
+            "pageDuoHeroImage": pageDuoHeroImage.asset->url,
+            pageMultiSeoTitle,
+            pageMultiSeoDescription,
+            "pageMultiHeroImage": pageMultiHeroImage.asset->url
+        }
+    }`, { slug });
+
+    if (!data.doc) return {};
+
+    const { doc, pageContent } = data;
+    const isMono = slug === 'mono-activite';
+    const isDuo = slug === 'duo-activites';
+    const isMulti = slug === 'sur-mesure';
+
+    if (isMono && pageContent) {
+        return {
+            title: pageContent.pageMonoSeoTitle || doc.title,
+            description: pageContent.pageMonoSeoDescription || doc.description,
+            openGraph: {
+                images: pageContent.pageMonoHeroImage ? [pageContent.pageMonoHeroImage] : (doc.imageUrl ? [doc.imageUrl] : [])
+            }
+        }
+    }
+
+    if (isDuo && pageContent) {
+        return {
+            title: pageContent.pageDuoSeoTitle || doc.title,
+            description: pageContent.pageDuoSeoDescription || doc.description,
+            openGraph: {
+                images: pageContent.pageDuoHeroImage ? [pageContent.pageDuoHeroImage] : (doc.imageUrl ? [doc.imageUrl] : [])
+            }
+        }
+    }
+
+    if (isMulti && pageContent) {
+        return {
+            title: pageContent.pageMultiSeoTitle || doc.title,
+            description: pageContent.pageMultiSeoDescription || doc.description,
+            openGraph: {
+                images: pageContent.pageMultiHeroImage ? [pageContent.pageMultiHeroImage] : (doc.imageUrl ? [doc.imageUrl] : [])
+            }
+        }
+    }
+
+    return {
+        title: doc.title,
+        description: "Mon Coach Plein Air - Aventures dans les Hautes Alpes",
+        openGraph: {
+            images: doc.imageUrl ? [doc.imageUrl] : []
+        }
+    }
+}
+
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
     const data = await getData(slug);
@@ -222,19 +296,59 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         notFound();
     }
 
+    // --- GLOBAL OVERRIDES CALCULATION ---
+    const pc = data.pageContent || {};
+    const isMono = slug === 'mono-activite';
+    const isDuo = slug === 'duo-activites';
+    const isMulti = slug === 'sur-mesure';
+
+    let overrideTitle = null;
+    let overrideImage = null;
+    let overrideDesc = null;
+    let overrideBenefits = null;
+    let overrideSubtitle = null;
+
+    if (isMono) {
+        if (pc.pageMonoHeroTitle) overrideTitle = pc.pageMonoHeroTitle;
+        if (pc.pageMonoHeroImage) overrideImage = urlFor(pc.pageMonoHeroImage).url();
+        if (pc.pageMonoDescription) overrideDesc = pc.pageMonoDescription;
+        if (pc.pageMonoBenefits) overrideBenefits = pc.pageMonoBenefits;
+        if (pc.pageMonoHeroSubtitle) overrideSubtitle = pc.pageMonoHeroSubtitle;
+    } else if (isDuo) {
+        if (pc.pageDuoHeroTitle) overrideTitle = pc.pageDuoHeroTitle;
+        if (pc.pageDuoHeroImage) overrideImage = urlFor(pc.pageDuoHeroImage).url();
+        if (pc.pageDuoDescription) overrideDesc = pc.pageDuoDescription;
+        if (pc.pageDuoBenefits) overrideBenefits = pc.pageDuoBenefits;
+        if (pc.pageDuoHeroSubtitle) overrideSubtitle = pc.pageDuoHeroSubtitle;
+    } else if (isMulti) {
+        if (pc.pageMultiHeroTitle) overrideTitle = pc.pageMultiHeroTitle;
+        if (pc.pageMultiHeroImage) overrideImage = urlFor(pc.pageMultiHeroImage).url();
+        if (pc.pageMultiDescription) overrideDesc = pc.pageMultiDescription;
+        if (pc.pageMultiHeroSubtitle) overrideSubtitle = pc.pageMultiHeroSubtitle;
+    }
+
     // --- FORMULA VIEW ---
     if (data._type === 'formula') {
         const formula = data;
+
+        const displayTitle = overrideTitle || formula.title;
+        const displayImage = overrideImage || formula.imageUrl;
+        const displayDesc = overrideDesc || formula.description;
+        const displayBenefits = overrideBenefits || formula.benefits;
+        const displaySubtitle = overrideSubtitle || null;
+
         return (
             <main className="min-h-screen bg-stone-50">
+    // ... (rest of formula view uses these variables)
+
                 {/* Hero Section */}
                 <section className="relative h-[60vh] w-full overflow-hidden flex items-center justify-center">
                     <div className="absolute inset-0 z-0">
                         <div className="absolute inset-0 bg-black/40 z-10" />
-                        {formula.imageUrl ? (
+                        {displayImage ? (
                             <img
-                                src={formula.imageUrl}
-                                alt={formula.title}
+                                src={displayImage}
+                                alt={displayTitle}
                                 className="w-full h-full object-cover"
                             />
                         ) : (
@@ -242,7 +356,12 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                         )}
                     </div>
                     <div className="relative z-20 container px-4 text-center text-white">
-                        <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">{formula.title}</h1>
+                        <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">{displayTitle}</h1>
+                        {displaySubtitle && (
+                            <p className="text-lg md:text-xl max-w-2xl mx-auto opacity-90 text-stone-100 font-medium">
+                                {displaySubtitle}
+                            </p>
+                        )}
                     </div>
                 </section>
 
@@ -251,15 +370,15 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                     <div className="max-w-4xl mx-auto space-y-12">
                         {/* Description */}
                         <div className="prose prose-stone text-lg md:text-xl text-stone-700 text-center mx-auto">
-                            <PortableText value={formula.description} components={ptComponents} />
+                            <PortableText value={displayDesc} components={ptComponents} />
                         </div>
 
                         {/* Benefits List */}
-                        {formula.benefits && formula.benefits.length > 0 && (
+                        {displayBenefits && displayBenefits.length > 0 && (
                             <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-100">
                                 <h3 className="text-xl font-bold mb-6 text-center text-stone-900">Pourquoi choisir cette formule ?</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    {formula.benefits.map((benefit: string, i: number) => (
+                                    {displayBenefits.map((benefit: string, i: number) => (
                                         <div key={i} className="flex flex-col items-center text-center gap-3">
                                             <div className="w-12 h-12 rounded-full bg-[var(--brand-water)]/10 text-[var(--brand-water)] flex items-center justify-center">
                                                 <CheckCircle2 className="w-6 h-6" />
@@ -320,10 +439,11 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         )
     }
 
-    // --- ACTIVITY VIEW (Original) ---
+    // --- ACTIVITY VIEW ---
     const activity = data;
     // Remap imageUrl to mainImageUrl used in query for Consistency check or just use mainImageUrl
-    const heroImage = activity.mainImageUrl;
+    const heroImage = overrideImage || activity.mainImageUrl;
+    const displayTitle = overrideTitle || activity.title;
 
     // Choose the event to display details from (e.g., the first upcoming one)
     const displayEvent = activity.upcomingEvents && activity.upcomingEvents.length > 0 ? activity.upcomingEvents[0] : null;
@@ -402,15 +522,16 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                 </Badge>
                             ))}
                         </div>
-                        <h1 className="text-4xl md:text-6xl font-bold mb-4">{activity.title}</h1>
+                        <h1 className="text-4xl md:text-6xl font-bold mb-4">{displayTitle}</h1>
+                        {overrideSubtitle && (
+                            <p className="text-lg md:text-xl max-w-2xl opacity-90 text-stone-100 font-medium mb-6">
+                                {overrideSubtitle}
+                            </p>
+                        )}
                         <div className="flex flex-wrap gap-6 text-sm md:text-base text-gray-200">
                             <div className="flex items-center gap-2">
                                 <Clock className="w-5 h-5 text-[var(--brand-water)]" />
                                 <span>{displayDuration}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Users className="w-5 h-5 text-[var(--brand-rock)]" />
-                                <span>{activity.participantsRange || "1 à 5 pers."}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <MapPin className="w-5 h-5 text-[var(--brand-earth)]" />

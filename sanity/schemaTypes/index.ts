@@ -14,6 +14,8 @@ import { accessPage } from './accessPage'
 import { legalPage } from './legalPage'
 import { cgvPage } from './cgvPage'
 import { blockContent } from './blockContent'
+import { adventuresPage } from './adventuresPage'
+import { contactPage } from './contactPage'
 
 export const schemaTypes: SchemaTypeDefinition[] = [
     activity,
@@ -31,4 +33,6 @@ export const schemaTypes: SchemaTypeDefinition[] = [
     cgvPage,
     bike,
     blockContent,
+    adventuresPage,
+    contactPage,
 ]

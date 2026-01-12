@@ -73,7 +73,25 @@ export const structure = (S: StructureBuilder) =>
                                         .documentId('cgvPage')
                                         .title("Conditions Générales de Vente")
                                 ),
-                            S.documentTypeListItem('formula').title('Formules').icon(BookOpen),
+                            S.listItem()
+                                .title("Page Aventures")
+                                .icon(Map)
+                                .child(
+                                    S.document()
+                                        .schemaType('adventuresPage')
+                                        .documentId('adventuresPage')
+                                        .title("Page Aventures")
+                                ),
+                            S.listItem()
+                                .title("Page Contact")
+                                .icon(MessageSquare)
+                                .child(
+                                    S.document()
+                                        .schemaType('contactPage')
+                                        .documentId('contactPage')
+                                        .title("Page Contact")
+                                ),
+
                             S.documentTypeListItem('guide').title('Profil Guide').icon(User),
                             S.documentTypeListItem('review').title('Avis Clients').icon(MessageSquare),
                         ])

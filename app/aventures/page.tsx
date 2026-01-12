@@ -8,14 +8,13 @@ import { Mountain, Waves, Bike, Gem, Sun, Map, Zap, CheckCircle2, ArrowRight } f
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-async function getActivities() {
-    return client.fetch(groq`
-        *[_type == "activity"] | order(_createdAt desc) {
+async function getData() {
+    return client.fetch(groq`{
+        "activities": *[_type == "activity"] | order(_createdAt desc) {
             title,
             "slug": slug.current,
             format,
             "imageUrl": mainImage.asset->url,
-            // Fetch prices of upcoming events to determine "from" price
             "upcomingEvents": *[_type == "event" && activity._ref == ^._id && date >= now()] {
                 price,
                 title,
@@ -32,22 +31,74 @@ async function getActivities() {
                 color,
                 description
             }
+        },
+        "pageContent": *[_type == "adventuresPage"][0] {
+            heroTitle,
+            heroSubtitle,
+            heroLabel,
+            "heroImage": heroImage.asset->url,
+            monoTitle,
+            monoDescription,
+            monoButtonText,
+            monoFeatures,
+            duoTitle,
+            duoDescription,
+            duoQuote,
+            duoButtonText,
+            duoFavorites,
+            duoMalins,
+            duoMalinsText,
+            multiTitle,
+            multiDescription,
+            multiButtonText
         }
-    `);
+    }`);
 }
 
 export const revalidate = 60;
 
+
+export async function generateMetadata() {
+    const pageContent = await client.fetch(groq`*[_type == "adventuresPage"][0] {
+        seoTitle,
+        seoDescription,
+        "heroImage": heroImage.asset->url
+    }`);
+
+    if (!pageContent) return {};
+
+    return {
+        title: pageContent.seoTitle || "Nos Aventures | Mon Coach Plein Air",
+        description: pageContent.seoDescription || "Mono, Duo ou Multi. Choisissez l'intensité...",
+        openGraph: {
+            images: pageContent.heroImage ? [pageContent.heroImage] : [],
+        }
+    }
+}
+
 export default async function ActivitiesPage() {
-    const activities = await getActivities();
+    const { activities, pageContent } = await getData();
+
+    // Fallbacks if content is missing (prevents crash on first load before CMS entry)
+    const content = pageContent || {
+        heroTitle: "Nos Aventures",
+        heroSubtitle: "Mono, Duo ou Multi. Choisissez l'intensité...",
+        heroLabel: "EXPLOREZ",
+        monoTitle: "Le Mono-Activité",
+        monoButtonText: "Voir les Mono-Activités",
+        duoTitle: "Les Duos",
+        duoButtonText: "Tout savoir sur les Duos",
+        multiTitle: "Aventures Multi & Week-end",
+        multiButtonText: "Créer mon séjour sur-mesure"
+    };
 
     return (
         <div className="min-h-screen flex flex-col bg-stone-50">
             <PageHero
-                title="Nos Aventures"
-                subtitle="Mono, Duo ou Multi. Choisissez l'intensité, l'élément et le format qui vous correspond pour vivre les Hautes-Alpes intensément."
-                label="EXPLOREZ"
-                image="/assets/IMG_9526.JPG"
+                title={content.heroTitle}
+                subtitle={content.heroSubtitle}
+                label={content.heroLabel}
+                image={content.heroImage || "/assets/IMG_9526.JPG"}
             />
 
             <main className="flex-1">
@@ -58,50 +109,65 @@ export default async function ActivitiesPage() {
                         <div className="md:w-1/3">
                             <h2 className="text-3xl font-bold text-stone-900 mb-4 flex items-center gap-3">
                                 <span className="bg-stone-100 p-2 rounded-lg"><Gem className="w-6 h-6 text-[var(--brand-water)]" /></span>
-                                Le Mono-Activité
+                                {content.monoTitle}
                             </h2>
                             <p className="text-stone-600 leading-relaxed text-lg">
-                                Découvrir, vous perfectionner ou juste profiter d’un moment autour d’une activité, d’un élément.
-                                Pour une expérience unique, concentrée.
+                                {content.monoDescription}
                             </p>
                             <div className="mt-8">
                                 <Button asChild className="rounded-full bg-[var(--brand-water)] text-white hover:bg-[var(--brand-water)]/90">
                                     <Link href="/aventures/mono-activite">
-                                        Voir les Mono-Activités <ArrowRight className="ml-2 w-4 h-4" />
+                                        {content.monoButtonText} <ArrowRight className="ml-2 w-4 h-4" />
                                     </Link>
                                 </Button>
                             </div>
                         </div>
                         <div className="md:w-2/3 grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {/* Roche */}
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
-                                <Mountain className="w-8 h-8 text-stone-400 mb-4" />
-                                <h3 className="font-bold text-stone-900 mb-2">Roche</h3>
-                                <ul className="text-sm text-stone-600 space-y-1">
-                                    <li>Escalade</li>
-                                    <li>Via Ferrata</li>
-                                </ul>
-                            </div>
-                            {/* Eau */}
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
-                                <Waves className="w-8 h-8 text-[var(--brand-water)] mb-4" />
-                                <h3 className="font-bold text-stone-900 mb-2">Eau</h3>
-                                <ul className="text-sm text-stone-600 space-y-1">
-                                    <li>Canyon</li>
-                                    <li>Planche à voile</li>
-                                    <li>Kayak</li>
-                                </ul>
-                            </div>
-                            {/* Terre */}
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
-                                <Bike className="w-8 h-8 text-[var(--brand-rock)] mb-4" />
-                                <h3 className="font-bold text-stone-900 mb-2">Terre</h3>
-                                <ul className="text-sm text-stone-600 space-y-1">
-                                    <li>VTT</li>
-                                    <li>Vélo de route</li>
-                                    <li>Gravel</li>
-                                </ul>
-                            </div>
+                            {/* Dynamic Features if present, else fallback static */}
+                            {content.monoFeatures && content.monoFeatures.length > 0 ? (
+                                content.monoFeatures.map((feat: any, idx: number) => {
+                                    const Icon = feat.icon === 'waves' ? Waves : feat.icon === 'bike' ? Bike : Mountain;
+                                    const color = feat.icon === 'waves' ? 'text-[var(--brand-water)]' : feat.icon === 'bike' ? 'text-[var(--brand-rock)]' : 'text-stone-400';
+                                    return (
+                                        <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+                                            <Icon className={`w-8 h-8 mb-4 ${color}`} />
+                                            <h3 className="font-bold text-stone-900 mb-2">{feat.title}</h3>
+                                            <ul className="text-sm text-stone-600 space-y-1">
+                                                {feat.items && feat.items.map((it: string, i: number) => <li key={i}>{it}</li>)}
+                                            </ul>
+                                        </div>
+                                    )
+                                })
+                            ) : (
+                                <>
+                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+                                        <Mountain className="w-8 h-8 text-stone-400 mb-4" />
+                                        <h3 className="font-bold text-stone-900 mb-2">Roche</h3>
+                                        <ul className="text-sm text-stone-600 space-y-1">
+                                            <li>Escalade</li>
+                                            <li>Via Ferrata</li>
+                                        </ul>
+                                    </div>
+                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+                                        <Waves className="w-8 h-8 text-[var(--brand-water)] mb-4" />
+                                        <h3 className="font-bold text-stone-900 mb-2">Eau</h3>
+                                        <ul className="text-sm text-stone-600 space-y-1">
+                                            <li>Canyon</li>
+                                            <li>Planche à voile</li>
+                                            <li>Kayak</li>
+                                        </ul>
+                                    </div>
+                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+                                        <Bike className="w-8 h-8 text-[var(--brand-rock)] mb-4" />
+                                        <h3 className="font-bold text-stone-900 mb-2">Terre</h3>
+                                        <ul className="text-sm text-stone-600 space-y-1">
+                                            <li>VTT</li>
+                                            <li>Vélo de route</li>
+                                            <li>Gravel</li>
+                                        </ul>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -112,21 +178,19 @@ export default async function ActivitiesPage() {
                         <div className="max-w-4xl mx-auto space-y-12">
                             {/* Intro & Philosophy */}
                             <div className="text-center space-y-6">
-                                <h2 className="text-3xl md:text-4xl font-bold text-stone-900">Les Duos</h2>
+                                <h2 className="text-3xl md:text-4xl font-bold text-stone-900">{content.duoTitle}</h2>
                                 <p className="text-xl text-stone-600 leading-relaxed max-w-2xl mx-auto">
-                                    Combiner deux activités pour une expérience plus immersive, en harmonie avec la nature, et pousser un peu plus loin l’engagement physique.
+                                    {content.duoDescription}
                                 </p>
-                                <blockquote className="italic border-l-4 border-[var(--brand-water)] pl-6 text-left md:text-center md:border-l-0 md:border-t-4 md:pt-6 text-stone-800 font-medium text-lg bg-stone-50 p-6 rounded-r-xl md:rounded-xl inline-block">
-                                    « Le but c’est le chemin ! »
-                                </blockquote>
-                                <p className="text-stone-600">
-                                    Ici le vélo est utilisé comme un fabuleux moyen d’accéder aux sites d’escalade, de via ferrata ou encore au lac pour y naviguer. <br />
-                                    Selon votre condition physique et votre envie, choisissez le musculaire ou l’assistance électrique.
-                                </p>
+                                {content.duoQuote && (
+                                    <blockquote className="italic border-l-4 border-[var(--brand-water)] pl-6 text-left md:text-center md:border-l-0 md:border-t-4 md:pt-6 text-stone-800 font-medium text-lg bg-stone-50 p-6 rounded-r-xl md:rounded-xl inline-block">
+                                        « {content.duoQuote} »
+                                    </blockquote>
+                                )}
                                 <div className="pt-4">
                                     <Button asChild variant="outline" className="rounded-full border-[var(--brand-water)] text-[var(--brand-water)] hover:bg-[var(--brand-water)] hover:text-white">
                                         <Link href="/aventures/duo-activites">
-                                            Tout savoir sur les Duos <ArrowRight className="ml-2 w-4 h-4" />
+                                            {content.duoButtonText} <ArrowRight className="ml-2 w-4 h-4" />
                                         </Link>
                                     </Button>
                                 </div>
@@ -140,12 +204,21 @@ export default async function ActivitiesPage() {
                                         Mes combinaisons favorites
                                     </h3>
                                     <ul className="space-y-4">
-                                        {['Vélo + Escalade', 'Vélo + Via Ferrata', 'Vélo + Planche à voile'].map((item, i) => (
-                                            <li key={i} className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm">
-                                                <CheckCircle2 className="w-5 h-5 text-green-500" />
-                                                <span className="font-medium text-stone-700">{item}</span>
-                                            </li>
-                                        ))}
+                                        {content.duoFavorites && content.duoFavorites.length > 0 ? (
+                                            content.duoFavorites.map((item: string, i: number) => (
+                                                <li key={i} className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm">
+                                                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                                    <span className="font-medium text-stone-700">{item}</span>
+                                                </li>
+                                            ))
+                                        ) : (
+                                            ['Vélo + Escalade', 'Vélo + Via Ferrata', 'Vélo + Planche à voile'].map((item, i) => (
+                                                <li key={i} className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm">
+                                                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                                    <span className="font-medium text-stone-700">{item}</span>
+                                                </li>
+                                            ))
+                                        )}
                                     </ul>
                                 </div>
 
@@ -157,18 +230,25 @@ export default async function ActivitiesPage() {
                                             Les Duos Malins !
                                         </h3>
                                         <p className="text-white/90 text-sm mb-6 leading-relaxed">
-                                            Pour des après-midi rafraîchissantes. En été, on profite de la fraîcheur du matin pour rouler ou grimper, et dès que le vent se lève... Allons dans l’eau !
+                                            {content.duoMalinsText || "Pour des après-midi rafraîchissantes..."}
                                         </p>
                                         <ul className="space-y-2 text-sm font-medium">
-                                            <li className="flex items-center gap-2 text-white/80">
-                                                <div className="w-1.5 h-1.5 bg-white rounded-full" /> Vélo + Planche à voile
-                                            </li>
-                                            <li className="flex items-center gap-2 text-white/80">
-                                                <div className="w-1.5 h-1.5 bg-white rounded-full" /> Via Ferrata + Canyon
-                                            </li>
-                                            <li className="flex items-center gap-2 text-white/80">
-                                                <div className="w-1.5 h-1.5 bg-white rounded-full" /> Escalade + Planche à voile
-                                            </li>
+                                            {content.duoMalins && content.duoMalins.length > 0 ? (
+                                                content.duoMalins.map((item: string, i: number) => (
+                                                    <li key={i} className="flex items-center gap-2 text-white/80">
+                                                        <div className="w-1.5 h-1.5 bg-white rounded-full" /> {item}
+                                                    </li>
+                                                ))
+                                            ) : (
+                                                <>
+                                                    <li className="flex items-center gap-2 text-white/80">
+                                                        <div className="w-1.5 h-1.5 bg-white rounded-full" /> Vélo + Planche à voile
+                                                    </li>
+                                                    <li className="flex items-center gap-2 text-white/80">
+                                                        <div className="w-1.5 h-1.5 bg-white rounded-full" /> Via Ferrata + Canyon
+                                                    </li>
+                                                </>
+                                            )}
                                         </ul>
                                     </div>
                                     <Waves className="absolute -bottom-10 -right-10 w-48 h-48 text-white/10" />
@@ -185,16 +265,15 @@ export default async function ActivitiesPage() {
                             <div className="flex-1 space-y-6">
                                 <h2 className="text-3xl md:text-4xl font-bold text-white flex items-center gap-3 justify-center md:justify-start">
                                     <Map className="w-8 h-8 text-[var(--brand-rock)]" />
-                                    Aventures Multi & Week-end
+                                    {content.multiTitle}
                                 </h2>
                                 <p className="text-stone-300 text-lg leading-relaxed">
-                                    Construisons ensemble un week-end ou une semaine de folie dans les Hautes-Alpes, en adaptant le programme à vos envies.
-                                    Pour un voyage local, sportif, sur mesure et en pleine nature.
+                                    {content.multiDescription}
                                 </p>
                                 <div className="pt-2">
                                     <Button asChild className="rounded-full bg-white text-stone-900 hover:bg-stone-100">
                                         <Link href="/aventures/sur-mesure">
-                                            Créer mon séjour sur-mesure <ArrowRight className="ml-2 w-4 h-4" />
+                                            {content.multiButtonText} <ArrowRight className="ml-2 w-4 h-4" />
                                         </Link>
                                     </Button>
                                 </div>

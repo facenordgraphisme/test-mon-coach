@@ -28,6 +28,7 @@ export const structure = (S: StructureBuilder) =>
                     S.list()
                         .title('Pages & Contenu Site')
                         .items([
+                            // 1. Page d'accueil
                             S.listItem()
                                 .title("Page d'accueil")
                                 .icon(Home)
@@ -37,51 +38,50 @@ export const structure = (S: StructureBuilder) =>
                                         .documentId('homepage')
                                         .title("Page d'accueil")
                                 ),
+                            // 2. Page Mono-Activité
                             S.listItem()
-                                .title("Page Niveaux")
+                                .title("Page Mono-Activité")
                                 .icon(Zap)
                                 .child(
                                     S.document()
-                                        .schemaType('levelsPage')
-                                        .documentId('levelsPage')
-                                        .title("Page Niveaux")
+                                        .schemaType('monoActivitePage')
+                                        .documentId('monoActivitePage')
+                                        .title("Page Mono-Activité")
                                 ),
+                            // 3. Page Duo-Activités
                             S.listItem()
-                                .title("Page Accès")
+                                .title("Page Duo-Activités")
+                                .icon(Tags)
+                                .child(
+                                    S.document()
+                                        .schemaType('duoActivitesPage')
+                                        .documentId('duoActivitesPage')
+                                        .title("Page Duo-Activités")
+                                ),
+                            // 4. Page Sur-Mesure
+                            S.listItem()
+                                .title("Page Sur-Mesure")
                                 .icon(Map)
                                 .child(
                                     S.document()
-                                        .schemaType('accessPage')
-                                        .documentId('accessPage')
-                                        .title("Page Accès")
+                                        .schemaType('surMesurePage')
+                                        .documentId('surMesurePage')
+                                        .title("Page Sur-Mesure")
                                 ),
+                            // 5. Page Calendrier
                             S.listItem()
-                                .title("Mentions Légales")
-                                .icon(FileText)
+                                .title('Page Calendrier')
                                 .child(
                                     S.document()
-                                        .schemaType('legalPage')
-                                        .documentId('legalPage')
-                                        .title("Mentions Légales")
+                                        .schemaType('calendarPage')
+                                        .documentId('pageCalendrier')
                                 ),
-                            S.listItem()
-                                .title("CGV")
-                                .icon(FileText)
-                                .child(
-                                    S.document()
-                                        .schemaType('cgvPage')
-                                        .documentId('cgvPage')
-                                        .title("Conditions Générales de Vente")
-                                ),
-                            S.listItem()
-                                .title("Page Aventures")
-                                .icon(Map)
-                                .child(
-                                    S.document()
-                                        .schemaType('adventuresPage')
-                                        .documentId('adventuresPage')
-                                        .title("Page Aventures")
-                                ),
+                            // 6. Page Profil Guide (List)
+                            S.documentTypeListItem('guide')
+                                .title('Page Profil Guide')
+                                .icon(User),
+
+                            // 7. Page Contact
                             S.listItem()
                                 .title("Page Contact")
                                 .icon(MessageSquare)
@@ -91,9 +91,68 @@ export const structure = (S: StructureBuilder) =>
                                         .documentId('contactPage')
                                         .title("Page Contact")
                                 ),
+                            // 8. Page Niveaux
+                            S.listItem()
+                                .title("Page Niveaux")
+                                .icon(Zap)
+                                .child(
+                                    S.document()
+                                        .schemaType('levelsPage')
+                                        .documentId('levelsPage')
+                                        .title("Page Niveaux")
+                                ),
+                            // 9. Page Accès
+                            S.listItem()
+                                .title("Page Accès")
+                                .icon(Map)
+                                .child(
+                                    S.document()
+                                        .schemaType('accessPage')
+                                        .documentId('accessPage')
+                                        .title("Page Accès")
+                                ),
+                            // 10. Page Avis Client (Singleton)
+                            S.listItem()
+                                .title('Page Avis Client')
+                                .icon(MessageSquare)
+                                .child(
+                                    S.document()
+                                        .schemaType('reviewsPage')
+                                        .documentId('reviewsPage')
+                                        .title('Page Avis Client')
+                                ),
+                            // 11. Page Mentions Légales
+                            S.listItem()
+                                .title("Page Mentions Légales")
+                                .icon(FileText)
+                                .child(
+                                    S.document()
+                                        .schemaType('legalPage')
+                                        .documentId('legalPage')
+                                        .title("Mentions Légales")
+                                ),
+                            // 12. Page CGV
+                            S.listItem()
+                                .title("Page CGV")
+                                .icon(FileText)
+                                .child(
+                                    S.document()
+                                        .schemaType('cgvPage')
+                                        .documentId('cgvPage')
+                                        .title("Conditions Générales de Vente")
+                                ),
 
-                            S.documentTypeListItem('guide').title('Profil Guide').icon(User),
-                            S.documentTypeListItem('review').title('Avis Clients').icon(MessageSquare),
+                            S.divider(),
+                            // 13. Paramètres Footer / Réseaux
+                            S.listItem()
+                                .title("Paramètres du Site (Footer)")
+                                .icon(Settings)
+                                .child(
+                                    S.document()
+                                        .schemaType('siteSettings')
+                                        .documentId('siteSettings')
+                                        .title("Paramètres du Site")
+                                ),
                         ])
                 ),
 
@@ -111,7 +170,9 @@ export const structure = (S: StructureBuilder) =>
                             S.divider(),
                             S.documentTypeListItem('activity').title('Activités').icon(Activity),
                             S.documentTypeListItem('bike').title('Vélos (Matériel)').icon(Bike),
+
                             S.divider(),
+                            S.documentTypeListItem('review').title('Avis Clients (Data)').icon(MessageSquare),
                             S.documentTypeListItem('difficulty').title('Niveaux de difficulté').icon(Zap),
                             S.documentTypeListItem('category').title('Catégories').icon(Tags),
                         ])

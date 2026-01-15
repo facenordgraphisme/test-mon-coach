@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react"
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
+import { motion, AnimatePresence } from "framer-motion"
 
 export function Navbar() {
     const pathname = usePathname()
@@ -27,7 +28,7 @@ export function Navbar() {
     const navLinks = [
         { href: "/", label: "Accueil" },
         {
-            href: "/aventures",
+            href: "#",
             label: "Aventures",
             children: [
                 { href: "/aventures/mono-activite", label: "Mono-activité" },
@@ -62,7 +63,7 @@ export function Navbar() {
             <div className="container px-4 md:px-6 flex items-center justify-between">
 
                 {/* Logo */}
-                <Link href="/" className="relative h-20 w-64">
+                <Link href="/" className="relative h-14 w-40 md:h-16 md:w-52">
                     <Image
                         src="/assets/logo-v2.png"
                         alt="Mon Coach Plein Air"
@@ -78,13 +79,15 @@ export function Navbar() {
                 {/* Desktop Nav */}
                 <nav className="hidden md:flex items-center gap-8">
                     {navLinks.map((link) => (
-                        <div key={link.href} className="relative group">
+                        <div key={link.label} className="relative group">
                             <Link
                                 href={link.href}
+                                onClick={(e) => link.href === '#' && e.preventDefault()}
                                 className={cn(
                                     "text-sm font-medium hover:opacity-70 transition-opacity flex items-center gap-1",
                                     pathname === link.href ? "underline underline-offset-4 decoration-2 decoration-[var(--brand-water)]" : "",
-                                    showScrolledState ? "text-stone-700" : "text-gray-100"
+                                    showScrolledState ? "text-stone-700" : "text-gray-100",
+                                    link.href === '#' && "cursor-default"
                                 )}
                             >
                                 {link.label}
@@ -99,7 +102,7 @@ export function Navbar() {
                                     <div className="bg-white rounded-xl shadow-xl border border-stone-100 overflow-hidden min-w-[200px] py-1">
                                         {link.children.map((subLink) => (
                                             <Link
-                                                key={subLink.href}
+                                                key={subLink.label}
                                                 href={subLink.href}
                                                 className="block px-6 py-3 text-sm text-stone-700 hover:bg-stone-50 hover:text-[var(--brand-water)] transition-colors whitespace-nowrap"
                                             >
@@ -118,46 +121,79 @@ export function Navbar() {
 
                 {/* Mobile Toggle */}
                 <button
-                    className="md:hidden p-2"
+                    className="md:hidden p-2 relative z-50"
                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 >
-                    {mobileMenuOpen ? (
-                        <X className={cn("w-6 h-6", showScrolledState ? "text-stone-900" : "text-white")} />
-                    ) : (
-                        <Menu className={cn("w-6 h-6", showScrolledState ? "text-stone-900" : "text-white")} />
-                    )}
+                    <AnimatePresence mode="wait">
+                        {mobileMenuOpen ? (
+                            <motion.div
+                                key="close"
+                                initial={{ rotate: -90, opacity: 0 }}
+                                animate={{ rotate: 0, opacity: 1 }}
+                                exit={{ rotate: 90, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <X className={cn("w-6 h-6", (showScrolledState || mobileMenuOpen) ? "text-stone-900" : "text-white")} />
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="menu"
+                                initial={{ rotate: 90, opacity: 0 }}
+                                animate={{ rotate: 0, opacity: 1 }}
+                                exit={{ rotate: -90, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <Menu className={cn("w-6 h-6", showScrolledState ? "text-stone-900" : "text-white")} />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </button>
 
                 {/* Mobile Menu Overlay */}
-                {mobileMenuOpen && (
-                    <div className="absolute top-full left-0 right-0 bg-white border-b border-stone-100 p-6 flex flex-col gap-4 shadow-xl md:hidden animate-in slide-in-from-top-2 max-h-[80vh] overflow-y-auto">
-                        {navLinks.map((link) => (
-                            <div key={link.href}>
-                                <Link
-                                    href={link.href}
-                                    className="block text-lg font-bold text-stone-800 py-2 border-b border-stone-50"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    {link.label}
-                                </Link>
-                                {link.children && (
-                                    <div className="pl-4 mt-2 space-y-2 border-l-2 border-stone-100 ml-2">
-                                        {link.children.map((subLink) => (
-                                            <Link
-                                                key={subLink.href}
-                                                href={subLink.href}
-                                                className="block text-base text-stone-600 py-1"
-                                                onClick={() => setMobileMenuOpen(false)}
-                                            >
-                                                {subLink.label}
-                                            </Link>
-                                        ))}
+                <AnimatePresence>
+                    {mobileMenuOpen && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="absolute top-full left-0 right-0 bg-white border-b border-stone-100 shadow-xl md:hidden overflow-hidden"
+                        >
+                            <div className="p-6 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
+                                {navLinks.map((link) => (
+                                    <div key={link.label}>
+                                        <Link
+                                            href={link.href}
+                                            className="block text-lg font-bold text-stone-800 py-2 border-b border-stone-50"
+                                            onClick={() => {
+                                                if (link.href !== '#') setMobileMenuOpen(false)
+                                            }}
+                                        >
+                                            {link.label}
+                                        </Link>
+                                        {link.children && (
+                                            <div className="pl-4 mt-2 space-y-2 border-l-2 border-stone-100 ml-2">
+                                                {link.children.map((subLink) => (
+                                                    <Link
+                                                        key={subLink.label}
+                                                        href={subLink.href}
+                                                        className="block text-base text-stone-600 py-1"
+                                                        onClick={() => setMobileMenuOpen(false)}
+                                                    >
+                                                        {subLink.label}
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
+                                ))}
+                                <Button asChild size="lg" className="w-full mt-4 bg-stone-900 text-white rounded-xl">
+                                    <Link href="/calendrier" onClick={() => setMobileMenuOpen(false)}>Réserver une aventure</Link>
+                                </Button>
                             </div>
-                        ))}
-                    </div>
-                )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </header>
     )

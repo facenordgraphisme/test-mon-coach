@@ -2,21 +2,24 @@ import { client, urlFor } from "@/lib/sanity";
 import { groq } from "next-sanity";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Users, CheckCircle2, ArrowRight, Activity as ActivityIcon } from "lucide-react";
+import { Clock, MapPin, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { SiteFooter } from "@/components/SiteFooter";
-import { BookingButton } from "@/components/BookingButton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventsCalendar } from "@/components/EventsCalendar";
 import { ActivityFilterableList } from "@/components/ActivityFilterableList";
+import { BookingButton } from "@/components/BookingButton";
+import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Suspense } from 'react';
 import { PortableText } from '@portabletext/react';
 import { generateSeoMetadata } from "@/lib/seo";
+import { ptComponents } from "@/components/PortableTextComponents";
+import { Metadata } from "next";
 
 async function getData(slug: string) {
-    // 1. Try to find an Activity or a Formula with this slug
+    // Default Behavior: Activity or Formula documents
     const doc = await client.fetch(groq`
         *[( _type == "activity" || _type == "formula" ) && slug.current == $slug][0] {
             _type,
@@ -46,10 +49,7 @@ async function getData(slug: string) {
             },
             "mainImageUrl": mainImage.asset->url,
             "categories": categories[]->{title},
-            // price removed
             duration,
-            // description (shared name but potentially different content type if not careful, likely block array for both)
-            description,
             "practicalInfo": practicalInfo,
             hasRental,
             rentalDescription,
@@ -72,7 +72,11 @@ async function getData(slug: string) {
                 seatsAvailable,
                 maxParticipants,
                 privatizationPrice,
-                difficulty->,
+                difficulty->{
+                    title,
+                    level,
+                    color
+                },
                 duration,
                 description,
                 program,
@@ -90,12 +94,9 @@ async function getData(slug: string) {
         }
     `, { slug });
 
-    // Fetch global page content (for overrides on specific slugs)
-    const pageContent = await client.fetch(groq`*[_type == "adventuresPage"][0]`);
-
     if (!doc) return null;
 
-    // 2. If it's a Formula, we need to fetch related Events and Activities for that format
+    // 2. If it's a Formula (generic), fetch extras.
     if (doc._type === 'formula') {
         const extraData = await client.fetch(groq`
             {
@@ -152,126 +153,29 @@ async function getData(slug: string) {
             }
         `, { format: doc.format });
 
-        return { ...doc, ...extraData, pageContent };
+        return { ...doc, ...extraData };
     }
 
-    return { ...doc, pageContent };
-}
+    // Fetch Site Settings for Card Button
+    const settings = await client.fetch(groq`*[_type == "siteSettings"][0] { cardButtonText }`, {}, { next: { revalidate: 0 } });
 
-function getMapSrc(input: string | undefined): string | undefined {
-    if (!input) return undefined;
-    const srcMatch = input.match(/src=["']([^"']+)["']/);
-    if (srcMatch) return srcMatch[1];
-    return input.split('"')[0].split(' ')[0];
+    return { ...doc, cardButtonText: settings?.cardButtonText };
 }
 
 export const revalidate = 60;
 
-const ptComponents = {
-    types: {
-        image: ({ value }: any) => {
-            if (!value?.asset?._ref) {
-                return null;
-            }
-            return (
-                <div className="my-6 relative w-full flex justify-center">
-                    <img
-                        src={urlFor(value).url()}
-                        alt={value.alt || 'Image'}
-                        className="max-h-[500px] w-auto h-auto rounded-xl shadow-sm border border-stone-100"
-                    />
-                </div>
-            );
-        }
-    },
-    marks: {
-        link: ({ children, value }: any) => {
-            const rel = !value.href.startsWith('/') ? 'noreferrer noopener' : undefined;
-            const target = !value.href.startsWith('/') ? '_blank' : undefined;
-            return (
-                <a
-                    href={value.href}
-                    rel={rel}
-                    target={target}
-                    className="text-[var(--brand-water)] hover:underline font-medium transition-colors"
-                >
-                    {children}
-                </a>
-            );
-        },
-        strong: ({ children }: any) => <strong className="font-bold text-stone-900">{children}</strong>,
-    },
-    list: {
-        bullet: ({ children }: any) => <ul className="list-disc pl-5 space-y-2 my-4 text-stone-700">{children}</ul>,
-        number: ({ children }: any) => <ol className="list-decimal pl-5 space-y-2 my-4 text-stone-700">{children}</ol>,
-    },
-    listItem: {
-        bullet: ({ children }: any) => <li className="pl-1">{children}</li>,
-        number: ({ children }: any) => <li className="pl-1">{children}</li>,
-    },
-    block: {
-        h1: ({ children }: any) => <h1 className="text-3xl font-bold mt-8 mb-4 text-stone-900">{children}</h1>,
-        h2: ({ children }: any) => <h2 className="text-2xl font-bold mt-8 mb-4 text-stone-900 flex items-center gap-2"><span className="w-8 h-1 bg-[var(--brand-water)] rounded-full block"></span>{children}</h2>,
-        h3: ({ children }: any) => <h3 className="text-xl font-bold mt-6 mb-3 text-stone-900">{children}</h3>,
-        h4: ({ children }: any) => <h4 className="text-lg font-bold mt-4 mb-2 text-stone-900">{children}</h4>,
-        normal: ({ children }: any) => <p className="mb-4 leading-relaxed text-stone-600">{children}</p>,
-        blockquote: ({ children }: any) => <blockquote className="border-l-4 border-[var(--brand-water)] pl-4 italic my-6 bg-stone-50 py-3 rounded-r-lg text-stone-700">{children}</blockquote>,
-    }
-};
-
-import { Metadata } from "next";
-
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const { slug } = await params;
 
-    // Fetch both the document and the page content
-    const data = await client.fetch(groq`{
-        "doc": *[( _type == "activity" || _type == "formula" ) && slug.current == $slug][0] {
+    // Default for Activity / other Formula documents
+    const doc = await client.fetch(groq`
+        *[( _type == "activity" || _type == "formula" ) && slug.current == $slug][0] {
             title,
             description,
             "imageUrl": coalesce(mainImage.asset->url, heroImage.asset->url),
             seo
-        },
-        "pageContent": *[_type == "adventuresPage"][0] {
-            pageMonoSeo,
-            "pageMonoHeroImage": pageMonoHeroImage.asset->url,
-            pageDuoSeo,
-            "pageDuoHeroImage": pageDuoHeroImage.asset->url,
-            pageMultiSeo,
-            "pageMultiHeroImage": pageMultiHeroImage.asset->url
         }
-    }`, { slug });
-
-    if (!data.doc && slug !== 'mono-activite' && slug !== 'duo-activites' && slug !== 'sur-mesure') return {};
-
-    const { doc, pageContent } = data;
-    const isMono = slug === 'mono-activite';
-    const isDuo = slug === 'duo-activites';
-    const isMulti = slug === 'sur-mesure';
-
-    if (isMono && pageContent) {
-        return generateSeoMetadata(pageContent.pageMonoSeo, {
-            title: doc?.title || "Mono-Activité",
-            description: doc?.description || "Découvrir, vous perfectionner ou juste profiter d’un moment autour d’une activité.",
-            url: `https://moncoachpleinair.com/aventures/${slug}`
-        });
-    }
-
-    if (isDuo && pageContent) {
-        return generateSeoMetadata(pageContent.pageDuoSeo, {
-            title: doc?.title || "Duo-Activités",
-            description: doc?.description || "La combinaison des activités rend l’expérience extraordinaire.",
-            url: `https://moncoachpleinair.com/aventures/${slug}`
-        });
-    }
-
-    if (isMulti && pageContent) {
-        return generateSeoMetadata(pageContent.pageMultiSeo, {
-            title: doc?.title || "Sur-mesure",
-            description: doc?.description || "Aventures Multi & Week-end.",
-            url: `https://moncoachpleinair.com/aventures/${slug}`
-        });
-    }
+    `, { slug });
 
     return generateSeoMetadata(doc?.seo, {
         title: doc?.title,
@@ -288,56 +192,26 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         notFound();
     }
 
-    // --- GLOBAL OVERRIDES CALCULATION ---
-    const pc = data.pageContent || {};
-    const isMono = slug === 'mono-activite';
-    const isDuo = slug === 'duo-activites';
-    const isMulti = slug === 'sur-mesure';
-
-    let overrideTitle = null;
-    let overrideImage = null;
-    let overrideDesc = null;
-    let overrideBenefits = null;
-    let overrideSubtitle = null;
-
-    if (isMono) {
-        if (pc.pageMonoHeroTitle) overrideTitle = pc.pageMonoHeroTitle;
-        if (pc.pageMonoHeroImage) overrideImage = urlFor(pc.pageMonoHeroImage).url();
-        if (pc.pageMonoDescription) overrideDesc = pc.pageMonoDescription;
-        if (pc.pageMonoBenefits) overrideBenefits = pc.pageMonoBenefits;
-        if (pc.pageMonoHeroSubtitle) overrideSubtitle = pc.pageMonoHeroSubtitle;
-    } else if (isDuo) {
-        if (pc.pageDuoHeroTitle) overrideTitle = pc.pageDuoHeroTitle;
-        if (pc.pageDuoHeroImage) overrideImage = urlFor(pc.pageDuoHeroImage).url();
-        if (pc.pageDuoDescription) overrideDesc = pc.pageDuoDescription;
-        if (pc.pageDuoBenefits) overrideBenefits = pc.pageDuoBenefits;
-        if (pc.pageDuoHeroSubtitle) overrideSubtitle = pc.pageDuoHeroSubtitle;
-    } else if (isMulti) {
-        if (pc.pageMultiHeroTitle) overrideTitle = pc.pageMultiHeroTitle;
-        if (pc.pageMultiHeroImage) overrideImage = urlFor(pc.pageMultiHeroImage).url();
-        if (pc.pageMultiDescription) overrideDesc = pc.pageMultiDescription;
-        if (pc.pageMultiHeroSubtitle) overrideSubtitle = pc.pageMultiHeroSubtitle;
-    }
-
-    // --- FORMULA VIEW ---
+    // --- FORMULA VIEW (Generic) ---
     if (data._type === 'formula') {
         const formula = data;
 
-        const displayTitle = overrideTitle || formula.title;
-        const displayImage = overrideImage || formula.imageUrl;
-        const displayDesc = overrideDesc || formula.description;
-        const displayBenefits = overrideBenefits || formula.benefits;
-        const displaySubtitle = overrideSubtitle || null;
+        const displayTitle = formula.title || formula.subtitle;
+        const displayImage = formula.imageUrl;
+        const displayDesc = formula.description;
+        const displayBenefits = formula.benefits;
+        const displaySubtitle = formula.subtitle;
         const customJsonLd = formula?.seo?.structuredData ? JSON.parse(formula.seo.structuredData) : null;
 
 
         return (
             <main className="min-h-screen bg-stone-50">
-                <script
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
-                />
-
+                {customJsonLd && (
+                    <script
+                        type="application/ld+json"
+                        dangerouslySetInnerHTML={{ __html: JSON.stringify(customJsonLd) }}
+                    />
+                )}
 
                 {/* Hero Section */}
                 <section className="relative h-[60vh] w-full overflow-hidden flex items-center justify-center">
@@ -389,49 +263,34 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                         )}
                     </div>
 
-                    {/* Content based on Format */}
-                    {formula.format !== 'multi' ? (
-                        <>
-                            {/* Activities List */}
-                            <div className="space-y-8">
-                                <div className="text-center space-y-4">
-                                    <h2 className="text-3xl font-bold text-stone-900">Toutes les activités {formula.title}</h2>
-                                    <p className="text-stone-600 max-w-2xl mx-auto">
-                                        Explorez notre catalogue complet.
-                                    </p>
-                                </div>
-                                <Suspense fallback={<div>Chargement...</div>}>
-                                    <ActivityFilterableList
-                                        initialActivities={formula.activities}
-                                        hideFormatFilter={true}
-                                        hideElementFilter={false}
-                                    />
-                                </Suspense>
-                            </div>
-
-                            {/* Calendar */}
-                            <div className="space-y-8">
-                                <div className="text-center space-y-4">
-                                    <h2 className="text-3xl font-bold text-stone-900">Prochaines dates {formula.title}</h2>
-                                    <p className="text-stone-600 max-w-2xl mx-auto">
-                                        Retrouvez ici toutes les sessions programmées pour ce format.
-                                    </p>
-                                </div>
-                                <EventsCalendar events={formula.events} />
-                            </div>
-                        </>
-                    ) : (
-                        /* Sur-Mesure / Multi Layout */
-                        <div className="text-center space-y-8 bg-white p-12 rounded-2xl shadow-sm border border-stone-100 max-w-4xl mx-auto">
-                            <h2 className="text-3xl font-bold text-stone-900">Votre Aventure Unique</h2>
-                            <p className="text-stone-600 text-lg">
-                                Pour les projets multi-activités, les groupes ou les demandes spécifiques, nous construisons le programme ensemble.
+                    {/* Generic Formula Layout */}
+                    {/* Activities List */}
+                    <div className="space-y-8">
+                        <div className="text-center space-y-4">
+                            <h2 className="text-3xl font-bold text-stone-900">Toutes les activités {formula.title}</h2>
+                            <p className="text-stone-600 max-w-2xl mx-auto">
+                                Explorez notre catalogue complet.
                             </p>
-                            <Button asChild size="lg" className="bg-[var(--brand-water)] text-white hover:brightness-90 px-8 text-lg">
-                                <Link href="/contact">Contacter le Guide</Link>
-                            </Button>
                         </div>
-                    )}
+                        <Suspense fallback={<div>Chargement...</div>}>
+                            <ActivityFilterableList
+                                initialActivities={formula.activities}
+                                hideFormatFilter={true}
+                                hideElementFilter={false}
+                            />
+                        </Suspense>
+                    </div>
+
+                    {/* Calendar */}
+                    <div className="space-y-8">
+                        <div className="text-center space-y-4">
+                            <h2 className="text-3xl font-bold text-stone-900">Prochaines dates {formula.title}</h2>
+                            <p className="text-stone-600 max-w-2xl mx-auto">
+                                Retrouvez ici toutes les sessions programmées pour ce format.
+                            </p>
+                        </div>
+                        <EventsCalendar events={formula.events} />
+                    </div>
                 </div>
             </main>
         )
@@ -440,8 +299,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     // --- ACTIVITY VIEW ---
     const activity = data;
     // Remap imageUrl to mainImageUrl used in query for Consistency check or just use mainImageUrl
-    const heroImage = overrideImage || activity.mainImageUrl;
-    const displayTitle = overrideTitle || activity.title;
+    const heroImage = activity.mainImageUrl;
+    const displayTitle = activity.title;
 
     // Choose the event to display details from (e.g., the first upcoming one)
     const displayEvent = activity.upcomingEvents && activity.upcomingEvents.length > 0 ? activity.upcomingEvents[0] : null;
@@ -494,10 +353,13 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
     return (
         <div className="min-h-screen bg-white">
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
-            />
+            {customJsonLd && (
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(customJsonLd) }}
+                />
+            )}
+
             {/* Hero Header */}
             <div className="relative h-[60vh] md:h-[70vh]">
                 {heroImage ? (
@@ -526,11 +388,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                             ))}
                         </div>
                         <h1 className="text-4xl md:text-6xl font-bold mb-4">{displayTitle}</h1>
-                        {overrideSubtitle && (
-                            <p className="text-lg md:text-xl max-w-2xl opacity-90 text-stone-100 font-medium mb-6">
-                                {overrideSubtitle}
-                            </p>
-                        )}
+                        {/* Subtitle removed as it was only an override in previous logic */}
                         <div className="flex flex-wrap gap-6 text-sm md:text-base text-gray-200">
                             <div className="flex items-center gap-2">
                                 <Clock className="w-5 h-5 text-[var(--brand-water)]" />
@@ -771,138 +629,102 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                     </Tabs>
                 </div>
 
-                {/* Sidebar / Sticky Booking */}
-                <div className="relative">
-                    <div className="sticky top-24 space-y-6">
-                        <div className="bg-white rounded-2xl border border-stone-200 shadow-xl p-6">
-                            <div className="flex justify-between items-end mb-6">
-                                <div>
-                                    <p className="text-stone-500 text-sm">Prix par personne à partir de</p>
-                                    <p className="text-3xl font-bold text-stone-900">
-                                        {activity.upcomingEvents && activity.upcomingEvents.length > 0
-                                            ? `${Math.min(...activity.upcomingEvents.map((e: any) => e.price))}€`
-                                            : <span className="text-xl">Sur devis / Voir calendrier</span>
-                                        }
-                                    </p>
-                                </div>
 
-                            </div>
+                {/* Sidebar */}
+                <div className="hidden lg:block space-y-8">
+                    <div className="sticky top-32 space-y-8">
+                        {/* Next Events Card */}
+                        <div className="bg-white p-6 rounded-2xl border border-stone-100 shadow-sm">
+                            <h3 className="font-bold text-xl mb-6 text-stone-900">Prochains départs</h3>
 
-                            <div className="space-y-4">
-                                <h4 className="font-bold text-stone-900 flex items-center gap-2">
-                                    <Calendar className="w-4 h-4 text-[var(--brand-water)]" />
-                                    Prochaines dates
-                                </h4>
-
-                                {activity.upcomingEvents && activity.upcomingEvents.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {activity.upcomingEvents.map((event: any) => (
-                                            <div key={event._id} className="flex items-center justify-between p-4 bg-stone-50 rounded-lg border border-stone-100 gap-4 transition-colors hover:bg-stone-100">
-                                                {/* Left: Date & Title & Seats */}
-                                                <div className="flex flex-col min-w-0 flex-1">
-                                                    <span className="font-bold text-stone-900 text-base">
-                                                        {new Date(event.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
-                                                    </span>
-                                                    {event.title && (
-                                                        <span className="font-bold text-stone-800 text-sm mt-0.5">
-                                                            {event.title}
-                                                        </span>
-                                                    )}
-                                                    {event.difficulty && (
-                                                        <div className="mt-1">
-                                                            <TooltipProvider>
-                                                                <Tooltip>
-                                                                    <TooltipTrigger asChild>
-                                                                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-${event.difficulty.color}-100 text-${event.difficulty.color}-800 cursor-help border border-${event.difficulty.color}-200`}>
-                                                                            Niveau {event.difficulty.level}
-                                                                        </span>
-                                                                    </TooltipTrigger>
-                                                                    <TooltipContent className="bg-white text-stone-900 border border-stone-200 shadow-xl">
-                                                                        <div className="text-sm max-w-[200px] text-left">
-                                                                            <p className="font-bold mb-1 text-stone-900">{event.difficulty.title}</p>
-                                                                            {event.difficulty.description && <p className="mb-2 text-xs font-normal text-stone-600">{event.difficulty.description}</p>}
-                                                                            <Link href="/niveaux" className="text-[var(--brand-water)] hover:underline text-xs font-medium block">
-                                                                                En savoir plus
-                                                                            </Link>
-                                                                        </div>
-                                                                    </TooltipContent>
-                                                                </Tooltip>
-                                                            </TooltipProvider>
+                            {activity.upcomingEvents && activity.upcomingEvents.length > 0 ? (
+                                <div className="space-y-4">
+                                    {activity.upcomingEvents.map((event: any) => (
+                                        <div key={event._id} className="pb-4 border-b border-stone-100 last:border-0 last:pb-0">
+                                            <div className="flex gap-4">
+                                                {/* Thumbnail */}
+                                                <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 bg-stone-100">
+                                                    {(activity.mainImageUrl || activity.imageUrl) ? (
+                                                        <img
+                                                            src={activity.mainImageUrl || activity.imageUrl}
+                                                            alt={event.title || activity.title}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-stone-300">
+                                                            <MapPin className="w-6 h-6" />
                                                         </div>
                                                     )}
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        <span className="text-xs text-stone-500">
-                                                            {event.seatsAvailable ?? (event.maxParticipants - (event.bookedCount || 0))} places
-                                                        </span>
-                                                        {event.bookedCount === 0 && event.privatizationPrice > 0 && (
-                                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 uppercase tracking-wide">
-                                                                Privatisable
+                                                </div>
+
+                                                {/* Details */}
+                                                <div className="flex-1 space-y-1">
+                                                    <h4 className="font-bold text-stone-900 leading-tight">
+                                                        {event.title || activity.title}
+                                                    </h4>
+
+                                                    <p className="text-sm text-stone-500 capitalize">
+                                                        {format(new Date(event.date), 'EEEE d MMMM', { locale: fr })}
+                                                    </p>
+                                                    <p className="text-xs text-stone-400">
+                                                        {format(new Date(event.date), 'HH:mm')}
+                                                    </p>
+
+                                                    {event.difficulty && (
+                                                        <div className="pt-1">
+                                                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-${event.difficulty.color}-100 text-${event.difficulty.color}-700`}>
+                                                                Niveau {event.difficulty.level}
                                                             </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {/* Center: Price */}
-                                                <div className="flex flex-col items-center justify-center shrink-0 px-2">
-                                                    <span className="font-bold text-xl text-[var(--brand-rock)]">{event.price}€</span>
-                                                    <span className="text-[10px] text-stone-400 uppercase font-medium">/pers</span>
-                                                </div>
-
-                                                {/* Right: Button */}
-                                                <div className="shrink-0">
-                                                    <BookingButton
-                                                        eventId={event._id}
-                                                        activityTitle={activity.title}
-                                                        price={event.price}
-                                                        date={event.date}
-                                                        image={heroImage}
-                                                        size="sm"
-                                                        className="bg-[var(--brand-rock)] text-white hover:bg-stone-800 shadow-sm"
-                                                    >
-                                                        Réserver
-                                                    </BookingButton>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-sm text-stone-500 italic bg-stone-50 p-4 rounded-lg text-center">
-                                        Pas de date confirmée pour le moment.
-                                    </div>
-                                )}
 
-                                <div className="pt-2 border-t border-stone-100">
-                                    <Button className="w-full" variant="outline" asChild>
+                                            <div className="flex items-center justify-between mt-4">
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-lg text-[var(--brand-rock)]">{event.price}€</span>
+                                                    <span className="text-[10px] text-stone-400">
+                                                        {event.seatsAvailable !== undefined ? `${event.seatsAvailable} places` : 'Places dispos'}
+                                                    </span>
+                                                </div>
+                                                <BookingButton
+                                                    eventId={event._id}
+                                                    activityTitle={activity.title}
+                                                    price={event.price}
+                                                    date={event.date}
+                                                    className="h-9 px-4 text-xs bg-[var(--brand-water)] hover:brightness-90 text-white"
+                                                >
+                                                    {data.cardButtonText || "Réserver"}
+                                                </BookingButton>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <Button asChild variant="outline" className="w-full mt-4">
                                         <Link href="/calendrier">Voir tout le calendrier</Link>
                                     </Button>
                                 </div>
-                                <Button className="w-full bg-[var(--brand-water)] hover:brightness-90 text-white transition-all" asChild>
-                                    <Link href="/contact">Demander une date sur-mesure</Link>
-                                </Button>
+                            ) : (
+                                <div className="text-center py-8">
+                                    <p className="text-stone-500 mb-4">Pas de dates prévues prochainement.</p>
+                                    <Button asChild className="w-full bg-[var(--brand-rock)] hover:bg-[var(--brand-rock)]/90 text-white">
+                                        <Link href="/contact">Demander une date</Link>
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
 
-
+                        {/* Practical Info Card (Restored/Added) */}
+                        {displayPracticalInfo && (
+                            <div className="bg-stone-50 p-6 rounded-2xl border border-stone-100">
+                                <h3 className="font-bold text-lg mb-4 text-[var(--brand-rock)]">Infos Pratiques</h3>
+                                <div className="prose prose-sm prose-stone text-stone-600">
+                                    <PortableText value={displayPracticalInfo} components={ptComponents} />
+                                </div>
                             </div>
-
-                            <p className="mt-4 text-xs text-center text-stone-400">
-                                Paiement sécurisé via Stripe • Annulation flexible
-                            </p>
-                        </div>
-
-                        {/* Guide Teaser */}
-                        <div className="bg-stone-900 text-white p-6 rounded-2xl">
-                            <h4 className="font-bold text-lg mb-2">Votre Guide</h4>
-                            <p className="text-stone-300 text-sm mb-4">
-                                "Je vous accompagne pour vivre une expérience authentique, en sécurité et dans la bonne humeur."
-                            </p>
-                            <Link href="/guide" className="text-sm underline decoration-[var(--brand-water)] underline-offset-4 hover:text-[var(--brand-water)]">
-                                Lire ma bio &rarr;
-                            </Link>
-                        </div>
+                        )}
                     </div>
                 </div>
             </main>
-
-            <SiteFooter />
-        </div >
-    )
+        </div>
+    );
 }

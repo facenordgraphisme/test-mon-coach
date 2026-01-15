@@ -14,10 +14,16 @@ import { accessPage } from './accessPage'
 import { legalPage } from './legalPage'
 import { cgvPage } from './cgvPage'
 import { blockContent } from './blockContent'
-import { adventuresPage } from './adventuresPage'
+// adventuresPage, // Decommissioned
 import { contactPage } from './contactPage'
 import { reviewsPage } from './reviewsPage'
+import { calendarPage } from './calendarPage'
 import { seo } from './seo'
+import { monoActivitePage } from './monoActivitePage'
+import { duoActivitesPage } from './duoActivitesPage'
+import { surMesurePage } from './surMesurePage'
+
+import { siteSettings } from './siteSettings'
 
 export const schemaTypes: SchemaTypeDefinition[] = [
     activity,
@@ -35,8 +41,13 @@ export const schemaTypes: SchemaTypeDefinition[] = [
     cgvPage,
     bike,
     blockContent,
-    adventuresPage,
+    // adventuresPage, // Decommissioned
     contactPage,
     reviewsPage,
+    calendarPage,
     seo,
+    monoActivitePage,
+    duoActivitesPage,
+    surMesurePage,
+    siteSettings
 ]

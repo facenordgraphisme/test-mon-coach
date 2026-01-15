@@ -54,7 +54,8 @@ export function ActivityFilterableList({
     hideFilters = false,
     hideFormatFilter = false,
     hideElementFilter = false,
-    hiddenFormats = []
+    hiddenFormats = [],
+    buttonText
 }: ActivityFilterableListProps) {
     const searchParams = useSearchParams();
     const initialFilter = searchParams.get('format');
@@ -248,7 +249,7 @@ export function ActivityFilterableList({
                                                 <span className="text-sm font-normal text-stone-500">Sur devis / Voir calendrier</span>
                                             )}
                                         </span>
-                                        <span className="text-sm font-medium text-[var(--brand-water)] group-hover:underline">Réserver</span>
+                                        <span className="text-sm font-medium text-[var(--brand-water)] group-hover:underline">{buttonText || "Réserver"}</span>
                                     </div>
                                 </div>
                             </Link>

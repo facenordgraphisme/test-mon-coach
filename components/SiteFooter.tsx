@@ -4,8 +4,8 @@ import { Instagram, Facebook, Linkedin, Mail, MapPin, Phone, Train, Car } from "
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 
-async function getAccessData() {
-    return client.fetch(groq`
+async function getFooterData() {
+    const accessData = await client.fetch(groq`
         *[_type == "accessPage"][0] {
             "accessMethods": accessMethods[0...3] {
                 title,
@@ -13,11 +13,34 @@ async function getAccessData() {
             }
         }
     `, {}, { next: { revalidate: 10 } });
+
+    const settingsData = await client.fetch(groq`
+        *[_type == "siteSettings"][0] {
+            footerText,
+            email,
+            phone,
+            address,
+            socialLinks
+        }
+    `, {}, { next: { revalidate: 10 } });
+
+    return { accessData, settingsData };
 }
 
 export async function SiteFooter() {
     const currentYear = new Date().getFullYear();
-    const accessData = await getAccessData();
+    const { accessData, settingsData } = await getFooterData();
+
+    // Icon helper
+    const getSocialIcon = (platform: string) => {
+        switch (platform?.toLowerCase()) {
+            case 'instagram': return <Instagram className="w-5 h-5" />;
+            case 'facebook': return <Facebook className="w-5 h-5" />;
+            case 'linkedin': return <Linkedin className="w-5 h-5" />;
+            // default to Link icon if unknown
+            default: return <Link className="w-5 h-5" />;
+        }
+    };
 
     return (
         <footer className="bg-stone-950 text-stone-300 py-16 md:py-24 border-t border-stone-800">
@@ -35,11 +58,23 @@ export async function SiteFooter() {
                             />
                         </Link>
                         <p className="text-stone-400 text-sm leading-relaxed max-w-sm">
-                            Des expériences exclusives en Hautes-Alpes, pensées pour vous reconnecter à la nature.
+                            {settingsData?.footerText || "Des expériences exclusives en Hautes-Alpes, pensées pour vous reconnecter à la nature."}
                         </p>
                         <div className="flex gap-4 pt-2">
-                            <SocialLink href="#" icon={<Instagram className="w-5 h-5" />} label="Instagram" />
-                            <SocialLink href="#" icon={<Facebook className="w-5 h-5" />} label="Facebook" />
+                            {settingsData?.socialLinks?.map((social: any, i: number) => (
+                                <SocialLink
+                                    key={i}
+                                    href={social.url || '#'}
+                                    icon={getSocialIcon(social.platform)}
+                                    label={social.platform}
+                                />
+                            ))}
+                            {!settingsData?.socialLinks && (
+                                <>
+                                    <SocialLink href="#" icon={<Instagram className="w-5 h-5" />} label="Instagram" />
+                                    <SocialLink href="#" icon={<Facebook className="w-5 h-5" />} label="Facebook" />
+                                </>
+                            )}
                         </div>
                     </div>
 
@@ -93,12 +128,22 @@ export async function SiteFooter() {
                         <ul className="space-y-4 text-stone-400 text-sm">
                             <li className="flex items-start gap-3">
                                 <MapPin className="w-5 h-5 text-stone-500 shrink-0" />
-                                <span>Hautes-Alpes</span>
+                                <span>{settingsData?.address || "Hautes-Alpes"}</span>
                             </li>
                             <li className="flex items-center gap-3">
                                 <Mail className="w-5 h-5 text-stone-500 shrink-0" />
-                                <a href="mailto:hello@moncoach.com" className="hover:text-white transition-colors truncate">contact@...</a>
+                                <a href={`mailto:${settingsData?.email || 'hello@moncoach.com'}`} className="hover:text-white transition-colors truncate">
+                                    {settingsData?.email || 'contact@...'}
+                                </a>
                             </li>
+                            {settingsData?.phone && (
+                                <li className="flex items-center gap-3">
+                                    <Phone className="w-5 h-5 text-stone-500 shrink-0" />
+                                    <a href={`tel:${settingsData.phone}`} className="hover:text-white transition-colors">
+                                        {settingsData.phone}
+                                    </a>
+                                </li>
+                            )}
                         </ul>
                     </div>
                 </div>
@@ -109,7 +154,7 @@ export async function SiteFooter() {
                     <div className="flex gap-8">
                         <FooterLink href="/mentions-legales">Mentions</FooterLink>
                         <FooterLink href="/cgv">CGV</FooterLink>
-                        <Link href="https://facenord-graphisme.com" target="_blank" className="hover:text-stone-300 transition-colors">
+                        <Link href="https://facenordgraphisme.fr" target="_blank" className="hover:text-stone-300 transition-colors">
                             Face Nord Graphisme
                         </Link>
                     </div>

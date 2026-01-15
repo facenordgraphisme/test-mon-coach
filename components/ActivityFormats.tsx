@@ -67,7 +67,7 @@ export async function ActivityFormats({ hideTitle = false, className = "", varia
     });
 
     return (
-        <section className="py-24 bg-white">
+        <section id="formules" className="py-24 bg-white">
             <div className="container px-4 md:px-6 mx-auto">
                 <div className="text-center max-w-3xl mx-auto mb-16">
                     <h2 className="text-3xl md:text-5xl font-bold text-stone-900 mb-6">Nos Formules</h2>

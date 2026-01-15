@@ -44,7 +44,12 @@ export const accessPage = defineType({
                 type: 'object',
                 fields: [
                     { name: 'title', type: 'string', title: 'Titre (ex: Train)' },
-                    { name: 'description', type: 'text', title: 'Description' },
+                    {
+                        name: 'description',
+                        title: 'Description',
+                        type: 'array',
+                        of: [{ type: 'block' }]
+                    },
                     { name: 'icon', type: 'string', title: 'Nom de l\'icône Lucide (ex: Train, Car, Plane)' }
                 ]
             }]

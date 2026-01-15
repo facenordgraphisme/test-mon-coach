@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { BookingButton } from "@/components/BookingButton"
 import Link from "next/link"
-import { ArrowRight, Clock, Users } from "lucide-react"
+import { ArrowRight, Clock, Users, Filter } from "lucide-react"
 import { format, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -32,24 +32,67 @@ type Event = {
         title: string
         slug: string
         imageUrl: string
+        format?: 'mono' | 'duo' | 'multi'
     }
 }
 
-export function EventsCalendar({ events }: { events: Event[] }) {
+export function EventsCalendar({ events, buttonText }: { events: Event[], buttonText?: string }) {
     const [date, setDate] = useState<Date | undefined>(undefined)
+    const [filter, setFilter] = useState<'all' | 'mono' | 'duo'>('all')
 
-    // Helper: Dates for modifiers
-    const datesWithEvents = events.map(e => new Date(e.date))
+    // Filter events first by type
+    const filteredEvents = events.filter(e => {
+        if (filter === 'all') return true
+        return e.activity.format === filter
+    })
 
-    // Filter logic
+    // Helper: Dates for modifiers (based on filtered events)
+    const monoDates = filteredEvents.filter(e => e.activity.format !== 'duo').map(e => new Date(e.date))
+    const duoDates = filteredEvents.filter(e => e.activity.format === 'duo').map(e => new Date(e.date))
+
+    // displayedEvents depends on Date AND Filter
     const displayedEvents = date
-        ? events.filter(e => isSameDay(new Date(e.date), date))
-        : events
+        ? filteredEvents.filter(e => isSameDay(new Date(e.date), date))
+        : filteredEvents
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left: Interactive Calendar */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 space-y-8">
+                {/* 1. FILTER CONTROLS */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                        <Filter className="w-5 h-5 text-stone-400" />
+                        Filtrer par type
+                    </h3>
+                    <div className="flex flex-col gap-2">
+                        <Button
+                            variant={filter === 'all' ? 'default' : 'outline'}
+                            className={`w-full justify-start ${filter === 'all' ? 'bg-stone-900' : 'text-stone-600'}`}
+                            onClick={() => setFilter('all')}
+                        >
+                            Tout voir
+                        </Button>
+                        <Button
+                            variant={filter === 'mono' ? 'default' : 'outline'}
+                            className={`w-full justify-start ${filter === 'mono' ? 'bg-emerald-600 hover:bg-emerald-700' : 'text-stone-600'}`}
+                            onClick={() => setFilter('mono')}
+                        >
+                            <span className="w-2 h-2 rounded-full bg-emerald-600 mr-2" />
+                            Mono-Activités
+                        </Button>
+                        <Button
+                            variant={filter === 'duo' ? 'default' : 'outline'}
+                            className={`w-full justify-start ${filter === 'duo' ? 'bg-amber-500 hover:bg-amber-600' : 'text-stone-600'}`}
+                            onClick={() => setFilter('duo')}
+                        >
+                            <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" />
+                            Duos (Combinés)
+                        </Button>
+                    </div>
+                </div>
+
+                {/* 2. CALENDAR */}
                 <div className="bg-white p-4 rounded-2xl shadow-sm border border-stone-100 sticky top-32">
                     <h3 className="font-bold text-lg mb-4 px-2">Sélectionner une date</h3>
                     <div className="flex justify-center">
@@ -59,19 +102,25 @@ export function EventsCalendar({ events }: { events: Event[] }) {
                             onSelect={setDate}
                             className="rounded-md border"
                             modifiers={{
-                                hasEvent: datesWithEvents
+                                mono: monoDates,
+                                duo: duoDates
                             }}
                             modifiersClassNames={{
-                                hasEvent: "bg-[var(--brand-water)] font-bold text-white hover:bg-[var(--brand-water)]/90",
-                                today: "bg-emerald-100 text-emerald-900 font-bold border border-emerald-200"
+                                mono: "bg-emerald-600 font-bold text-white hover:bg-emerald-700",
+                                duo: "bg-amber-500 font-bold text-white hover:bg-amber-600",
+                                today: "bg-stone-100 text-stone-900 font-bold border border-stone-200"
                             }}
                             locale={fr}
                         />
                     </div>
                     <div className="mt-6 px-4 space-y-3 text-sm text-stone-500 border-t border-stone-50 pt-4">
                         <p className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-[var(--brand-water)]"></span>
-                            <span>Journée avec sortie programmée</span>
+                            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+                            <span>Sortie Mono-Activité</span>
+                        </p>
+                        <p className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                            <span>Sortie Duo (Combiné)</span>
                         </p>
                     </div>
                 </div>
@@ -118,18 +167,25 @@ export function EventsCalendar({ events }: { events: Event[] }) {
                             return (
                                 <Card key={event._id} className="overflow-hidden hover:shadow-md transition-shadow duration-300 border-stone-100 bg-white group">
                                     <div className="flex flex-col md:flex-row">
-                                        {/* Date Column */}
-                                        <div className="bg-stone-50 p-6 flex flex-col items-center justify-center min-w-[130px] border-b md:border-b-0 md:border-r border-stone-100 shrink-0">
-                                            <span className="text-sm font-semibold text-[var(--brand-water)] uppercase tracking-widest">
+                                        {/* Date Column with Dynamic Color */}
+                                        <div className={`p-6 flex flex-col items-center justify-center min-w-[130px] border-b md:border-b-0 md:border-r border-stone-100 shrink-0 ${event.activity.format === 'duo' ? 'bg-amber-50' : 'bg-emerald-50'
+                                            }`}>
+                                            <span className={`text-sm font-semibold uppercase tracking-widest ${event.activity.format === 'duo' ? 'text-amber-600' : 'text-emerald-600'
+                                                }`}>
                                                 {format(new Date(event.date), 'MMM', { locale: fr })}
                                             </span>
                                             <span className="text-4xl font-bold text-stone-900 my-1">
                                                 {format(new Date(event.date), 'dd')}
                                             </span>
-                                            <div className="flex items-center gap-1 text-xs text-stone-500 bg-stone-200/50 px-2 py-1 rounded-full">
+                                            <div className="flex items-center gap-1 text-xs text-stone-500 bg-white/60 px-2 py-1 rounded-full">
                                                 <Clock className="w-3 h-3" />
                                                 {format(new Date(event.date), 'HH:mm')}
                                             </div>
+                                            {/* Format Badge */}
+                                            <span className={`mt-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${event.activity.format === 'duo' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                                                }`}>
+                                                {event.activity.format === 'duo' ? 'Duo' : 'Mono'}
+                                            </span>
                                         </div>
 
                                         {/* Image Column */}
@@ -224,7 +280,7 @@ export function EventsCalendar({ events }: { events: Event[] }) {
                                                         date={event.date}
                                                         className="bg-[var(--brand-water)] hover:brightness-90 text-white"
                                                     >
-                                                        Réserver <ArrowRight className="ml-2 w-4 h-4" />
+                                                        {buttonText || "Réserver"} <ArrowRight className="ml-2 w-4 h-4" />
                                                     </BookingButton>
                                                 )}
                                             </div>

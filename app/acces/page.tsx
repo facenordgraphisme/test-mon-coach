@@ -50,19 +50,24 @@ const getIcon = (iconName: string) => {
 
 
 
+import { ptComponents } from "@/components/PortableTextComponents";
+
+// ... (existing imports)
+
 export default async function AccessPage() {
     const data = await getAccessPageData();
+    console.log("Access Page Data:", JSON.stringify(data, null, 2)); // Debugging
 
     // Fallback title if document not created
     const pageTitle = data?.title || "Accès & Hébergements";
     const customJsonLd = data?.seo?.structuredData ? JSON.parse(data.seo.structuredData) : null;
 
+    // determine if we have custom methods
+    const hasCustomMethods = data?.accessMethods && data.accessMethods.length > 0;
+
     return (
         <div className="min-h-screen bg-stone-50 flex flex-col">
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
-            />
+            {/* ... script ... */}
             <PageHero
                 title={pageTitle}
                 subtitle="Toutes les informations pour nous rejoindre dans les Hautes-Alpes et préparer votre séjour."
@@ -76,7 +81,7 @@ export default async function AccessPage() {
                 <section className="py-16 md:py-24 container px-4 md:px-6 mx-auto">
                     {data?.intro && (
                         <div className="prose prose-stone text-lg md:text-xl text-stone-700 text-center mx-auto max-w-4xl mb-20">
-                            <PortableText value={data.intro} />
+                            <PortableText value={data.intro} components={ptComponents} />
                         </div>
                     )}
 
@@ -88,52 +93,58 @@ export default async function AccessPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {data?.accessMethods?.map((method: any, i: number) => (
-                            <div key={i} className="bg-white p-8 rounded-2xl shadow-sm border border-stone-100 items-start flex gap-6 hover:shadow-md transition-shadow">
-                                <div className="bg-stone-50 p-4 rounded-xl text-[var(--brand-rock)] shrink-0">
-                                    {getIcon(method.icon || 'train')}
+                        {hasCustomMethods ? (
+                            data.accessMethods.map((method: any, i: number) => (
+                                <div key={i} className="bg-white p-8 rounded-2xl shadow-sm border border-stone-100 items-start flex gap-6 hover:shadow-md transition-shadow">
+                                    <div className="bg-stone-50 p-4 rounded-xl text-[var(--brand-rock)] shrink-0">
+                                        {getIcon(method.icon || 'train')}
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-lg mb-2 text-stone-900">{method.title}</h3>
+                                        <div className="text-stone-600 leading-relaxed text-sm prose prose-sm prose-stone">
+                                            {method.description ? (
+                                                <PortableText value={method.description} components={ptComponents} />
+                                            ) : null}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="font-bold text-lg mb-2 text-stone-900">{method.title}</h3>
-                                    <p className="text-stone-600 leading-relaxed text-sm">{method.description}</p>
+                            ))
+                        ) : (
+                            // Default content if no data found
+                            <>
+                                <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-100 flex gap-6 items-start">
+                                    <div className="bg-stone-50 p-4 rounded-xl text-[var(--brand-rock)] shrink-0"><Train className="w-6 h-6" /></div>
+                                    <div>
+                                        <h3 className="font-bold text-lg mb-2 text-stone-900">Train de nuit</h3>
+                                        <p className="text-stone-600 text-sm leading-relaxed">
+                                            Départ <strong>Paris Austerlitz</strong> (20h50) ➜ Arrivée <strong>Briançon</strong> (8h30).<br />
+                                            Le moyen le plus écologique et dépaysant. Réveillez-vous face aux sommets.
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                        )) || (
-                                // Default content if no data found
-                                <>
-                                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-100 flex gap-6 items-start">
-                                        <div className="bg-stone-50 p-4 rounded-xl text-[var(--brand-rock)] shrink-0"><Train className="w-6 h-6" /></div>
-                                        <div>
-                                            <h3 className="font-bold text-lg mb-2 text-stone-900">Train de nuit</h3>
-                                            <p className="text-stone-600 text-sm leading-relaxed">
-                                                Départ <strong>Paris Austerlitz</strong> (20h50) ➜ Arrivée <strong>Briançon</strong> (8h30).<br />
-                                                Le moyen le plus écologique et dépaysant. Réveillez-vous face aux sommets.
-                                            </p>
-                                        </div>
+                                <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-100 flex gap-6 items-start">
+                                    <div className="bg-stone-50 p-4 rounded-xl text-[var(--brand-rock)] shrink-0"><Train className="w-6 h-6" /></div>
+                                    <div>
+                                        <h3 className="font-bold text-lg mb-2 text-stone-900">Train TER / TGV</h3>
+                                        <p className="text-stone-600 text-sm leading-relaxed">
+                                            <strong>Marseille ➜ Briançon</strong> : 4h30 de trajet à travers les Alpes de Haute-Provence.<br />
+                                            <strong>Paris ➜ Oulx (Italie)</strong> : TGV (4h30) puis navette (30min) jusqu'à Briançon.
+                                        </p>
                                     </div>
-                                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-100 flex gap-6 items-start">
-                                        <div className="bg-stone-50 p-4 rounded-xl text-[var(--brand-rock)] shrink-0"><Train className="w-6 h-6" /></div>
-                                        <div>
-                                            <h3 className="font-bold text-lg mb-2 text-stone-900">Train TER / TGV</h3>
-                                            <p className="text-stone-600 text-sm leading-relaxed">
-                                                <strong>Marseille ➜ Briançon</strong> : 4h30 de trajet à travers les Alpes de Haute-Provence.<br />
-                                                <strong>Paris ➜ Oulx (Italie)</strong> : TGV (4h30) puis navette (30min) jusqu'à Briançon.
-                                            </p>
-                                        </div>
+                                </div>
+                                <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-100 flex gap-6 items-start">
+                                    <div className="bg-stone-50 p-4 rounded-xl text-[var(--brand-rock)] shrink-0"><Car className="w-6 h-6" /></div>
+                                    <div>
+                                        <h3 className="font-bold text-lg mb-2 text-stone-900">Voiture</h3>
+                                        <p className="text-stone-600 text-sm leading-relaxed">
+                                            Depuis le Nord : Via <strong>Grenoble</strong> et le Col du Lautaret.<br />
+                                            Depuis le Sud : Via <strong>Gap</strong> et Embrun.<br />
+                                            <span className="text-stone-400 italic text-xs mt-1 block">Attention : Équipements hiver obligatoires du 1er novembre au 31 mars.</span>
+                                        </p>
                                     </div>
-                                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-100 flex gap-6 items-start">
-                                        <div className="bg-stone-50 p-4 rounded-xl text-[var(--brand-rock)] shrink-0"><Car className="w-6 h-6" /></div>
-                                        <div>
-                                            <h3 className="font-bold text-lg mb-2 text-stone-900">Voiture</h3>
-                                            <p className="text-stone-600 text-sm leading-relaxed">
-                                                Depuis le Nord : Via <strong>Grenoble</strong> et le Col du Lautaret.<br />
-                                                Depuis le Sud : Via <strong>Gap</strong> et Embrun.<br />
-                                                <span className="text-stone-400 italic text-xs mt-1 block">Attention : Équipements hiver obligatoires du 1er novembre au 31 mars.</span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
+                                </div>
+                            </>
+                        )}
                     </div>
                 </section>
 

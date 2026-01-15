@@ -15,6 +15,15 @@ import { generateSeoMetadata, generateOrganizationSchema, generateWebsiteSchema 
 
 async function getData() {
   return await client.fetch(groq`*[_type == "homepage"][0] {
+    heroTitle,
+    heroSubtitle,
+    "heroImageUrl": heroImage.asset->url,
+    "gallery": heroGallery[].asset->url,
+    ctaText,
+    ctaLink,
+    flexibleOffer1,
+    flexibleOffer2,
+    flexibleOffer3,
     featuresQuote,
     featuresIntro,
     featuresDuoTitle,
@@ -26,8 +35,9 @@ async function getData() {
     featuresEcoText,
     featuresCtaText,
     featuresCtaLink,
+    faq,
     seo
-  }`);
+  }`, {}, { next: { revalidate: 10 } });
 }
 
 export async function generateMetadata() {
@@ -53,13 +63,13 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify([orgSchema, websiteSchema, customJsonLd].filter(Boolean)) }}
       />
       <div className="min-h-screen bg-stone-50 flex flex-col">
-        <Hero />
+        <Hero data={data} />
         <ActivityFormats />
         <Features data={data} />
         <LevelDescriptions />
         <ActivityPreviewSection />
         <ReviewSection />
-        <FAQSection />
+        <FAQSection data={data?.faq} />
         <SiteFooter />
       </div>
     </>

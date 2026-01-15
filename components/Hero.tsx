@@ -1,48 +1,29 @@
 "use client";
 
-import { client } from "@/lib/sanity";
-import { groq } from "next-sanity";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
-async function getHeroData() {
-    return client.fetch(groq`
-        *[_type == "homepage"][0] {
-            heroTitle,
-            heroSubtitle,
-            "heroImageUrl": heroImage.asset->url,
-            "gallery": heroGallery[].asset->url,
-            ctaText,
-            ctaLink,
-            flexibleOffer1,
-            flexibleOffer2,
-            flexibleOffer3
-        }
-    `);
+interface HeroProps {
+    data: any;
 }
 
-export function Hero() {
-    const [data, setData] = useState<any>(null);
+export function Hero({ data }: HeroProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    useEffect(() => {
-        getHeroData().then(setData);
-    }, []);
+    // Images array
+    const images = data?.gallery?.length ? data.gallery : (data?.heroImageUrl ? [data.heroImageUrl] : ["/assets/AFZN9428.JPG"]);
 
     useEffect(() => {
-        // If gallery exists and has more than 1 image, cycle them
-        const images = data?.gallery?.length > 0 ? data.gallery : (data?.heroImageUrl ? [data.heroImageUrl] : []);
-
         if (images.length <= 1) return;
 
         const interval = setInterval(() => {
             setCurrentIndex((prev) => (prev + 1) % images.length);
         }, 6000);
         return () => clearInterval(interval);
-    }, [data]);
+    }, [images]);
 
     // Defaults / Fallbacks while loading or if empty
     const heroTitle = data?.heroTitle || "Des expériences exclusives, pensées pour vous.";
@@ -54,8 +35,6 @@ export function Hero() {
     const flexibleOffer2 = data?.flexibleOffer2 || "3 Niveaux : Découverte, Aventure, Warrior";
     const flexibleOffer3 = data?.flexibleOffer3 || "3 Durées : ½ journée, Journée, Semaine";
 
-    // Images array
-    const images = data?.gallery?.length ? data.gallery : (data?.heroImageUrl ? [data.heroImageUrl] : ["/assets/AFZN9428.JPG"]);
 
     return (
         <section className="relative h-screen w-full overflow-hidden flex items-center justify-center bg-stone-900">
@@ -108,7 +87,7 @@ export function Hero() {
                         transition={{ delay: 0.8, duration: 0.8 }}
                         className="flex flex-col md:flex-row gap-6 md:gap-12 justify-center items-center mb-12"
                     >
-                        {[flexibleOffer1, flexibleOffer2, flexibleOffer3].map((text, i) => (
+                        {[flexibleOffer1, flexibleOffer2, flexibleOffer3].map((text: string, i: number) => (
                             <motion.div
                                 key={i}
                                 whileHover={{ scale: 1.05 }}

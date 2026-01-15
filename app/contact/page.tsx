@@ -10,7 +10,7 @@ import { groq } from "next-sanity";
 import { Metadata } from "next";
 import { generateSeoMetadata } from "@/lib/seo";
 
-export const revalidate = 60;
+
 
 export async function generateMetadata(): Promise<Metadata> {
     const data = await client.fetch(groq`*[_type == "contactPage"][0] {
@@ -38,7 +38,7 @@ async function getData() {
         calendarPromoText,
         calendarPromoButtonText,
         seo
-    }`);
+    }`, {}, { next: { revalidate: 10 } });
 }
 
 export default async function ContactPage() {

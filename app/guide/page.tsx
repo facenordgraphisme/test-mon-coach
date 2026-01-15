@@ -17,7 +17,7 @@ async function getGuideProfile() {
             "photos": photos[].asset->url,
             seo
         }
-    `);
+    `, {}, { next: { revalidate: 10 } });
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
     });
 }
 
-export const revalidate = 60;
+
 
 export default async function GuidePage() {
     const guide = await getGuideProfile() || {};

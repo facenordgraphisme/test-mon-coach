@@ -337,7 +337,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
                 />
-    // ... (rest of formula view uses these variables)
+
 
                 {/* Hero Section */}
                 <section className="relative h-[60vh] w-full overflow-hidden flex items-center justify-center">

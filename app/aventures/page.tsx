@@ -54,10 +54,10 @@ async function getData() {
             multiButtonText,
             seo
         }
-    }`);
+    }`, {}, { next: { revalidate: 10 } });
 }
 
-export const revalidate = 60;
+
 
 
 export async function generateMetadata() {

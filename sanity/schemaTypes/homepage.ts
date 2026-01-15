@@ -184,7 +184,27 @@ export const homepage = defineType({
             title: 'Formules & Formats',
             type: 'array',
             group: 'others',
-            of: [{ type: 'object', fields: [{ name: 'title', type: 'string' }] }]
+            of: [
+                {
+                    type: 'object',
+                    name: 'activityType',
+                    title: 'Format / Formule',
+                    fields: [
+                        { name: 'title', title: 'Titre', type: 'string' },
+                        { name: 'description', title: 'Description', type: 'text', rows: 3 },
+                        { name: 'image', title: 'Image', type: 'image', options: { hotspot: true } },
+                        { name: 'benefits', title: 'Avantages / Points clés', type: 'array', of: [{ type: 'string' }] },
+                        { name: 'buttonText', title: 'Texte du Bouton', type: 'string', initialValue: 'En savoir plus' },
+                        { name: 'buttonLink', title: 'Lien du Bouton', type: 'string' }
+                    ],
+                    preview: {
+                        select: {
+                            title: 'title',
+                            media: 'image'
+                        }
+                    }
+                }
+            ]
         }),
         defineField({
             name: 'faq',

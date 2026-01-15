@@ -12,7 +12,7 @@ async function getAccessData() {
                 icon
             }
         }
-    `);
+    `, {}, { next: { revalidate: 10 } });
 }
 
 export async function SiteFooter() {

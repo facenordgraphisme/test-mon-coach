@@ -112,10 +112,10 @@ async function getLegalPageData() {
             content,
             seo
         }
-    `);
+    `, {}, { next: { revalidate: 10 } });
 }
 
-export const revalidate = 60;
+
 
 export default async function LegalPage() {
     const data = await getLegalPageData();

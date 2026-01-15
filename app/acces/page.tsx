@@ -25,7 +25,7 @@ async function getAccessPageData() {
             },
             seo
         }
-    `);
+    `, {}, { next: { revalidate: 10 } });
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -48,7 +48,7 @@ const getIcon = (iconName: string) => {
     }
 }
 
-export const revalidate = 60;
+
 
 export default async function AccessPage() {
     const data = await getAccessPageData();

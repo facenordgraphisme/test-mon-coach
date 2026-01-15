@@ -47,6 +47,7 @@ interface ActivityFilterableListProps {
     hideFormatFilter?: boolean;
     hideElementFilter?: boolean;
     hiddenFormats?: string[];
+    buttonText?: string;
 }
 
 export function ActivityFilterableList({

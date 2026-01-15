@@ -106,9 +106,9 @@ export function EventsCalendar({ events, buttonText }: { events: Event[], button
                                 duo: duoDates
                             }}
                             modifiersClassNames={{
-                                mono: "bg-emerald-600 font-bold text-white hover:bg-emerald-700",
-                                duo: "bg-amber-500 font-bold text-white hover:bg-amber-600",
-                                today: "bg-stone-100 text-stone-900 font-bold border border-stone-200"
+                                mono: "!bg-emerald-600 !font-bold !text-white hover:!bg-emerald-700",
+                                duo: "!bg-amber-500 !font-bold !text-white hover:!bg-amber-600",
+                                today: "font-bold border-2 border-stone-800"
                             }}
                             locale={fr}
                         />

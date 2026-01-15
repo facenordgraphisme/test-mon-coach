@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Instagram, Facebook, Linkedin, Mail, MapPin, Phone, Train, Car } from "lucide-react";
+import { Instagram, Facebook, Linkedin, Mail, MapPin, Phone, Train, Car, Link as LinkIcon } from "lucide-react";
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 
@@ -38,7 +38,7 @@ export async function SiteFooter() {
             case 'facebook': return <Facebook className="w-5 h-5" />;
             case 'linkedin': return <Linkedin className="w-5 h-5" />;
             // default to Link icon if unknown
-            default: return <Link className="w-5 h-5" />;
+            default: return <LinkIcon className="w-5 h-5" />;
         }
     };
 

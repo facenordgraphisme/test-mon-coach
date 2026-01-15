@@ -11,6 +11,8 @@ import { ReviewSection } from "@/components/ReviewSection";
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 
+import { generateSeoMetadata, generateOrganizationSchema, generateWebsiteSchema } from "@/lib/seo";
+
 async function getData() {
   return await client.fetch(groq`*[_type == "homepage"][0] {
     featuresQuote,
@@ -23,15 +25,33 @@ async function getData() {
     featuresEcoTitle,
     featuresEcoText,
     featuresCtaText,
-    featuresCtaLink
+    featuresCtaLink,
+    seo
   }`);
+}
+
+export async function generateMetadata() {
+  const data = await getData();
+  return generateSeoMetadata(data?.seo, {
+    title: "Rêves d'Aventures | Aventures Exclusives Hautes-Alpes",
+    description: "Guides de haute montagne et coaching sportif en Escalade, Canyon, VTT. Des expériences exclusives, pensées pour vous en Hautes-Alpes.",
+    url: 'https://moncoachpleinair.com',
+  });
 }
 
 export default async function Home() {
   const data = await getData() || {};
+  const orgSchema = generateOrganizationSchema();
+  const websiteSchema = generateWebsiteSchema();
+  const customJsonLd = data?.seo?.structuredData ? JSON.parse(data.seo.structuredData) : null;
+
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([orgSchema, websiteSchema, customJsonLd].filter(Boolean)) }}
+      />
       <div className="min-h-screen bg-stone-50 flex flex-col">
         <Hero />
         <ActivityFormats />

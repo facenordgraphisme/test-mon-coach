@@ -7,6 +7,9 @@ import { Train, Car, Plane, MapPin, ArrowRight, Home, Bus, Info } from "lucide-r
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
+import { generateSeoMetadata } from "@/lib/seo";
+import { Metadata } from "next";
+
 async function getAccessPageData() {
     return client.fetch(groq`
         *[_type == "accessPage"][0] {
@@ -19,9 +22,19 @@ async function getAccessPageData() {
                 type,
                 link,
                 "imageUrl": image.asset->url
-            }
+            },
+            seo
         }
     `);
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+    const data = await client.fetch(groq`*[_type == "accessPage"][0] { seo }`);
+    return generateSeoMetadata(data?.seo, {
+        title: "Accès & Hébergement | Mon Coach Plein Air",
+        description: "Toutes les informations pour nous rejoindre dans les Hautes-Alpes et préparer votre séjour.",
+        url: 'https://moncoachpleinair.com/acces'
+    });
 }
 
 // Icon mapper helper
@@ -42,9 +55,14 @@ export default async function AccessPage() {
 
     // Fallback title if document not created
     const pageTitle = data?.title || "Accès & Hébergements";
+    const customJsonLd = data?.seo?.structuredData ? JSON.parse(data.seo.structuredData) : null;
 
     return (
         <div className="min-h-screen bg-stone-50 flex flex-col">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
+            />
             <PageHero
                 title={pageTitle}
                 subtitle="Toutes les informations pour nous rejoindre dans les Hautes-Alpes et préparer votre séjour."

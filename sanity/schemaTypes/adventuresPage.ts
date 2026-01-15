@@ -210,16 +210,9 @@ export const adventuresPage = defineType({
             group: 'pageMono'
         }),
         defineField({
-            name: 'pageMonoSeoTitle',
-            title: 'Titre SEO (Page Mono)',
-            type: 'string',
-            group: 'pageMono'
-        }),
-        defineField({
-            name: 'pageMonoSeoDescription',
-            title: 'Description SEO (Page Mono)',
-            type: 'text',
-            rows: 3,
+            name: 'pageMonoSeo',
+            title: 'SEO (Page Mono)',
+            type: 'seo',
             group: 'pageMono'
         }),
 
@@ -262,16 +255,9 @@ export const adventuresPage = defineType({
             group: 'pageDuo'
         }),
         defineField({
-            name: 'pageDuoSeoTitle',
-            title: 'Titre SEO (Page Duo)',
-            type: 'string',
-            group: 'pageDuo'
-        }),
-        defineField({
-            name: 'pageDuoSeoDescription',
-            title: 'Description SEO (Page Duo)',
-            type: 'text',
-            rows: 3,
+            name: 'pageDuoSeo',
+            title: 'SEO (Page Duo)',
+            type: 'seo',
             group: 'pageDuo'
         }),
 
@@ -309,31 +295,17 @@ export const adventuresPage = defineType({
         // Pas de benefits pour le format multi, c'est du sur-mesure. On peut en ajouter si le user le demande mais le layout multi est différent.
         // On met tout de même le SEO
         defineField({
-            name: 'pageMultiSeoTitle',
-            title: 'Titre SEO (Page Multi)',
-            type: 'string',
-            group: 'pageMulti'
-        }),
-        defineField({
-            name: 'pageMultiSeoDescription',
-            title: 'Description SEO (Page Multi)',
-            type: 'text',
-            rows: 3,
+            name: 'pageMultiSeo',
+            title: 'SEO (Page Multi)',
+            type: 'seo',
             group: 'pageMulti'
         }),
 
         // --- SEO ---
         defineField({
-            name: 'seoTitle',
-            title: 'Titre SEO',
-            type: 'string',
-            group: 'seo'
-        }),
-        defineField({
-            name: 'seoDescription',
-            title: 'Description SEO',
-            type: 'text',
-            rows: 3,
+            name: 'seo',
+            title: 'SEO (Page Principale)',
+            type: 'seo',
             group: 'seo'
         }),
     ],

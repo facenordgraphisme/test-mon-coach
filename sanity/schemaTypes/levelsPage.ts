@@ -32,7 +32,16 @@ export const levelsPage = defineType({
                     title: 'Texte Alternatif'
                 }
             ]
+        }),
+        defineField({
+            name: 'seo',
+            title: 'SEO',
+            type: 'seo',
+            group: 'seo'
         })
+    ],
+    groups: [
+        { name: 'seo', title: 'SEO & Méta-données' }
     ],
     preview: {
         prepare() {

@@ -7,6 +7,7 @@ import { Suspense } from 'react';
 import { Mountain, Waves, Bike, Gem, Sun, Map, Zap, CheckCircle2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { generateSeoMetadata, generateOrganizationSchema, generateWebsiteSchema } from "@/lib/seo";
 
 async function getData() {
     return client.fetch(groq`{
@@ -50,7 +51,8 @@ async function getData() {
             duoMalinsText,
             multiTitle,
             multiDescription,
-            multiButtonText
+            multiButtonText,
+            seo
         }
     }`);
 }
@@ -59,21 +61,16 @@ export const revalidate = 60;
 
 
 export async function generateMetadata() {
-    const pageContent = await client.fetch(groq`*[_type == "adventuresPage"][0] {
-        seoTitle,
-        seoDescription,
+    const data = await client.fetch(groq`*[_type == "adventuresPage"][0] {
+        seo,
         "heroImage": heroImage.asset->url
     }`);
 
-    if (!pageContent) return {};
-
-    return {
-        title: pageContent.seoTitle || "Nos Aventures | Mon Coach Plein Air",
-        description: pageContent.seoDescription || "Mono, Duo ou Multi. Choisissez l'intensité...",
-        openGraph: {
-            images: pageContent.heroImage ? [pageContent.heroImage] : [],
-        }
-    }
+    return generateSeoMetadata(data?.seo, {
+        title: "Nos Aventures | Mon Coach Plein Air",
+        description: "Mono, Duo ou Multi. Choisissez l'intensité, l'élément et le format qui vous correspond pour vivre les Hautes-Alpes intensément.",
+        url: 'https://moncoachpleinair.com/aventures'
+    });
 }
 
 export default async function ActivitiesPage() {
@@ -92,8 +89,14 @@ export default async function ActivitiesPage() {
         multiButtonText: "Créer mon séjour sur-mesure"
     };
 
+    const customJsonLd = content?.seo?.structuredData ? JSON.parse(content.seo.structuredData) : null;
+
     return (
         <div className="min-h-screen flex flex-col bg-stone-50">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
+            />
             <PageHero
                 title={content.heroTitle}
                 subtitle={content.heroSubtitle}

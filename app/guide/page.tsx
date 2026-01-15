@@ -4,6 +4,8 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { Badge } from "@/components/ui/badge";
 import { PortableText } from "@portabletext/react";
 import { PageHero } from "@/components/PageHero";
+import { generateSeoMetadata } from "@/lib/seo";
+import { Metadata } from "next";
 
 async function getGuideProfile() {
     return client.fetch(groq`
@@ -12,18 +14,33 @@ async function getGuideProfile() {
             bio,
             diplomas,
             "imageUrl": image.asset->url,
-            "photos": photos[].asset->url
+            "photos": photos[].asset->url,
+            seo
         }
     `);
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+    const data = await client.fetch(groq`*[_type == "guide"][0] { seo }`);
+    return generateSeoMetadata(data?.seo, {
+        title: "Votre Guide | Mon Coach Plein Air",
+        description: "Vivre la nature avec passion, sécurité et authenticité. Rencontrez votre guide.",
+        url: 'https://moncoachpleinair.com/guide'
+    });
 }
 
 export const revalidate = 60;
 
 export default async function GuidePage() {
-    const guide = await getGuideProfile();
+    const guide = await getGuideProfile() || {};
+    const customJsonLd = guide?.seo?.structuredData ? JSON.parse(guide.seo.structuredData) : null;
 
     return (
         <div className="min-h-screen flex flex-col bg-stone-50">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
+            />
             {/* Hero Profile */}
             <PageHero
                 title="Votre Guide"

@@ -4,7 +4,16 @@ export const activity = defineType({
     name: 'activity',
     title: 'Activité',
     type: 'document',
+    groups: [
+        { name: 'seo', title: 'SEO & Méta-données' },
+    ],
     fields: [
+        defineField({
+            name: 'seo',
+            title: 'SEO',
+            type: 'seo',
+            group: 'seo'
+        }),
         defineField({
             name: 'title',
             title: 'Titre',

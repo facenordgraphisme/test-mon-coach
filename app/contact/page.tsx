@@ -8,25 +8,20 @@ import { PageHero } from "@/components/PageHero";
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 import { Metadata } from "next";
+import { generateSeoMetadata } from "@/lib/seo";
 
 export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
     const data = await client.fetch(groq`*[_type == "contactPage"][0] {
-        seoTitle,
-        seoDescription,
-        "imageUrl": heroImage.asset->url
+        seo
     }`);
 
-    if (!data) return {};
-
-    return {
-        title: data.seoTitle || "Contact | Mon Coach Plein Air",
-        description: data.seoDescription || "Contactez-nous pour organiser votre aventure.",
-        openGraph: {
-            images: data.imageUrl ? [data.imageUrl] : []
-        }
-    }
+    return generateSeoMetadata(data?.seo, {
+        title: "Contact | Mon Coach Plein Air",
+        description: "Une envie particulière ? Un projet de groupe ? Écrivez-nous, réponse rapide garantie.",
+        url: 'https://moncoachpleinair.com/contact'
+    });
 }
 
 async function getData() {
@@ -41,15 +36,21 @@ async function getData() {
         locationText,
         calendarPromoTitle,
         calendarPromoText,
-        calendarPromoButtonText
+        calendarPromoButtonText,
+        seo
     }`);
 }
 
 export default async function ContactPage() {
     const data = await getData() || {};
+    const customJsonLd = data?.seo?.structuredData ? JSON.parse(data.seo.structuredData) : null;
 
     return (
         <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
+            />
             <div className="min-h-screen flex flex-col bg-stone-50">
                 <PageHero
                     title={data.heroTitle || "Contact"}

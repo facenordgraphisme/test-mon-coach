@@ -98,16 +98,9 @@ export const contactPage = defineType({
 
         // --- SEO ---
         defineField({
-            name: 'seoTitle',
-            title: 'Titre SEO',
-            type: 'string',
-            group: 'seo'
-        }),
-        defineField({
-            name: 'seoDescription',
-            title: 'Description SEO',
-            type: 'text',
-            rows: 3,
+            name: 'seo',
+            title: 'SEO',
+            type: 'seo',
             group: 'seo'
         }),
     ],

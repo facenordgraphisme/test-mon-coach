@@ -3,6 +3,7 @@ import { groq } from "next-sanity";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { PortableText } from '@portabletext/react';
+import { generateSeoMetadata } from "@/lib/seo";
 
 // Define the fallback content using the user's text
 const fallbackContent = [
@@ -95,11 +96,21 @@ const fallbackContent = [
     }
 ];
 
+export async function generateMetadata() {
+    const data = await client.fetch(groq`*[_type == "legalPage"][0] { seo }`);
+    return generateSeoMetadata(data?.seo, {
+        title: "Mentions Légales | Mon Coach Plein Air",
+        description: "Informations légales et juridiques.",
+        url: 'https://moncoachpleinair.com/mentions-legales'
+    });
+}
+
 async function getLegalPageData() {
     return client.fetch(groq`
         *[_type == "legalPage"][0] {
             title,
-            content
+            content,
+            seo
         }
     `);
 }
@@ -111,9 +122,15 @@ export default async function LegalPage() {
     // Use fallback if data.content is missing or empty array
     const content = (data?.content && data.content.length > 0) ? data.content : fallbackContent;
     const title = data?.title || "Mentions Légales";
+    const customJsonLd = data?.seo?.structuredData ? JSON.parse(data.seo.structuredData) : null;
+
 
     return (
         <div className="min-h-screen bg-stone-50 flex flex-col">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
+            />
             <PageHero
                 title={title}
                 subtitle="Informations légales et juridiques"

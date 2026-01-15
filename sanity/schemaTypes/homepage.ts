@@ -8,8 +8,16 @@ export const homepage = defineType({
         { name: 'hero', title: 'Héro (Haut de page)' },
         { name: 'features', title: 'Philosophie & Points Forts' },
         { name: 'others', title: 'Autres (Offres, FAQ...)' },
+        { name: 'seo', title: 'SEO & Méta-données' },
     ],
     fields: [
+        // --- SEO ---
+        defineField({
+            name: 'seo',
+            title: 'SEO',
+            type: 'seo',
+            group: 'seo',
+        }),
         // --- HERO ---
         defineField({
             name: 'heroTitle',

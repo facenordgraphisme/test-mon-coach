@@ -3,6 +3,8 @@ import { groq } from "next-sanity";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Check, Activity, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { generateSeoMetadata } from "@/lib/seo";
+import { Metadata } from "next";
 
 async function getData() {
     const levels = await client.fetch(groq`
@@ -24,17 +26,22 @@ async function getData() {
         *[_type == "levelsPage"][0] {
             title,
             subtitle,
-            "heroImageUrl": heroImage.asset->url
+            "heroImageUrl": heroImage.asset->url,
+            seo
         }
     `);
 
     return { levels, pageContent };
 }
 
-export const metadata = {
-    title: "Niveaux d'Engagement | Mon Coach Plein Air",
-    description: "Comprendre les niveaux de difficulté : Découverte, Aventure et Warrior. Choisissez l'expérience adaptée à vos envies.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+    const data = await client.fetch(groq`*[_type == "levelsPage"][0] { seo }`);
+    return generateSeoMetadata(data?.seo, {
+        title: "Niveaux d'Engagement | Mon Coach Plein Air",
+        description: "Comprendre les niveaux de difficulté : Découverte, Aventure et Warrior. Choisissez l'expérience adaptée à vos envies.",
+        url: 'https://moncoachpleinair.com/niveaux'
+    });
+}
 
 export default async function NiveauxPage() {
     const { levels, pageContent } = await getData();
@@ -44,8 +51,14 @@ export default async function NiveauxPage() {
     const subtitle = pageContent?.subtitle || "Afin d’adapter au plus juste l'engagement physique, technique et mental de la sortie, je vous propose trois niveaux basés sur l'Effort, la Technique et l'Engagement.";
     const heroImage = pageContent?.heroImageUrl || 'https://images.unsplash.com/photo-1541447271487-09612b3f49f7?q=80&w=2000&auto=format&fit=crop';
 
+    const customJsonLd = pageContent?.seo?.structuredData ? JSON.parse(pageContent.seo.structuredData) : null;
+
     return (
         <div className="min-h-screen bg-stone-50" suppressHydrationWarning>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
+            />
             {/* Header Section - Force Recompile */}
             <div className="bg-stone-900 text-white py-24 md:py-32 relative overflow-hidden flex flex-col items-center justify-center text-center">
                 <div className="absolute inset-0 z-0">

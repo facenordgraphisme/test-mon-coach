@@ -45,5 +45,14 @@ export const guide = defineType({
             type: 'array',
             of: [{ type: 'image', options: { hotspot: true } }]
         }),
+        defineField({
+            name: 'seo',
+            title: 'SEO',
+            type: 'seo',
+            group: 'seo'
+        })
     ],
+    groups: [
+        { name: 'seo', title: 'SEO & Méta-données' }
+    ]
 })

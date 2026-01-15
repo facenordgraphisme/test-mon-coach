@@ -13,6 +13,7 @@ import { EventsCalendar } from "@/components/EventsCalendar";
 import { ActivityFilterableList } from "@/components/ActivityFilterableList";
 import { Suspense } from 'react';
 import { PortableText } from '@portabletext/react';
+import { generateSeoMetadata } from "@/lib/seo";
 
 async function getData(slug: string) {
     // 1. Try to find an Activity or a Formula with this slug
@@ -52,6 +53,7 @@ async function getData(slug: string) {
             "practicalInfo": practicalInfo,
             hasRental,
             rentalDescription,
+            seo,
             "availableBikes": availableBikes[]->{
                 name,
                 description,
@@ -227,22 +229,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         "doc": *[( _type == "activity" || _type == "formula" ) && slug.current == $slug][0] {
             title,
             description,
-            "imageUrl": coalesce(mainImage.asset->url, heroImage.asset->url)
+            "imageUrl": coalesce(mainImage.asset->url, heroImage.asset->url),
+            seo
         },
         "pageContent": *[_type == "adventuresPage"][0] {
-            pageMonoSeoTitle,
-            pageMonoSeoDescription,
+            pageMonoSeo,
             "pageMonoHeroImage": pageMonoHeroImage.asset->url,
-            pageDuoSeoTitle,
-            pageDuoSeoDescription,
+            pageDuoSeo,
             "pageDuoHeroImage": pageDuoHeroImage.asset->url,
-            pageMultiSeoTitle,
-            pageMultiSeoDescription,
+            pageMultiSeo,
             "pageMultiHeroImage": pageMultiHeroImage.asset->url
         }
     }`, { slug });
 
-    if (!data.doc) return {};
+    if (!data.doc && slug !== 'mono-activite' && slug !== 'duo-activites' && slug !== 'sur-mesure') return {};
 
     const { doc, pageContent } = data;
     const isMono = slug === 'mono-activite';
@@ -250,42 +250,34 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const isMulti = slug === 'sur-mesure';
 
     if (isMono && pageContent) {
-        return {
-            title: pageContent.pageMonoSeoTitle || doc.title,
-            description: pageContent.pageMonoSeoDescription || doc.description,
-            openGraph: {
-                images: pageContent.pageMonoHeroImage ? [pageContent.pageMonoHeroImage] : (doc.imageUrl ? [doc.imageUrl] : [])
-            }
-        }
+        return generateSeoMetadata(pageContent.pageMonoSeo, {
+            title: doc?.title || "Mono-Activité",
+            description: doc?.description || "Découvrir, vous perfectionner ou juste profiter d’un moment autour d’une activité.",
+            url: `https://moncoachpleinair.com/aventures/${slug}`
+        });
     }
 
     if (isDuo && pageContent) {
-        return {
-            title: pageContent.pageDuoSeoTitle || doc.title,
-            description: pageContent.pageDuoSeoDescription || doc.description,
-            openGraph: {
-                images: pageContent.pageDuoHeroImage ? [pageContent.pageDuoHeroImage] : (doc.imageUrl ? [doc.imageUrl] : [])
-            }
-        }
+        return generateSeoMetadata(pageContent.pageDuoSeo, {
+            title: doc?.title || "Duo-Activités",
+            description: doc?.description || "La combinaison des activités rend l’expérience extraordinaire.",
+            url: `https://moncoachpleinair.com/aventures/${slug}`
+        });
     }
 
     if (isMulti && pageContent) {
-        return {
-            title: pageContent.pageMultiSeoTitle || doc.title,
-            description: pageContent.pageMultiSeoDescription || doc.description,
-            openGraph: {
-                images: pageContent.pageMultiHeroImage ? [pageContent.pageMultiHeroImage] : (doc.imageUrl ? [doc.imageUrl] : [])
-            }
-        }
+        return generateSeoMetadata(pageContent.pageMultiSeo, {
+            title: doc?.title || "Sur-mesure",
+            description: doc?.description || "Aventures Multi & Week-end.",
+            url: `https://moncoachpleinair.com/aventures/${slug}`
+        });
     }
 
-    return {
-        title: doc.title,
+    return generateSeoMetadata(doc?.seo, {
+        title: doc?.title,
         description: "Mon Coach Plein Air - Aventures dans les Hautes Alpes",
-        openGraph: {
-            images: doc.imageUrl ? [doc.imageUrl] : []
-        }
-    }
+        url: `https://moncoachpleinair.com/aventures/${slug}`
+    });
 }
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
@@ -336,9 +328,15 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         const displayDesc = overrideDesc || formula.description;
         const displayBenefits = overrideBenefits || formula.benefits;
         const displaySubtitle = overrideSubtitle || null;
+        const customJsonLd = formula?.seo?.structuredData ? JSON.parse(formula.seo.structuredData) : null;
+
 
         return (
             <main className="min-h-screen bg-stone-50">
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
+                />
     // ... (rest of formula view uses these variables)
 
                 {/* Hero Section */}
@@ -492,9 +490,14 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     const displayPracticalInfo = activity.practicalInfo;
 
 
+    const customJsonLd = activity?.seo?.structuredData ? JSON.parse(activity.seo.structuredData) : null;
 
     return (
         <div className="min-h-screen bg-white">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
+            />
             {/* Hero Header */}
             <div className="relative h-[60vh] md:h-[70vh]">
                 {heroImage ? (

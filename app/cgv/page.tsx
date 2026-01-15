@@ -470,13 +470,28 @@ const fallbackContent = [
     }
 ];
 
+import { generateSeoMetadata } from "@/lib/seo";
+import { Metadata } from "next";
+
+// ... existing imports
+
 async function getCGVPageData() {
     return client.fetch(groq`
         *[_type == "cgvPage"][0] {
             title,
-            content
+            content,
+            seo
         }
     `);
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+    const data = await client.fetch(groq`*[_type == "cgvPage"][0] { seo }`);
+    return generateSeoMetadata(data?.seo, {
+        title: "Conditions Générales de Vente | Mon Coach Plein Air",
+        description: "Conditions régissant les réservations, les ventes et les activités.",
+        url: 'https://moncoachpleinair.com/cgv'
+    });
 }
 
 export const revalidate = 60;
@@ -485,9 +500,14 @@ export default async function CGVPage() {
     const data = await getCGVPageData();
     const content = (data?.content && data.content.length > 0) ? data.content : fallbackContent;
     const title = data?.title || "Conditions Générales de Vente";
+    const customJsonLd = data?.seo?.structuredData ? JSON.parse(data.seo.structuredData) : null;
 
     return (
         <div className="min-h-screen bg-stone-50 flex flex-col">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
+            />
             <PageHero
                 title={title}
                 subtitle="Conditions régissant les réservations, les ventes et les activités"

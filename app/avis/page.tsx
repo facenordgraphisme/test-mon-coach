@@ -5,9 +5,11 @@ import { Star, Quote, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PageHero } from "@/components/PageHero";
+import { generateSeoMetadata } from "@/lib/seo";
+import { Metadata } from "next";
 
-async function getAllReviews() {
-    return client.fetch(groq`
+async function getData() {
+    const reviews = await client.fetch(groq`
         *[_type == "review"] | order(date desc) {
             author,
             rating,
@@ -16,10 +18,35 @@ async function getAllReviews() {
             source
         }
     `);
+
+    const pageContent = await client.fetch(groq`
+        *[_type == "reviewsPage"][0] {
+            title,
+            subtitle,
+            "heroImageUrl": heroImage.asset->url,
+            seo
+        }
+    `);
+
+    return { reviews, pageContent };
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+    const data = await client.fetch(groq`*[_type == "reviewsPage"][0] { seo }`);
+    return generateSeoMetadata(data?.seo, {
+        title: "Avis Clients | Mon Coach Plein Air",
+        description: "Découvrez ce que nos aventuriers pensent de leurs expériences avec nous.",
+        url: 'https://moncoachpleinair.com/avis'
+    });
 }
 
 export default async function ReviewsPage() {
-    const reviews = await getAllReviews();
+    const { reviews, pageContent } = await getData();
+
+    const title = pageContent?.title || "Avis Clients";
+    const subtitle = pageContent?.subtitle || "Découvrez ce que nos aventuriers pensent de leurs expériences avec nous.";
+    const heroImage = pageContent?.heroImageUrl || "/assets/IMG_3019.JPG";
+    const customJsonLd = pageContent?.seo?.structuredData ? JSON.parse(pageContent.seo.structuredData) : null;
 
     // Fallback if no reviews (for demo puposes)
     const displayReviews = reviews.length > 0 ? reviews : [
@@ -30,6 +57,7 @@ export default async function ReviewsPage() {
             date: "2024-06-15",
             source: "direct"
         },
+        // ... (truncated fallback data for brevity if desired, but keeping logic simpler)
         {
             author: "Marie L.",
             rating: 5,
@@ -55,11 +83,15 @@ export default async function ReviewsPage() {
 
     return (
         <div className="min-h-screen bg-stone-50 flex flex-col">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
+            />
             <PageHero
-                title="Avis Clients"
-                subtitle="Découvrez ce que nos aventuriers pensent de leurs expériences avec nous."
+                title={title}
+                subtitle={subtitle}
                 label="TÉMOIGNAGES"
-                image="/assets/IMG_3019.JPG"
+                image={heroImage}
             />
             <main className="flex-1 py-12 md:py-20">
                 <div className="container px-4 md:px-6 mx-auto">

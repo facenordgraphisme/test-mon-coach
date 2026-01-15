@@ -16,6 +16,8 @@ import { cgvPage } from './cgvPage'
 import { blockContent } from './blockContent'
 import { adventuresPage } from './adventuresPage'
 import { contactPage } from './contactPage'
+import { reviewsPage } from './reviewsPage'
+import { seo } from './seo'
 
 export const schemaTypes: SchemaTypeDefinition[] = [
     activity,
@@ -35,4 +37,6 @@ export const schemaTypes: SchemaTypeDefinition[] = [
     blockContent,
     adventuresPage,
     contactPage,
+    reviewsPage,
+    seo,
 ]

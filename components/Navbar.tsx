@@ -22,8 +22,9 @@ export function Navbar() {
             setIsScrolled(window.scrollY > 20)
         }
         window.addEventListener("scroll", handleScroll)
+        handleScroll() // Check immediately
         return () => window.removeEventListener("scroll", handleScroll)
-    }, [])
+    }, [pathname])
 
     const navLinks = [
         { href: "/", label: "Accueil" },

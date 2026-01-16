@@ -11,6 +11,7 @@ import { ArrowRight, Clock, Users, Filter } from "lucide-react"
 import { format, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { formatTimeParis } from "@/lib/utils"
 
 type Event = {
     _id: string
@@ -179,7 +180,7 @@ export function EventsCalendar({ events, buttonText }: { events: Event[], button
                                             </span>
                                             <div className="flex items-center gap-1 text-xs text-stone-500 bg-white/60 px-2 py-1 rounded-full">
                                                 <Clock className="w-3 h-3" />
-                                                {format(new Date(event.date), 'HH:mm')}
+                                                {formatTimeParis(event.date)}
                                             </div>
                                             {/* Format Badge */}
                                             <span className={`mt-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${event.activity.format === 'duo' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'

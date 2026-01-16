@@ -8,6 +8,7 @@ import { Calendar, Clock, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { formatTimeParis } from "@/lib/utils";
 import { PortableText } from '@portabletext/react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -113,7 +114,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                             </div>
                             <div className="flex items-center gap-2">
                                 <Clock className="w-5 h-5 text-[var(--brand-water)]" />
-                                <span>{format(date, 'HH:mm')} • {activity.duration}</span>
+                                <span>{formatTimeParis(date)} • {activity.duration}</span>
                             </div>
                         </div>
 

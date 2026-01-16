@@ -1,4 +1,5 @@
 import { client, urlFor } from "@/lib/sanity";
+import { formatTimeParis } from "@/lib/utils";
 import { groq } from "next-sanity";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -631,7 +632,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
 
                 {/* Sidebar */}
-                <div className="hidden lg:block space-y-8">
+                <div className="space-y-8">
                     <div className="sticky top-32 space-y-8">
                         {/* Next Events Card */}
                         <div className="bg-white p-6 rounded-2xl border border-stone-100 shadow-sm">
@@ -667,7 +668,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                                         {format(new Date(event.date), 'EEEE d MMMM', { locale: fr })}
                                                     </p>
                                                     <p className="text-xs text-stone-400">
-                                                        {format(new Date(event.date), 'HH:mm')}
+                                                        {formatTimeParis(event.date)}
                                                     </p>
 
                                                     {event.difficulty && (

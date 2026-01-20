@@ -12,6 +12,7 @@ import { formatTimeParis } from "@/lib/utils";
 import { PortableText } from '@portabletext/react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { GoBackButton } from "@/components/GoBackButton";
 
 function getMapSrc(input: string | undefined): string | undefined {
     if (!input) return undefined;
@@ -87,9 +88,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
 
                 {/* Back Link */}
                 <div className="mb-8">
-                    <Button asChild variant="ghost" className="pl-0 hover:bg-transparent hover:text-[var(--brand-water)]">
-                        <Link href="/calendrier">← Retour au calendrier</Link>
-                    </Button>
+                    <GoBackButton label="Retour" />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

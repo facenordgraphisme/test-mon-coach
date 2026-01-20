@@ -11,6 +11,7 @@ import { EventsCalendar } from "@/components/EventsCalendar";
 import { ActivityFilterableList } from "@/components/ActivityFilterableList";
 import { BookingButton } from "@/components/BookingButton";
 import { Button } from "@/components/ui/button";
+import { GoBackButton } from "@/components/GoBackButton";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Suspense } from 'react';
@@ -228,6 +229,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                             <div className="bg-stone-900 w-full h-full" />
                         )}
                     </div>
+                    <div className="absolute top-24 left-4 md:left-8 z-30">
+                        <GoBackButton label="Retour" className="bg-white/20 hover:bg-white/40 backdrop-blur-md border border-white/30 text-white hover:text-white" variant="ghost" />
+                    </div>
                     <div className="relative z-20 container px-4 text-center text-white">
                         <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">{displayTitle}</h1>
                         {displaySubtitle && (
@@ -375,6 +379,10 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                 ) : (
                     <div className="absolute inset-0 bg-stone-800" />
                 )}
+
+                <div className="absolute top-24 left-4 md:left-8 z-30">
+                    <GoBackButton label="Retour" className="bg-white/20 hover:bg-white/40 backdrop-blur-md border border-white/30 text-white hover:text-white" variant="ghost" />
+                </div>
 
                 <div className="absolute bottom-0 left-0 w-full p-6 md:p-12 text-white">
                     <div className="container mx-auto">

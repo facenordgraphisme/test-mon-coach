@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { writeClient } from '@/lib/sanity.server';
 import { revalidatePath } from 'next/cache';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/mail';
 
 export async function POST(req: Request) {
     const body = await req.text();
@@ -50,70 +50,63 @@ export async function POST(req: Request) {
 
                 console.log(`Decremented ${quantity} seats from event ${eventId}`);
 
-                // 3. Send Emails
-                if (process.env.RESEND_API_KEY) {
-                    try {
-                        const resend = new Resend(process.env.RESEND_API_KEY);
-                        const customerEmail = session.customer_details?.email || booking.email;
-                        const customerName = session.customer_details?.name || booking.customerName;
+                // 3. Send Emails via Hostinger SMTP
+                try {
+                    const customerEmail = session.customer_details?.email || booking.email;
+                    const customerName = session.customer_details?.name || booking.customerName;
 
-                        console.log(`Sending emails to: Client=${customerEmail}, Admins=facenordgraphisme@gmail.com, fredbuet@gmail.com`);
+                    console.log(`Sending emails to: Client=${customerEmail}, Admins=facenordgraphisme@gmail.com, fredbuet@gmail.com`);
 
-                        // Email to Customer
-                        await resend.emails.send({
-                            from: 'Mon Coach Plein Air <onboarding@resend.dev>', // Use verified domain in prod by Resend
-                            to: customerEmail,
-                            subject: 'Confirmation de votre réservation - Mon Coach Plein Air',
-                            html: `
-                                <div style="font-family: sans-serif; color: #333;">
-                                    <h1>Merci ${customerName} !</h1>
-                                    <p>Votre réservation est bien confirmée.</p>
-                                    <p><strong>Détails :</strong></p>
-                                    <ul>
-                                        <li>Activité : ${session.metadata?.activityTitle || 'Activité de plein air'}</li>
-                                        <li>Quantité : ${quantity} personne(s)</li>
-                                        <li>Participants : ${session.metadata?.participantsNames || 'Non spécifié'}</li>
-                                        <li>Montant réglé : ${session.amount_total ? session.amount_total / 100 : 0} €</li>
-                                    </ul>
-                                    <p>Nous avons hâte de vous retrouver pour cette aventure.</p>
-                                    <p>À très vite !</p>
-                                </div>
-                            `
-                        });
+                    // Email to Customer
+                    await sendEmail({
+                        to: customerEmail,
+                        subject: 'Confirmation de votre réservation - Mon Coach Plein Air',
+                        html: `
+                             <div style="font-family: sans-serif; color: #333;">
+                                 <h1>Merci ${customerName} !</h1>
+                                 <p>Votre réservation est bien confirmée.</p>
+                                 <p><strong>Détails :</strong></p>
+                                 <ul>
+                                     <li>Activité : ${session.metadata?.activityTitle || 'Activité de plein air'}</li>
+                                     <li>Quantité : ${quantity} personne(s)</li>
+                                     <li>Participants : ${session.metadata?.participantsNames || 'Non spécifié'}</li>
+                                     <li>Montant réglé : ${session.amount_total ? session.amount_total / 100 : 0} €</li>
+                                 </ul>
+                                 <p>Nous avons hâte de vous retrouver pour cette aventure.</p>
+                                 <p>À très vite !</p>
+                             </div>
+                         `
+                    });
 
-                        // Email to Admin
-                        await resend.emails.send({
-                            from: 'Mon Coach Plein Air <onboarding@resend.dev>',
-                            to: ['facenordgraphisme@gmail.com', 'fredbuet@gmail.com'],
-                            subject: `Nouvelle Réservation : ${customerName} - ${session.metadata?.activityTitle}`,
-                            html: `
-                                <div style="font-family: sans-serif; color: #333;">
-                                    <h1 style="color: #0ea5e9;">Nouvelle transaction reçue !</h1>
-                                    <p><strong>Activité :</strong> ${session.metadata?.activityTitle}</p>
-                                    <p><strong>Date :</strong> ${new Date(session.metadata?.date).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
-                                    <hr />
-                                    <h3>Détails du client</h3>
-                                    <p><strong>Nom :</strong> ${customerName}</p>
-                                    <p><strong>Email :</strong> ${customerEmail}</p>
-                                    <p><strong>Téléphone :</strong> ${session.metadata?.phone || 'Non renseigné'}</p>
-                                    <hr />
-                                    <p><strong>Places réservées :</strong> ${quantity}</p>
-                                    <p><strong>Participants :</strong> ${booking.participantsNames || session.metadata?.participantsNames || 'Non spécifié'}</p>
-                                    <p><strong>Infos Médicales / Location :</strong> ${booking.medicalInfo || 'R.A.S'}</p>
-                                    <p><strong>Tailles :</strong> ${booking.height || '?'}</p>
-                                    <p><strong>Poids :</strong> ${booking.weight || '?'}</p>
-                                    <p><strong>Montant total :</strong> ${session.amount_total ? session.amount_total / 100 : 0} €</p>
-                                    <br />
-                                    <p><a href="https://mon-coach-plein-air.sanity.studio" style="background-color: #0ea5e9; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Accéder au Dashboard Sanity</a></p>
-                                </div>
-                            `
-                        });
-                        console.log("Emails sent successfully");
-                    } catch (emailError) {
-                        console.error("Error sending emails:", emailError);
-                    }
-                } else {
-                    console.log("RESEND_API_KEY missing, skipping emails");
+                    // Email to Admin
+                    await sendEmail({
+                        to: ['facenordgraphisme@gmail.com', 'fredbuet@gmail.com', process.env.EMAIL_USER!], // Add new admin email in copy
+                        subject: `Nouvelle Réservation : ${customerName} - ${session.metadata?.activityTitle}`,
+                        html: `
+                             <div style="font-family: sans-serif; color: #333;">
+                                 <h1 style="color: #0ea5e9;">Nouvelle transaction reçue !</h1>
+                                 <p><strong>Activité :</strong> ${session.metadata?.activityTitle}</p>
+                                 <p><strong>Date :</strong> ${new Date(session.metadata?.date).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                                 <hr />
+                                 <h3>Détails du client</h3>
+                                 <p><strong>Nom :</strong> ${customerName}</p>
+                                 <p><strong>Email :</strong> ${customerEmail}</p>
+                                 <p><strong>Téléphone :</strong> ${session.metadata?.phone || 'Non renseigné'}</p>
+                                 <hr />
+                                 <p><strong>Places réservées :</strong> ${quantity}</p>
+                                 <p><strong>Participants :</strong> ${booking.participantsNames || session.metadata?.participantsNames || 'Non spécifié'}</p>
+                                 <p><strong>Infos Médicales / Location :</strong> ${booking.medicalInfo || 'R.A.S'}</p>
+                                 <p><strong>Tailles :</strong> ${booking.height || '?'}</p>
+                                 <p><strong>Poids :</strong> ${booking.weight || '?'}</p>
+                                 <p><strong>Montant total :</strong> ${session.amount_total ? session.amount_total / 100 : 0} €</p>
+                                 <br />
+                                 <p><a href="https://mon-coach-plein-air.sanity.studio" style="background-color: #0ea5e9; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Accéder au Dashboard Sanity</a></p>
+                             </div>
+                         `
+                    });
+                    console.log("Emails sent successfully via NodeMailer");
+                } catch (emailError) {
+                    console.error("Error sending emails:", emailError);
                 }
 
                 // 4. Revalidate Calendar Cache

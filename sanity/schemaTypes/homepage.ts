@@ -96,18 +96,18 @@ export const homepage = defineType({
         defineField({
             name: 'featuresDuoText',
             title: 'Texte Bloc 1',
-            type: 'text',
-            rows: 4,
+            type: 'array',
+            of: [{ type: 'block' }],
             group: 'features',
-            initialValue: "La combinaison des activités rend l’expérience extraordinaire. En prenant le temps de s’immerger dans un élément (Roche, Eau, Terre) ou en créant des complémentarités magiques, l’aventure prend tout son sens."
+
         }),
         defineField({
             name: 'featuresDuoSubtext',
             title: 'Sous-texte Bloc 1 (Petit gris)',
-            type: 'text',
-            rows: 2,
+            type: 'array',
+            of: [{ type: 'block' }],
             group: 'features',
-            initialValue: "Découvrez toutes les facettes des Hautes-Alpes : falaises, lacs, vallons sauvages, crêtes et cols mythiques."
+
         }),
         // Feature 2: Luxe
         defineField({
@@ -120,10 +120,10 @@ export const homepage = defineType({
         defineField({
             name: 'featuresLuxeText',
             title: 'Texte Bloc 2',
-            type: 'text',
-            rows: 4,
+            type: 'array',
+            of: [{ type: 'block' }],
             group: 'features',
-            initialValue: "Pas de foule, pas de format standard. Juste vous, la nature, et un encadrement expert. Matériel haut de gamme, approche humaine et sécurisée. Le plaisir de se dépasser sans pression."
+
         }),
         // Feature 3: Eco (Intense & Responsable)
         defineField({
@@ -136,10 +136,10 @@ export const homepage = defineType({
         defineField({
             name: 'featuresEcoText',
             title: 'Texte Bloc 3',
-            type: 'text',
-            rows: 4,
+            type: 'array',
+            of: [{ type: 'block' }],
             group: 'features',
-            initialValue: "Nos déplacements se font majoritairement à vélo ou à pied. Des activités locales pensées pour limiter l’impact écologique sans réduire l’intensité.\nMax de sensations, min d'empreinte."
+
         }),
         defineField({
             name: 'featuresCtaText',
@@ -191,7 +191,7 @@ export const homepage = defineType({
                     title: 'Format / Formule',
                     fields: [
                         { name: 'title', title: 'Titre', type: 'string' },
-                        { name: 'description', title: 'Description', type: 'text', rows: 3 },
+                        { name: 'description', title: 'Description', type: 'array', of: [{ type: 'block' }] },
                         { name: 'image', title: 'Image', type: 'image', options: { hotspot: true } },
                         { name: 'benefits', title: 'Avantages / Points clés', type: 'array', of: [{ type: 'string' }] },
                         { name: 'buttonText', title: 'Texte du Bouton', type: 'string', initialValue: 'En savoir plus' },

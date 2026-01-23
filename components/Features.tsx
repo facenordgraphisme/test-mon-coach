@@ -9,12 +9,12 @@ interface FeaturesProps {
         featuresQuote?: string;
         featuresIntro?: any;
         featuresDuoTitle?: string;
-        featuresDuoText?: string;
-        featuresDuoSubtext?: string;
+        featuresDuoText?: any;
+        featuresDuoSubtext?: any;
         featuresLuxeTitle?: string;
-        featuresLuxeText?: string;
+        featuresLuxeText?: any;
         featuresEcoTitle?: string;
-        featuresEcoText?: string;
+        featuresEcoText?: any;
         featuresCtaText?: string;
         featuresCtaLink?: string;
     }
@@ -64,12 +64,12 @@ export function Features({ data }: FeaturesProps) {
                             <Wind className="w-5 h-5 text-[var(--brand-water)]" />
                             {featuresDuoTitle}
                         </h4>
-                        <p className="text-stone-600">
-                            {featuresDuoText}
-                        </p>
-                        <p className="text-stone-500 text-sm pt-2">
-                            {featuresDuoSubtext}
-                        </p>
+                        <div className="text-stone-600">
+                            {Array.isArray(featuresDuoText) ? <PortableText value={featuresDuoText} /> : featuresDuoText}
+                        </div>
+                        <div className="text-stone-500 text-sm pt-2">
+                            {Array.isArray(featuresDuoSubtext) ? <PortableText value={featuresDuoSubtext} /> : featuresDuoSubtext}
+                        </div>
                     </div>
                 </div>
 
@@ -81,9 +81,9 @@ export function Features({ data }: FeaturesProps) {
                             <Gem className="w-6 h-6 text-[var(--brand-rock)]" />
                         </div>
                         <h4 className="text-xl font-bold text-stone-900 mb-3">{featuresLuxeTitle}</h4>
-                        <p className="text-stone-600 text-sm leading-relaxed">
-                            {featuresLuxeText}
-                        </p>
+                        <div className="text-stone-600 text-sm leading-relaxed">
+                            {Array.isArray(featuresLuxeText) ? <PortableText value={featuresLuxeText} /> : featuresLuxeText}
+                        </div>
                     </div>
 
                     {/* Pillar 2: Eco (formerly 3) */}
@@ -92,9 +92,9 @@ export function Features({ data }: FeaturesProps) {
                             <Leaf className="w-6 h-6 text-green-600" />
                         </div>
                         <h4 className="text-xl font-bold text-stone-900 mb-3">{featuresEcoTitle}</h4>
-                        <p className="text-stone-600 text-sm leading-relaxed whitespace-pre-line">
-                            {featuresEcoText}
-                        </p>
+                        <div className="text-stone-600 text-sm leading-relaxed">
+                            {Array.isArray(featuresEcoText) ? <PortableText value={featuresEcoText} /> : <span className="whitespace-pre-line">{featuresEcoText}</span>}
+                        </div>
                     </div>
                 </div>
 

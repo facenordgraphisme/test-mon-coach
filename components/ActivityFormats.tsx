@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { Check } from "lucide-react";
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
+import { PortableText } from "@portabletext/react";
 
 async function getActivityTypes() {
     try {
@@ -95,15 +96,21 @@ export async function ActivityFormats({ hideTitle = false, className = "", varia
                             {/* Content */}
                             <div className={`${variant === 'compact' ? 'p-6' : 'p-8'} flex flex-col flex-1`}>
                                 <h3 className={`${variant === 'compact' ? 'text-xl' : 'text-2xl'} font-bold text-stone-900 ${variant === 'compact' ? 'mb-2' : 'mb-3'}`}>{format.title}</h3>
-                                <p className={`text-stone-600 flex-1 ${variant === 'compact' ? 'text-sm leading-relaxed mb-4' : 'mb-6'}`}>
-                                    {format.description}
-                                </p>
+                                {Array.isArray(format.description) ? (
+                                    <div className={`text-stone-600 flex-1 ${variant === 'compact' ? 'text-sm leading-relaxed mb-4' : 'mb-6'}`}>
+                                        <PortableText value={format.description} />
+                                    </div>
+                                ) : (
+                                    <p className={`text-stone-600 flex-1 ${variant === 'compact' ? 'text-sm leading-relaxed mb-4' : 'mb-6'}`}>
+                                        {format.description}
+                                    </p>
+                                )}
 
                                 {/* Benefits List */}
                                 {variant === 'default' && (
                                     <ul className="space-y-3 mb-8">
                                         {format.benefits && format.benefits.map((benefit: string, j: number) => (
-                                            <li key={j} className="flex items-start gap-3 text-stone-700 text-sm">
+                                            <li key={j} className="flex items-start gap-3 text-stone-900 font-medium text-base">
                                                 <div className="mt-0.5 p-0.5 rounded-full bg-green-100 text-green-700">
                                                     <Check className="w-3 h-3" />
                                                 </div>

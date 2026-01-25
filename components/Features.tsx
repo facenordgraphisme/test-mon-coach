@@ -42,60 +42,64 @@ export function Features({ data }: FeaturesProps) {
                 {/* Header removed as per user request (moved to Hero) */}
                 <div className="mb-16" />
 
-                {/* Main Manifesto - Split Layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-20">
-                    <div className="space-y-6 text-stone-700 leading-relaxed text-lg">
-                        <p className="font-medium text-stone-900 italic text-xl border-l-4 border-[var(--brand-water)] pl-6">
+                {/* Intro Text & Quote Centered */}
+                <div className="max-w-4xl mx-auto text-center mb-16 space-y-8">
+                    <div className="prose prose-lg text-stone-700 mx-auto">
+                        <p className="font-medium text-stone-900 italic text-2xl mb-4 relative inline-block">
                             "{featuresQuote}"
                         </p>
-                        <div className="prose prose-lg text-stone-700">
+                        <div className="text-stone-600 leading-relaxed">
                             {featuresIntro ? (
                                 <PortableText value={featuresIntro} />
                             ) : (
                                 <p>
                                     Bienvenue à Rêves d’Aventures. Je vous accompagne en <strong>petits groupes</strong> (1 à 5 pers.) pour vivre des expériences authentiques.
-                                    Escalade, via ferrata, canyoning, VTT, gravel... sont les moyens idéaux pour cheminer à travers les éléments et s’émerveiller.
                                 </p>
                             )}
                         </div>
                     </div>
-                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-stone-100 space-y-4">
-                        <h4 className="text-xl font-bold text-stone-900 flex items-center gap-2">
-                            <Wind className="w-5 h-5 text-[var(--brand-water)]" />
-                            {featuresDuoTitle}
-                        </h4>
-                        <div className="text-stone-600">
+                </div>
+
+                {/* 3 Pillars Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+
+                    {/* Pillar 1: Duo */}
+                    <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-stone-100 group flex flex-col items-center text-center">
+                        <div className="w-16 h-16 bg-stone-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-inner">
+                            <Wind className="w-8 h-8 text-[var(--brand-water)]" />
+                        </div>
+                        <h4 className="text-xl font-bold text-stone-900 mb-4">{featuresDuoTitle}</h4>
+                        <div className="text-stone-600 text-sm leading-relaxed mb-4">
                             {Array.isArray(featuresDuoText) ? <PortableText value={featuresDuoText} /> : featuresDuoText}
                         </div>
-                        <div className="text-stone-500 text-sm pt-2">
+                        <div className="text-stone-400 text-xs mt-auto pt-4 border-t border-stone-50 w-full">
                             {Array.isArray(featuresDuoSubtext) ? <PortableText value={featuresDuoSubtext} /> : featuresDuoSubtext}
                         </div>
                     </div>
-                </div>
 
-                {/* The Pillars - Flex/Grid centered */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20 max-w-4xl mx-auto">
-                    {/* Pillar 1: Luxe */}
-                    <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-stone-100 group">
-                        <div className="w-12 h-12 bg-stone-50 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <Gem className="w-6 h-6 text-[var(--brand-rock)]" />
+                    {/* Pillar 2: Luxe */}
+                    <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-stone-100 group flex flex-col items-center text-center relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--brand-rock)] to-[var(--brand-water)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="w-16 h-16 bg-stone-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-inner">
+                            <Gem className="w-8 h-8 text-[var(--brand-rock)]" />
                         </div>
-                        <h4 className="text-xl font-bold text-stone-900 mb-3">{featuresLuxeTitle}</h4>
+                        <h4 className="text-xl font-bold text-stone-900 mb-4">{featuresLuxeTitle}</h4>
                         <div className="text-stone-600 text-sm leading-relaxed">
                             {Array.isArray(featuresLuxeText) ? <PortableText value={featuresLuxeText} /> : featuresLuxeText}
                         </div>
                     </div>
 
-                    {/* Pillar 2: Eco (formerly 3) */}
-                    <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-stone-100 group">
-                        <div className="w-12 h-12 bg-stone-50 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <Leaf className="w-6 h-6 text-green-600" />
+                    {/* Pillar 3: Eco */}
+                    <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-stone-100 group flex flex-col items-center text-center">
+                        <div className="w-16 h-16 bg-stone-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-inner">
+                            <Leaf className="w-8 h-8 text-green-600" />
                         </div>
-                        <h4 className="text-xl font-bold text-stone-900 mb-3">{featuresEcoTitle}</h4>
+                        <h4 className="text-xl font-bold text-stone-900 mb-4">{featuresEcoTitle}</h4>
                         <div className="text-stone-600 text-sm leading-relaxed">
                             {Array.isArray(featuresEcoText) ? <PortableText value={featuresEcoText} /> : <span className="whitespace-pre-line">{featuresEcoText}</span>}
                         </div>
                     </div>
+
                 </div>
 
                 {/* Bottom CTA */}

@@ -80,7 +80,15 @@ export function ActivityFilterableList({
                 setFilter(param.toLowerCase());
             }
         }
-    }, [searchParams, effectiveHideFormat]);
+
+        // Handle element from URL
+        const elementParam = searchParams.get('element');
+        if (elementParam && !effectiveHideElement) {
+            // Mapping English/Sanity values to UI labels if needed, but assuming direct match for now
+            // Or casing normalization
+            setActiveElement(elementParam.charAt(0).toUpperCase() + elementParam.slice(1).toLowerCase());
+        }
+    }, [searchParams, effectiveHideFormat, effectiveHideElement]);
 
     const filteredActivities = initialActivities.filter(activity => {
         // Filter by format
@@ -137,9 +145,9 @@ export function ActivityFilterableList({
                             <button
                                 key={element}
                                 onClick={() => setActiveElement(element)}
-                                className={`px-4 py-1.5 rounded-full border text-xs font-bold uppercase tracking-wider transition-colors whitespace-nowrap ${activeElement === element
-                                    ? 'bg-[var(--brand-water)] text-white border-[var(--brand-water)]'
-                                    : 'border-stone-200 text-stone-500 hover:bg-stone-50'
+                                className={`px-6 py-3 rounded-2xl border text-sm md:text-base font-bold uppercase tracking-wider transition-all duration-200 whitespace-nowrap shadow-sm hover:shadow-md ${activeElement === element
+                                    ? 'bg-[var(--brand-water)] text-white border-[var(--brand-water)] scale-105'
+                                    : 'border-stone-200 text-stone-500 hover:bg-stone-50 bg-white'
                                     }`}
                             >
                                 {element}

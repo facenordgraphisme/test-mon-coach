@@ -62,7 +62,20 @@ export const monoActivitePage = defineType({
                 name: 'featureBlock',
                 fields: [
                     { name: 'title', title: 'Titre (ex: Roche)', type: 'string' },
-                    { name: 'items', title: 'Liste activités', type: 'array', of: [{ type: 'string' }] },
+                    {
+                        name: 'items',
+                        title: 'Liste activités',
+                        type: 'array',
+                        of: [
+                            {
+                                type: 'object',
+                                fields: [
+                                    { name: 'label', title: 'Nom', type: 'string' },
+                                    { name: 'url', title: 'Lien', type: 'string' }
+                                ]
+                            }
+                        ]
+                    },
                     {
                         name: 'icon',
                         title: 'Icône',

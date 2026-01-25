@@ -43,7 +43,7 @@ export default async function GuidePage() {
             />
             {/* Hero Profile */}
             <PageHero
-                title="Votre Guide"
+                title="Qui suis-je"
                 subtitle="&quot;Vivre la nature avec passion, sécurité et authenticité.&quot;"
                 label="RENCONTRE"
                 image="/assets/IMG_9962.png"

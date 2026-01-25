@@ -30,10 +30,10 @@ export const homepage = defineType({
         defineField({
             name: 'heroSubtitle',
             title: 'Slogan / Sous-titre',
-            type: 'string',
+            type: 'array',
+            of: [{ type: 'block' }],
             group: 'hero',
             description: "La phrase d'accroche (ex: Des expériences exclusives...)",
-            initialValue: 'Des expériences exclusives, pensées pour vous.'
         }),
         defineField({
             name: 'heroImage',

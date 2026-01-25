@@ -1,5 +1,6 @@
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckCircle2, Gem, Mountain, Waves, Bike } from "lucide-react";
 import { PortableText } from '@portabletext/react';
@@ -185,84 +186,115 @@ export default async function MonoActivitePage() {
                                 // Icon logic mapping
                                 let Icon = Mountain;
                                 let colorClass = 'text-stone-400';
+                                let elementLink = 'Tous';
 
                                 if (block.icon === 'waves') {
                                     Icon = Waves;
                                     colorClass = 'text-[var(--brand-water)]';
+                                    elementLink = 'Eau';
                                 } else if (block.icon === 'bike') {
                                     Icon = Bike;
                                     colorClass = 'text-[var(--brand-rock)]';
+                                    elementLink = 'Terre';
                                 } else if (block.icon === 'mountain') {
                                     Icon = Mountain;
                                     colorClass = 'text-stone-400';
+                                    elementLink = 'Roche';
                                 }
 
                                 return (
-                                    <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
-                                        <Icon className={`w-8 h-8 mb-4 ${colorClass}`} />
-                                        <h3 className="font-bold text-stone-900 mb-2">{block.title}</h3>
-                                        {block.items && (
-                                            <ul className="text-sm text-stone-600 space-y-1">
-                                                {block.items.map((item: string, i: number) => (
-                                                    <li key={i}>{item}</li>
-                                                ))}
-                                            </ul>
-                                        )}
+                                    <div key={idx} className="block group h-full">
+                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 h-full hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+                                            <Link href={`?element=${elementLink}#catalogue`} className="block cursor-pointer">
+                                                <Icon className={`w-8 h-8 mb-4 ${colorClass}`} />
+                                                <h3 className="font-bold text-stone-900 mb-2 group-hover:text-[var(--brand-water)] transition-colors">{block.title}</h3>
+                                            </Link>
+
+                                            {block.items && (
+                                                <ul className="text-sm space-y-2 mt-2">
+                                                    {block.items.map((item: any, i: number) => {
+                                                        const label = typeof item === 'string' ? item : item?.label;
+                                                        const url = typeof item === 'string' ? null : item?.url;
+
+                                                        return (
+                                                            <li key={i}>
+                                                                {url ? (
+                                                                    <Link
+                                                                        href={url}
+                                                                        className={`font-semibold ${colorClass} hover:opacity-80 transition-opacity`}
+                                                                    >
+                                                                        {label}
+                                                                    </Link>
+                                                                ) : (
+                                                                    <span className="text-stone-600">{label}</span>
+                                                                )}
+                                                            </li>
+                                                        );
+                                                    })}
+                                                </ul>
+                                            )}
+                                        </div>
                                     </div>
                                 )
                             })
                         ) : (
                             /* Fallback Static Cards if CMS empty */
                             <>
-                                <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
-                                    <Mountain className="w-8 h-8 text-stone-400 mb-4" />
-                                    <h3 className="font-bold text-stone-900 mb-2">Roche</h3>
-                                    <ul className="text-sm text-stone-600 space-y-1">
-                                        <li>Escalade</li>
-                                        <li>Via Ferrata</li>
-                                    </ul>
-                                </div>
-                                <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
-                                    <Waves className="w-8 h-8 text-[var(--brand-water)] mb-4" />
-                                    <h3 className="font-bold text-stone-900 mb-2">Eau</h3>
-                                    <ul className="text-sm text-stone-600 space-y-1">
-                                        <li>Canyon</li>
-                                        <li>Planche à voile</li>
-                                        <li>Kayak</li>
-                                    </ul>
-                                </div>
-                                <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
-                                    <Bike className="w-8 h-8 text-[var(--brand-rock)] mb-4" />
-                                    <h3 className="font-bold text-stone-900 mb-2">Terre</h3>
-                                    <ul className="text-sm text-stone-600 space-y-1">
-                                        <li>VTT</li>
-                                        <li>Vélo de route</li>
-                                        <li>Gravel</li>
-                                    </ul>
-                                </div>
+                                <a href="?element=Roche#catalogue" className="block group cursor-pointer hover:-translate-y-1 transition-transform duration-300">
+                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 h-full hover:shadow-md transition-shadow">
+                                        <Mountain className="w-8 h-8 text-stone-400 mb-4" />
+                                        <h3 className="font-bold text-stone-900 mb-2 group-hover:text-[var(--brand-water)]">Roche</h3>
+                                        <ul className="text-sm text-stone-600 space-y-1">
+                                            <li>Escalade</li>
+                                            <li>Via Ferrata</li>
+                                        </ul>
+                                    </div>
+                                </a>
+                                <a href="?element=Eau#catalogue" className="block group cursor-pointer hover:-translate-y-1 transition-transform duration-300">
+                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 h-full hover:shadow-md transition-shadow">
+                                        <Waves className="w-8 h-8 text-[var(--brand-water)] mb-4" />
+                                        <h3 className="font-bold text-stone-900 mb-2 group-hover:text-[var(--brand-water)]">Eau</h3>
+                                        <ul className="text-sm text-stone-600 space-y-1">
+                                            <li>Canyon</li>
+                                            <li>Planche à voile</li>
+                                            <li>Kayak</li>
+                                        </ul>
+                                    </div>
+                                </a>
+                                <a href="?element=Terre#catalogue" className="block group cursor-pointer hover:-translate-y-1 transition-transform duration-300">
+                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 h-full hover:shadow-md transition-shadow">
+                                        <Bike className="w-8 h-8 text-[var(--brand-rock)] mb-4" />
+                                        <h3 className="font-bold text-stone-900 mb-2 group-hover:text-[var(--brand-water)]">Terre</h3>
+                                        <ul className="text-sm text-stone-600 space-y-1">
+                                            <li>VTT</li>
+                                            <li>Vélo de route</li>
+                                            <li>Gravel</li>
+                                        </ul>
+                                    </div>
+                                </a>
                             </>
                         )}
                     </div>
                 </div>
 
                 {/* Concept & Benefits */}
-                <div className="max-w-4xl mx-auto space-y-12">
+                <div className="max-w-4xl mx-auto space-y-8">
                     {/* Description */}
                     <div className="prose prose-stone text-lg md:text-xl text-stone-700 text-center mx-auto">
                         <PortableText value={description} components={ptComponents} />
                     </div>
 
-                    {/* Benefits List */}
+                    {/* Benefits List - Simplified Layout */}
                     {benefits && benefits.length > 0 && (
-                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-100">
-                            <h3 className="text-xl font-bold mb-6 text-center text-stone-900">Pourquoi choisir cette formule ?</h3>
+                        <div className="bg-white py-6 px-8 rounded-2xl shadow-sm border border-stone-100">
+                            {/* Title Removed as requested */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 {benefits.map((benefit: string, i: number) => (
-                                    <div key={i} className="flex flex-col items-center text-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-[var(--brand-water)]/10 text-[var(--brand-water)] flex items-center justify-center">
-                                            <CheckCircle2 className="w-6 h-6" />
+                                    <div key={i} className="flex flex-col items-center text-center gap-2">
+                                        <div className="w-8 h-8 rounded-full bg-[var(--brand-water)]/10 text-[var(--brand-water)] flex items-center justify-center">
+                                            <CheckCircle2 className="w-4 h-4" />
                                         </div>
-                                        <p className="font-medium text-stone-800">{benefit}</p>
+                                        <p className="font-medium text-stone-800 text-sm">{benefit}</p>
                                     </div>
                                 ))}
                             </div>
@@ -271,9 +303,9 @@ export default async function MonoActivitePage() {
                 </div>
 
                 {/* Activities List */}
-                <div className="space-y-8">
+                <div id="catalogue" className="space-y-8 pt-8">
                     <div className="text-center space-y-4">
-                        <h2 className="text-3xl font-bold text-stone-900">Toutes les activités {title}</h2>
+                        <h2 className="text-3xl font-bold text-stone-900">Toutes les mono-activités</h2>
                         <p className="text-stone-600 max-w-2xl mx-auto">
                             Explorez notre catalogue complet.
                         </p>

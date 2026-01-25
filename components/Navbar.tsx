@@ -38,7 +38,7 @@ export function Navbar() {
             ]
         },
         { href: "/calendrier", label: "Calendrier" },
-        { href: "/guide", label: "Le Guide" },
+        { href: "/guide", label: "Qui suis-je" },
         { href: "/contact", label: "Contact" },
         {
             href: "#",

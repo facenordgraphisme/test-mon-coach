@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { PortableText } from "next-sanity";
 
 interface HeroProps {
     data: any;
@@ -27,7 +28,7 @@ export function Hero({ data }: HeroProps) {
 
     // Defaults / Fallbacks while loading or if empty
     const heroTitle = data?.heroTitle || "Des expériences exclusives, pensées pour vous.";
-    const heroSubtitle = data?.heroSubtitle || "Escalade, Canyon, VTT en Hautes-Alpes. Vivez le luxe des sensations pures, sans la foule.";
+    const heroSubtitle = data?.heroSubtitle;
     const ctaText = data?.ctaText || "Réserver une aventure";
     const ctaLink = data?.ctaLink || "/calendrier";
 
@@ -71,9 +72,14 @@ export function Hero({ data }: HeroProps) {
                         {heroTitle}
                     </h1>
                     <div className="w-16 h-1 bg-white mx-auto rounded-full opacity-80 mb-8" />
-                    <p className="text-lg md:text-xl font-light text-stone-100 max-w-2xl mx-auto leading-relaxed drop-shadow-lg">
-                        {heroSubtitle}
-                    </p>
+
+                    <div className="text-lg md:text-2xl font-medium italic text-stone-100 max-w-4xl mx-auto leading-relaxed drop-shadow-lg px-4">
+                        {Array.isArray(heroSubtitle) ? (
+                            <PortableText value={heroSubtitle} />
+                        ) : (
+                            <p>« Escalade, Canyon, VTT en Hautes-Alpes. Vivez le luxe des sensations pures, sans la foule. »</p>
+                        )}
+                    </div>
                 </motion.div>
 
                 <motion.div

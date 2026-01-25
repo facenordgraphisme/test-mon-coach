@@ -46,8 +46,8 @@ export const duoActivitesPage = defineType({
         defineField({
             name: 'introDescription',
             title: 'Description Intro',
-            type: 'text',
-            rows: 4,
+            type: 'array',
+            of: [{ type: 'block' }],
             group: 'intro'
         }),
         defineField({

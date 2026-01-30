@@ -150,7 +150,7 @@ export async function SiteFooter() {
 
                 {/* Bottom Bar */}
                 <div className="pt-8 border-t border-stone-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-stone-500">
-                    <p>&copy; {currentYear} Mon Coach Plein Air.</p>
+                    <p>&copy; {currentYear} Rêves D'aventures</p>
                     <div className="flex gap-8">
                         <FooterLink href="/mentions-legales">Mentions</FooterLink>
                         <FooterLink href="/cgv">CGV</FooterLink>

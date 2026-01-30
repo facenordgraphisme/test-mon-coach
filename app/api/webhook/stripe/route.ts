@@ -104,7 +104,7 @@ export async function POST(req: Request) {
                              </div>
                          `
                     });
-                    console.log("Emails sent successfully via NodeMailer");
+                    console.log("Emails sent successfully via Resend");
                 } catch (emailError) {
                     console.error("Error sending emails:", emailError);
                 }

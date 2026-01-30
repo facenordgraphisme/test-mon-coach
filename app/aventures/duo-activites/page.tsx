@@ -208,7 +208,7 @@ export default async function DuoActivitesPage() {
                 {/* Activities List */}
                 <div className="space-y-8">
                     <div className="text-center space-y-4">
-                        <h2 className="text-3xl font-bold text-stone-900">Toutes les activités {title}</h2>
+                        <h2 className="text-3xl font-bold text-stone-900">Tous les Duos</h2>
                         <p className="text-stone-600 max-w-2xl mx-auto">
                             Explorez notre catalogue complet.
                         </p>

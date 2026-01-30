@@ -1,14 +1,6 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: Number(process.env.EMAIL_PORT) || 465,
-    secure: true, // true for 465, false for other ports
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendEmail = async ({
     to,
@@ -19,17 +11,16 @@ export const sendEmail = async ({
     subject: string;
     html: string;
 }) => {
-    const mailOptions = {
-        from: `"Mon Coach Plein Air" <${process.env.EMAIL_USER}>`,
-        to,
-        subject,
-        html,
-    };
-
     try {
-        const info = await transporter.sendMail(mailOptions);
-        console.log('Message sent: %s', info.messageId);
-        return info;
+        const data = await resend.emails.send({
+            from: 'Mon Coach Plein Air <contact@revesdaventures.fr>',
+            to,
+            subject,
+            html,
+        });
+
+        console.log('Email sent:', data);
+        return data;
     } catch (error) {
         console.error('Error sending email:', error);
         throw error;

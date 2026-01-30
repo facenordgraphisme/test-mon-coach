@@ -130,9 +130,17 @@ export const event = defineType({
         }),
         defineField({
             name: 'difficulty',
-            title: 'Niveau de difficulté',
+            title: 'Niveau de difficulté (Principal)',
             type: 'reference',
             to: { type: 'difficulty' },
+            description: 'Gardé pour compatibilité. Si vous sélectionnez plusieurs niveaux ci-dessous, ce champ sera ignoré par le site.'
+        }),
+        defineField({
+            name: 'difficulties',
+            title: 'Niveaux de difficulté (Multiple)',
+            type: 'array',
+            description: 'Sélectionner un ou plusieurs niveaux pour cette séance. Si renseigné, remplace le niveau principal.',
+            of: [{ type: 'reference', to: { type: 'difficulty' } }],
         }),
         defineField({
             name: 'equipment',

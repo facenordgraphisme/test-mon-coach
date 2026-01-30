@@ -27,6 +27,12 @@ interface BookingFormProps {
     difficultyColor?: string;
     difficultyLevel?: string;
     difficultyDescription?: string;
+    difficulties?: {
+        title: string;
+        level: string;
+        color: string;
+        description?: string;
+    }[];
     seatsAvailable?: number;
     requiresHeightWeight?: boolean;
     availableBikes?: Bike[]; // Dynamic bikes from Sanity
@@ -55,6 +61,7 @@ export function BookingForm({
     difficultyColor,
     difficultyLevel,
     difficultyDescription,
+    difficulties,
     seatsAvailable,
     requiresHeightWeight,
     availableBikes = [],
@@ -62,6 +69,9 @@ export function BookingForm({
     privatizationPrice,
     discounts = []
 }: BookingFormProps) {
+    // Ensure arrays are never null
+    const safeAvailableBikes = availableBikes || [];
+    const safeDiscounts = discounts || [];
     const [loading, setLoading] = useState(false);
     const [quantity, setQuantity] = useState(1);
     const [isGift, setIsGift] = useState(false);
@@ -72,7 +82,7 @@ export function BookingForm({
 
     const getRentalPrice = (bikeId: string | undefined) => {
         if (!bikeId || bikeId === 'none') return 0;
-        const bike = availableBikes.find(b => b._id === bikeId);
+        const bike = safeAvailableBikes.find(b => b._id === bikeId);
         if (!bike) return 0;
         return isFullDay ? (bike.priceFullDay || 0) : (bike.priceHalfDay || 0);
     };
@@ -121,9 +131,9 @@ export function BookingForm({
     let finalPricePerPerson = price;
     let appliedDiscount = 0;
 
-    if (!isPrivatized && (discounts || []).length > 0) {
+    if (!isPrivatized && (safeDiscounts || []).length > 0) {
         // Find highest applicable discount
-        const applicableDiscount = (discounts || [])
+        const applicableDiscount = (safeDiscounts || [])
             .filter(d => quantity >= d.minParticipants)
             .sort((a, b) => b.minParticipants - a.minParticipants)[0];
 
@@ -190,9 +200,9 @@ export function BookingForm({
                 .map((p, i) => `P${i + 1}: ${p.weight || '?'}`)
                 .join(' | ');
 
-            const rentalString = availableBikes.length > 0 ? participantsData
+            const rentalString = safeAvailableBikes.length > 0 ? participantsData
                 .map((p, i) => {
-                    const bike = availableBikes.find(b => b._id === p.bikeRentalId);
+                    const bike = safeAvailableBikes.find(b => b._id === p.bikeRentalId);
                     return bike ? `P${i + 1}: ${bike.name} (+${getRentalPrice(p.bikeRentalId)}€)` : null;
                 })
                 .filter(Boolean)
@@ -264,7 +274,26 @@ export function BookingForm({
                 {/* Level Badge */}
                 <div className="flex justify-between items-center">
                     <span className="text-stone-500">Niveau</span>
-                    {difficultyTitle || difficultyLevel ? (
+                    {(difficulties && difficulties.length > 0) ? (
+                        <div className="flex flex-wrap gap-1 justify-end">
+                            {difficulties.map((diff, i) => (
+                                <TooltipProvider key={i}>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Badge variant="outline" className={`cursor-help bg-${diff.color}-50 text-${diff.color}-700 border-${diff.color}-200`}>
+                                                {diff.title || `Niveau ${diff.level}`}
+                                            </Badge>
+                                        </TooltipTrigger>
+                                        {diff.description && (
+                                            <TooltipContent>
+                                                <p className="max-w-xs text-sm">{diff.description}</p>
+                                            </TooltipContent>
+                                        )}
+                                    </Tooltip>
+                                </TooltipProvider>
+                            ))}
+                        </div>
+                    ) : (difficultyTitle || difficultyLevel ? (
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
@@ -281,7 +310,7 @@ export function BookingForm({
                         </TooltipProvider>
                     ) : (
                         <span className="text-stone-900 font-medium">-</span>
-                    )}
+                    ))}
                 </div>
 
                 {/* Spots Check */}
@@ -317,14 +346,14 @@ export function BookingForm({
                             </div>
 
                             {/* Discount Info Badge */}
-                            {!isPrivatized && (discounts || []).length > 0 && (
+                            {!isPrivatized && (safeDiscounts || []).length > 0 && (
                                 <div className="col-span-2 mt-2 bg-green-50 border border-green-100 rounded-lg p-3 text-xs text-green-800 animate-fadeIn">
                                     <div className="font-bold mb-1 flex items-center gap-1">
                                         <Users className="w-3 h-3" />
                                         Tarifs dégressifs disponibles :
                                     </div>
                                     <ul className="space-y-1 ml-4 list-disc">
-                                        {(discounts || []).sort((a, b) => a.minParticipants - b.minParticipants).map((d, i) => (
+                                        {(safeDiscounts || []).sort((a, b) => a.minParticipants - b.minParticipants).map((d, i) => (
                                             <li key={i}>
                                                 <span className="font-bold">{d.minParticipants} personnes ou +</span> : <span className="font-bold">-{d.discountPercentage}%</span> (soit {(price * (1 - d.discountPercentage / 100)).toFixed(2)}€/pers)
                                             </li>
@@ -352,8 +381,8 @@ export function BookingForm({
                                 let currentPricePerPerson = price;
                                 let currentDiscount = 0;
 
-                                if (!isPrivatized && (discounts || []).length > 0) {
-                                    const applicable = (discounts || [])
+                                if (!isPrivatized && (safeDiscounts || []).length > 0) {
+                                    const applicable = (safeDiscounts || [])
                                         .filter(d => num >= d.minParticipants)
                                         .sort((a, b) => b.minParticipants - a.minParticipants)[0];
                                     if (applicable) {
@@ -409,7 +438,7 @@ export function BookingForm({
                         </div>
 
                         {/* Bike Rental (if available) */}
-                        {availableBikes.length > 0 && (
+                        {safeAvailableBikes.length > 0 && (
                             <div className="mb-3">
                                 <label className="text-xs font-medium text-stone-600 mb-1 block">Location de vélo ({isFullDay ? 'Tarif Journée' : 'Tarif Demi-journée'})</label>
                                 <Select
@@ -421,7 +450,7 @@ export function BookingForm({
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="none">Pas de location</SelectItem>
-                                        {availableBikes.map((bike) => (
+                                        {safeAvailableBikes.map((bike) => (
                                             <SelectItem key={bike._id} value={bike._id}>
                                                 {bike.name} (+{isFullDay ? bike.priceFullDay : bike.priceHalfDay}€)
                                             </SelectItem>

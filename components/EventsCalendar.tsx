@@ -24,6 +24,11 @@ type Event = {
     price: number
     privatizationPrice?: number
     duration: string
+    difficulties?: {
+        title: string
+        level: string
+        color: string
+    }[]
     difficulty: {
         title: string
         level: string
@@ -165,6 +170,11 @@ export function EventsCalendar({ events, buttonText }: { events: Event[], button
 
                             // const isFull = computedStatus === 'full'; // Unused but logic is there
 
+                            // Determine difficulties to display
+                            const displayDifficulties = event.difficulties && event.difficulties.length > 0
+                                ? event.difficulties
+                                : (event.difficulty ? [event.difficulty] : []);
+
                             return (
                                 <Card key={event._id} className="overflow-hidden hover:shadow-md transition-shadow duration-300 border-stone-100 bg-white group">
                                     <div className="flex flex-col md:flex-row">
@@ -208,18 +218,18 @@ export function EventsCalendar({ events, buttonText }: { events: Event[], button
                                         <div className="p-6 flex-1 flex flex-col justify-between">
                                             <div className="space-y-3">
                                                 <div className="flex flex-wrap gap-2 text-xs mb-1">
-                                                    {event.difficulty && (
-                                                        <TooltipProvider>
+                                                    {displayDifficulties.map((diff, i) => (
+                                                        <TooltipProvider key={i}>
                                                             <Tooltip delayDuration={300}>
                                                                 <TooltipTrigger asChild>
                                                                     <div className="cursor-help">
-                                                                        <Badge variant="outline" className={`bg-${event.difficulty.color}-50 text-${event.difficulty.color}-700 border-${event.difficulty.color}-200 hover:bg-${event.difficulty.color}-100 transition-colors`}>
-                                                                            Niveau {event.difficulty.level}
+                                                                        <Badge variant="outline" className={`bg-${diff.color}-50 text-${diff.color}-700 border-${diff.color}-200 hover:bg-${diff.color}-100 transition-colors`}>
+                                                                            Niveau {diff.level}
                                                                         </Badge>
                                                                     </div>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent className="max-w-[200px] p-4">
-                                                                    <p className="font-bold mb-1">{event.difficulty.title}</p>
+                                                                    <p className="font-bold mb-1">{diff.title}</p>
                                                                     <p className="text-xs text-stone-500 mb-2">Cliquez pour voir les détails des niveaux.</p>
                                                                     <Link href="/niveaux" className="text-xs text-[var(--brand-water)] underline underline-offset-2 hover:text-stone-900">
                                                                         En savoir plus
@@ -227,7 +237,7 @@ export function EventsCalendar({ events, buttonText }: { events: Event[], button
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>
-                                                    )}
+                                                    ))}
                                                     <Badge variant="secondary" className="bg-stone-100 text-stone-600">
                                                         {{
                                                             'half_day': 'Demi Journée',

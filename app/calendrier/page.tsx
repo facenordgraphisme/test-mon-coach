@@ -18,7 +18,10 @@ async function getData() {
             price,
             privatizationPrice,
             duration,
+            privatizationPrice,
+            duration,
             difficulty-> { title, level, color },
+            "difficulties": difficulties[]->{ title, level, color },
             activity -> { title, "slug": slug.current, "imageUrl": mainImage.asset -> url, format }
         }
     `);

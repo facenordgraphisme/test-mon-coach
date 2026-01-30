@@ -79,6 +79,11 @@ async function getData(slug: string) {
                     level,
                     color
                 },
+                "difficulties": difficulties[]->{
+                    title,
+                    level,
+                    color
+                },
                 duration,
                 description,
                 program,

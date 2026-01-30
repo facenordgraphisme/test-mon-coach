@@ -18,7 +18,7 @@ export const duoActivitesPage = defineType({
             title: 'Titre Héro',
             type: 'string',
             group: 'hero',
-            initialValue: 'Les Duos'
+            initialValue: 'Les Duos '
         }),
         defineField({
             name: 'heroSubtitle',

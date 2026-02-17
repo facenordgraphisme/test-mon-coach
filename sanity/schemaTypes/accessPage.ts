@@ -62,7 +62,12 @@ export const accessPage = defineType({
                 type: 'object',
                 fields: [
                     { name: 'name', type: 'string', title: 'Nom' },
-                    { name: 'description', type: 'text', title: 'Description' },
+                    {
+                        name: 'description',
+                        title: 'Description',
+                        type: 'array',
+                        of: [{ type: 'block' }]
+                    },
                     { name: 'link', type: 'url', title: 'Lien Web' },
                     { name: 'image', type: 'image', title: 'Image', options: { hotspot: true } }
                 ]

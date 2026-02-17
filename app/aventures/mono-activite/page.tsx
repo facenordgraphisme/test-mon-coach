@@ -47,7 +47,7 @@ async function getData() {
     const format = 'mono';
     const extraData = await client.fetch(groq`
         {
-            "events": *[_type == "event" && status != 'cancelled' && dateTime(date) > dateTime(now()) && activity->format == $format] | order(date asc) {
+            "events": *[_type == "event" && status != 'cancelled' && dateTime(date) > dateTime(now())] | order(date asc) {
                 _id,
                 title,
                 date,
@@ -180,7 +180,7 @@ export default async function MonoActivitePage() {
                     </div>
 
                     {/* RIGHT: 3 Elements Grid */}
-                    <div className="md:w-2/3 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="w-full md:w-2/3 grid grid-cols-3 gap-2 md:gap-6">
                         {introFeatures && introFeatures.length > 0 ? (
                             introFeatures.map((block: any, idx: number) => {
                                 // Icon logic mapping
@@ -204,14 +204,14 @@ export default async function MonoActivitePage() {
 
                                 return (
                                     <div key={idx} className="block group h-full">
-                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 h-full hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+                                        <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-stone-100 h-full hover:shadow-md transition-all duration-300 hover:-translate-y-1 text-center md:text-left">
                                             <Link href={`?element=${elementLink}#catalogue`} className="block cursor-pointer">
-                                                <Icon className={`w-8 h-8 mb-4 ${colorClass}`} />
-                                                <h3 className="font-bold text-stone-900 mb-2 group-hover:text-[var(--brand-water)] transition-colors">{block.title}</h3>
+                                                <Icon className={`w-8 h-8 mb-2 md:mb-4 mx-auto md:mx-0 ${colorClass}`} />
+                                                <h3 className="font-bold text-sm md:text-base text-stone-900 mb-2 group-hover:text-[var(--brand-water)] transition-colors">{block.title}</h3>
                                             </Link>
 
                                             {block.items && (
-                                                <ul className="text-sm space-y-2 mt-2">
+                                                <ul className="text-xs md:text-sm space-y-1 md:space-y-2 mt-2 hidden md:block">
                                                     {block.items.map((item: any, i: number) => {
                                                         const label = typeof item === 'string' ? item : item?.label;
                                                         const url = typeof item === 'string' ? null : item?.url;
@@ -233,6 +233,19 @@ export default async function MonoActivitePage() {
                                                     })}
                                                 </ul>
                                             )}
+                                            {/* Mobile: Show items as truncated text or hidden? The user screenshot implies just the title might be enough or small text. 
+                                                Let's keep items hidden on mobile for now to save space as 3 cols is tight, OR show them very small.
+                                                Actually, user said "Roche... Escalade... Via Ferrata" all visible.
+                                                Let's try to keep them visible but very small.
+                                            */}
+                                            {block.items && (
+                                                <ul className="text-[10px] md:text-sm space-y-0.5 md:space-y-2 mt-1 md:mt-2 md:hidden">
+                                                    {block.items.map((item: any, i: number) => {
+                                                        const label = typeof item === 'string' ? item : item?.label;
+                                                        return <li key={i} className="text-stone-500 leading-tight">{label}</li>
+                                                    })}
+                                                </ul>
+                                            )}
                                         </div>
                                     </div>
                                 )
@@ -241,20 +254,20 @@ export default async function MonoActivitePage() {
                             /* Fallback Static Cards if CMS empty */
                             <>
                                 <a href="?element=Roche#catalogue" className="block group cursor-pointer hover:-translate-y-1 transition-transform duration-300">
-                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 h-full hover:shadow-md transition-shadow">
-                                        <Mountain className="w-8 h-8 text-stone-400 mb-4" />
-                                        <h3 className="font-bold text-stone-900 mb-2 group-hover:text-[var(--brand-water)]">Roche</h3>
-                                        <ul className="text-sm text-stone-600 space-y-1">
+                                    <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-stone-100 h-full hover:shadow-md transition-shadow text-center md:text-left">
+                                        <Mountain className="w-6 h-6 md:w-8 md:h-8 text-stone-400 mb-2 md:mb-4 mx-auto md:mx-0" />
+                                        <h3 className="font-bold text-sm md:text-base text-stone-900 mb-1 md:mb-2 group-hover:text-[var(--brand-water)]">Roche</h3>
+                                        <ul className="text-[10px] md:text-sm text-stone-600 space-y-0.5 md:space-y-1 md:hidden">
                                             <li>Escalade</li>
                                             <li>Via Ferrata</li>
                                         </ul>
                                     </div>
                                 </a>
                                 <a href="?element=Eau#catalogue" className="block group cursor-pointer hover:-translate-y-1 transition-transform duration-300">
-                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 h-full hover:shadow-md transition-shadow">
-                                        <Waves className="w-8 h-8 text-[var(--brand-water)] mb-4" />
-                                        <h3 className="font-bold text-stone-900 mb-2 group-hover:text-[var(--brand-water)]">Eau</h3>
-                                        <ul className="text-sm text-stone-600 space-y-1">
+                                    <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-stone-100 h-full hover:shadow-md transition-shadow text-center md:text-left">
+                                        <Waves className="w-6 h-6 md:w-8 md:h-8 text-[var(--brand-water)] mb-2 md:mb-4 mx-auto md:mx-0" />
+                                        <h3 className="font-bold text-sm md:text-base text-stone-900 mb-1 md:mb-2 group-hover:text-[var(--brand-water)]">Eau</h3>
+                                        <ul className="text-[10px] md:text-sm text-stone-600 space-y-0.5 md:space-y-1 md:hidden">
                                             <li>Canyon</li>
                                             <li>Planche à voile</li>
                                             <li>Kayak</li>
@@ -262,10 +275,10 @@ export default async function MonoActivitePage() {
                                     </div>
                                 </a>
                                 <a href="?element=Terre#catalogue" className="block group cursor-pointer hover:-translate-y-1 transition-transform duration-300">
-                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 h-full hover:shadow-md transition-shadow">
-                                        <Bike className="w-8 h-8 text-[var(--brand-rock)] mb-4" />
-                                        <h3 className="font-bold text-stone-900 mb-2 group-hover:text-[var(--brand-water)]">Terre</h3>
-                                        <ul className="text-sm text-stone-600 space-y-1">
+                                    <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-stone-100 h-full hover:shadow-md transition-shadow text-center md:text-left">
+                                        <Bike className="w-6 h-6 md:w-8 md:h-8 text-[var(--brand-rock)] mb-2 md:mb-4 mx-auto md:mx-0" />
+                                        <h3 className="font-bold text-sm md:text-base text-stone-900 mb-1 md:mb-2 group-hover:text-[var(--brand-water)]">Terre</h3>
+                                        <ul className="text-[10px] md:text-sm text-stone-600 space-y-0.5 md:space-y-1 md:hidden">
                                             <li>VTT</li>
                                             <li>Vélo de route</li>
                                             <li>Gravel</li>
@@ -328,7 +341,7 @@ export default async function MonoActivitePage() {
                             Retrouvez ici toutes les sessions programmées pour ce format.
                         </p>
                     </div>
-                    <EventsCalendar events={events} buttonText={cardButtonText} />
+                    <EventsCalendar events={events} buttonText={cardButtonText} defaultFilter="mono" />
                 </div>
             </div>
         </main>

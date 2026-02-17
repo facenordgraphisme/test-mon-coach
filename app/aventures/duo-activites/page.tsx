@@ -46,7 +46,7 @@ async function getData() {
     // 2. Fetch Related Data (Activities, Events)
     const format = 'duo';
     const extraData = await client.fetch(groq`{
-        "events": *[_type == "event" && status != 'cancelled' && dateTime(date) > dateTime(now()) && activity->format == $format] | order(date asc) {
+        "events": *[_type == "event" && status != 'cancelled' && dateTime(date) > dateTime(now())] | order(date asc) {
             _id,
             title,
             date,
@@ -60,7 +60,8 @@ async function getData() {
                 "slug": slug.current,
                 "imageUrl": mainImage.asset->url,
                 duration,
-                difficulty->{ level, color }
+                difficulty->{ level, color },
+                format
             }
         },
         "activities": *[_type == "activity" && format == $format] {
@@ -231,7 +232,7 @@ export default async function DuoActivitesPage() {
                             Retrouvez ici toutes les sessions programmées pour ce format.
                         </p>
                     </div>
-                    <EventsCalendar events={events} buttonText={cardButtonText} />
+                    <EventsCalendar events={events} buttonText={cardButtonText} defaultFilter="duo" />
                 </div>
             </div>
         </main>

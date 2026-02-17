@@ -46,6 +46,13 @@ export const guide = defineType({
             of: [{ type: 'image', options: { hotspot: true } }]
         }),
         defineField({
+            name: 'heroImage',
+            title: 'Image de couverture (Hero)',
+            type: 'image',
+            options: { hotspot: true },
+            description: "Image de fond pour le haut de la page. Si vide, l'image par défaut sera utilisée."
+        }),
+        defineField({
             name: 'seo',
             title: 'SEO',
             type: 'seo',

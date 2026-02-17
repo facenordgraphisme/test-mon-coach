@@ -14,6 +14,7 @@ async function getGuideProfile() {
             bio,
             diplomas,
             "imageUrl": image.asset->url,
+            "heroImageUrl": heroImage.asset->url,
             "photos": photos[].asset->url,
             seo
         }
@@ -46,7 +47,7 @@ export default async function GuidePage() {
                 title="Qui suis-je"
                 subtitle="&quot;Vivre la nature avec passion, sécurité et authenticité.&quot;"
                 label="RENCONTRE"
-                image="/assets/IMG_9962.png"
+                image={guide.heroImageUrl || "/assets/IMG_9962.png"}
             />
 
             <main className="flex-1 container mx-auto px-4 md:px-6 -mt-12 mb-12 max-w-5xl">

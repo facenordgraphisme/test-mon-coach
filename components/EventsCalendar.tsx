@@ -42,9 +42,9 @@ type Event = {
     }
 }
 
-export function EventsCalendar({ events, buttonText }: { events: Event[], buttonText?: string }) {
+export function EventsCalendar({ events, buttonText, defaultFilter = 'all' }: { events: Event[], buttonText?: string, defaultFilter?: 'all' | 'mono' | 'duo' }) {
     const [date, setDate] = useState<Date | undefined>(undefined)
-    const [filter, setFilter] = useState<'all' | 'mono' | 'duo'>('all')
+    const [filter, setFilter] = useState<'all' | 'mono' | 'duo'>(defaultFilter)
 
     // Filter events first by type
     const filteredEvents = events.filter(e => {

@@ -1,12 +1,11 @@
-import { client } from "@/lib/sanity";
+import { client, urlFor } from "@/lib/sanity";
 import { groq } from "next-sanity";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
-import { PortableText } from '@portabletext/react';
 import { Train, Car, Plane, MapPin, ArrowRight, Home, Bus, Info } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-
+import { RichText } from "@/components/RichText";
 import { generateSeoMetadata } from "@/lib/seo";
 import { Metadata } from "next";
 
@@ -21,7 +20,7 @@ async function getAccessPageData() {
                 description,
                 type,
                 link,
-                "imageUrl": image.asset->url
+                image
             },
             seo
         }
@@ -48,26 +47,17 @@ const getIcon = (iconName: string) => {
     }
 }
 
-
-
-import { ptComponents } from "@/components/PortableTextComponents";
-
-// ... (existing imports)
-
 export default async function AccessPage() {
     const data = await getAccessPageData();
-    console.log("Access Page Data:", JSON.stringify(data, null, 2)); // Debugging
 
     // Fallback title if document not created
     const pageTitle = data?.title || "Accès & Hébergements";
-    const customJsonLd = data?.seo?.structuredData ? JSON.parse(data.seo.structuredData) : null;
 
     // determine if we have custom methods
     const hasCustomMethods = data?.accessMethods && data.accessMethods.length > 0;
 
     return (
         <div className="min-h-screen bg-stone-50 flex flex-col">
-            {/* ... script ... */}
             <PageHero
                 title={pageTitle}
                 subtitle="Toutes les informations pour nous rejoindre dans les Hautes-Alpes et préparer votre séjour."
@@ -81,7 +71,7 @@ export default async function AccessPage() {
                 <section className="py-16 md:py-24 container px-4 md:px-6 mx-auto">
                     {data?.intro && (
                         <div className="prose prose-stone text-lg md:text-xl text-stone-700 text-center mx-auto max-w-4xl mb-20">
-                            <PortableText value={data.intro} components={ptComponents} />
+                            <RichText value={data.intro} />
                         </div>
                     )}
 
@@ -103,7 +93,7 @@ export default async function AccessPage() {
                                         <h3 className="font-bold text-lg mb-2 text-stone-900">{method.title}</h3>
                                         <div className="text-stone-600 leading-relaxed text-sm prose prose-sm prose-stone">
                                             {method.description ? (
-                                                <PortableText value={method.description} components={ptComponents} />
+                                                <RichText value={method.description} />
                                             ) : null}
                                         </div>
                                     </div>
@@ -167,9 +157,13 @@ export default async function AccessPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {data?.accommodations?.map((place: any, i: number) => (
                                 <div key={i} className="group bg-white overflow-hidden rounded-2xl border border-stone-100 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col">
-                                    <div className="relative h-56 bg-stone-200 overflow-hidden">
-                                        {place.imageUrl ? (
-                                            <img src={place.imageUrl} alt={place.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                    <div className="relative aspect-video bg-stone-200 overflow-hidden">
+                                        {place.image ? (
+                                            <img
+                                                src={urlFor(place.image).url()}
+                                                alt={place.name}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-stone-400 bg-stone-100">
                                                 <Home className="w-12 h-12 opacity-20" />
@@ -181,7 +175,9 @@ export default async function AccessPage() {
                                     </div>
                                     <div className="p-6 flex flex-col flex-1">
                                         <h3 className="font-bold text-xl mb-3 text-stone-900 group-hover:text-[var(--brand-water)] transition-colors">{place.name}</h3>
-                                        <p className="text-stone-600 text-sm mb-6 leading-relaxed flex-1">{place.description}</p>
+                                        <div className="text-stone-600 text-sm mb-6 leading-relaxed flex-1 prose prose-sm prose-stone">
+                                            <RichText value={place.description} />
+                                        </div>
                                         {place.link && (
                                             <Button asChild variant="outline" className="w-full justify-between items-center border-stone-200 hover:border-[var(--brand-water)] hover:text-[var(--brand-water)] hover:bg-white">
                                                 <Link href={place.link} target="_blank">

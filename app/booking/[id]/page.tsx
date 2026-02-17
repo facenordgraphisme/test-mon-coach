@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { formatTimeParis } from "@/lib/utils";
-import { PortableText } from '@portabletext/react';
+import { RichText } from "@/components/RichText";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { GoBackButton } from "@/components/GoBackButton";
@@ -193,7 +193,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                     </h2>
                                     <div className="prose prose-stone max-w-none text-gray-600 leading-relaxed min-h-[200px]">
                                         {Array.isArray(event.description)
-                                            ? <PortableText value={event.description} />
+                                            ? <RichText value={event.description} />
                                             : <p>Description détaillée à venir.</p>
                                         }
                                     </div>
@@ -303,7 +303,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                                     Location de matériel
                                                 </h3>
                                                 <div className="prose prose-stone max-w-none text-gray-600 leading-relaxed">
-                                                    <PortableText value={activity.rentalDescription} />
+                                                    <RichText value={activity.rentalDescription} />
                                                 </div>
                                             </>
                                         )}
@@ -420,6 +420,6 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

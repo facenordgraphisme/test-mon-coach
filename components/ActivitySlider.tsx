@@ -19,7 +19,7 @@ export type Activity = {
 }
 
 export function ActivitySlider({ activities }: { activities: Activity[] }) {
-    const [filter, setFilter] = useState<'mono' | 'duo' | 'all'>('mono')
+    const [filter, setFilter] = useState<'mono' | 'duo' | 'multi' | 'all'>('mono')
     const [width, setWidth] = useState(0)
     const carouselRef = useRef<HTMLDivElement>(null)
 
@@ -52,6 +52,13 @@ export function ActivitySlider({ activities }: { activities: Activity[] }) {
                 >
                     Combinés Duo
                 </Button>
+                <Button
+                    variant={filter === 'multi' ? 'default' : 'outline'}
+                    onClick={() => setFilter('multi')}
+                    className={`rounded-full transition-all duration-300 ${filter === 'multi' ? 'bg-blue-600 hover:bg-blue-700 text-white border-transparent' : 'text-stone-600 border-stone-200 hover:border-blue-600 hover:text-blue-600'}`}
+                >
+                    Séjours & Multi
+                </Button>
             </div>
 
             {/* Draggable Slider Container */}
@@ -69,7 +76,7 @@ export function ActivitySlider({ activities }: { activities: Activity[] }) {
                         {filteredActivities.map((activity) => (
                             <motion.div
                                 key={activity.slug}
-                                className="min-w-[85%] md:min-w-[calc(33.333%-16px)]" // Mobile: 85% width, Desktop: (100% / 3) - gap correction
+                                className="min-w-[85%] max-w-[85%] md:min-w-[calc(33.333%-16px)] md:max-w-[calc(33.333%-16px)] shrink-0" // Mobile: 85% width, Desktop: (100% / 3) - gap correction
                             >
                                 <div className="group relative block overflow-hidden rounded-2xl bg-gray-100 aspect-[4/5] hover:shadow-xl transition-all duration-300 select-none">
                                     {activity.imageUrl ? (
@@ -88,9 +95,9 @@ export function ActivitySlider({ activities }: { activities: Activity[] }) {
                                     {/* Gradient Overlay */}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 flex flex-col justify-end text-white">
                                         <div className="transform translate-y-4 transition-transform duration-300 group-hover:translate-y-0">
-                                            <span className={`inline-block px-3 py-1 text-xs font-medium uppercase tracking-wider bg-white/20 backdrop-blur-md rounded-full mb-3 border border-white/30 ${activity.format === 'duo' ? 'text-amber-300 border-amber-500/30' : 'text-emerald-300 border-emerald-500/30'
+                                            <span className={`inline-block px-3 py-1 text-xs font-medium uppercase tracking-wider bg-white/20 backdrop-blur-md rounded-full mb-3 border border-white/30 ${activity.format === 'duo' ? 'text-amber-300 border-amber-500/30' : activity.format === 'multi' ? 'text-blue-300 border-blue-500/30' : 'text-emerald-300 border-emerald-500/30'
                                                 }`}>
-                                                {activity.format === 'mono' ? 'Mono-activité' : activity.format === 'duo' ? 'Duo-activité' : 'Multi-jours'}
+                                                {activity.format === 'mono' ? 'Mono-activité' : activity.format === 'duo' ? 'Duo-activité' : 'Séjour / Multi'}
                                             </span>
                                             <h3 className="text-2xl font-bold mb-2 leading-tight">{activity.title}</h3>
 

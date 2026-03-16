@@ -21,7 +21,7 @@ import { calendarPage } from './calendarPage'
 import { seo } from './seo'
 import { monoActivitePage } from './monoActivitePage'
 import { duoActivitesPage } from './duoActivitesPage'
-import { surMesurePage } from './surMesurePage'
+import { multiPage } from './multiPage'
 
 import { siteSettings } from './siteSettings'
 
@@ -48,6 +48,6 @@ export const schemaTypes: SchemaTypeDefinition[] = [
     seo,
     monoActivitePage,
     duoActivitesPage,
-    surMesurePage,
+    multiPage,
     siteSettings
 ]

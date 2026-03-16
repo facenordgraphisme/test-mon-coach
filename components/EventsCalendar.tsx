@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { BookingButton } from "@/components/BookingButton"
 import Link from "next/link"
 import { ArrowRight, Clock, Users, Filter } from "lucide-react"
-import { format, isSameDay } from "date-fns"
+import { format, isSameDay, isWithinInterval, startOfDay, endOfDay, eachDayOfInterval } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatTimeParis } from "@/lib/utils"
@@ -17,6 +17,7 @@ type Event = {
     _id: string
     title?: string
     date: string
+    endDate?: string
     status: 'available' | 'lastSpots' | 'full'
     maxParticipants: number
     seatsAvailable?: number
@@ -42,9 +43,9 @@ type Event = {
     }
 }
 
-export function EventsCalendar({ events, buttonText, defaultFilter = 'all' }: { events: Event[], buttonText?: string, defaultFilter?: 'all' | 'mono' | 'duo' }) {
+export function EventsCalendar({ events, buttonText, defaultFilter = 'all' }: { events: Event[], buttonText?: string, defaultFilter?: 'all' | 'mono' | 'duo' | 'multi' }) {
     const [date, setDate] = useState<Date | undefined>(undefined)
-    const [filter, setFilter] = useState<'all' | 'mono' | 'duo'>(defaultFilter)
+    const [filter, setFilter] = useState<'all' | 'mono' | 'duo' | 'multi'>(defaultFilter)
 
     // Filter events first by type
     const filteredEvents = events.filter(e => {
@@ -53,12 +54,39 @@ export function EventsCalendar({ events, buttonText, defaultFilter = 'all' }: { 
     })
 
     // Helper: Dates for modifiers (based on filtered events)
-    const monoDates = filteredEvents.filter(e => e.activity.format !== 'duo').map(e => new Date(e.date))
-    const duoDates = filteredEvents.filter(e => e.activity.format === 'duo').map(e => new Date(e.date))
+    const getDatesFromEvents = (eventsList: Event[], formatMatch: string) => {
+        return eventsList.flatMap(e => {
+            if (e.activity.format !== formatMatch) return [];
+            const start = new Date(e.date);
+            if (e.endDate) {
+                try {
+                    return eachDayOfInterval({ start, end: new Date(e.endDate) });
+                } catch (err) {
+                    return [start];
+                }
+            }
+            return [start];
+        });
+    };
+
+    const monoDates = getDatesFromEvents(filteredEvents, 'mono');
+    const duoDates = getDatesFromEvents(filteredEvents, 'duo');
+    const multiDates = getDatesFromEvents(filteredEvents, 'multi');
 
     // displayedEvents depends on Date AND Filter
     const displayedEvents = date
-        ? filteredEvents.filter(e => isSameDay(new Date(e.date), date))
+        ? filteredEvents.filter(e => {
+            const start = startOfDay(new Date(e.date));
+            if (e.endDate) {
+                const end = endOfDay(new Date(e.endDate));
+                try {
+                    return isWithinInterval(startOfDay(date), { start, end });
+                } catch (err) {
+                    return isSameDay(new Date(e.date), date);
+                }
+            }
+            return isSameDay(new Date(e.date), date);
+        })
         : filteredEvents
 
     return (
@@ -95,6 +123,14 @@ export function EventsCalendar({ events, buttonText, defaultFilter = 'all' }: { 
                             <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" />
                             Duos (Combinés)
                         </Button>
+                        <Button
+                            variant={filter === 'multi' ? 'default' : 'outline'}
+                            className={`w-full justify-start ${filter === 'multi' ? 'bg-blue-600 hover:bg-blue-700' : 'text-stone-600'}`}
+                            onClick={() => setFilter('multi')}
+                        >
+                            <span className="w-2 h-2 rounded-full bg-blue-600 mr-2" />
+                            Séjours & Multi
+                        </Button>
                     </div>
                 </div>
 
@@ -109,11 +145,13 @@ export function EventsCalendar({ events, buttonText, defaultFilter = 'all' }: { 
                             className="rounded-md border"
                             modifiers={{
                                 mono: monoDates,
-                                duo: duoDates
+                                duo: duoDates,
+                                multi: multiDates
                             }}
                             modifiersClassNames={{
                                 mono: "!bg-emerald-600 !font-bold !text-white hover:!bg-emerald-700",
                                 duo: "!bg-amber-500 !font-bold !text-white hover:!bg-amber-600",
+                                multi: "!bg-blue-600 !font-bold !text-white hover:!bg-blue-700",
                                 today: "font-bold border-2 border-stone-800"
                             }}
                             locale={fr}
@@ -127,6 +165,10 @@ export function EventsCalendar({ events, buttonText, defaultFilter = 'all' }: { 
                         <p className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-amber-500"></span>
                             <span>Sortie Duo (Combiné)</span>
+                        </p>
+                        <p className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                            <span>Séjour & Multi</span>
                         </p>
                     </div>
                 </div>
@@ -179,23 +221,32 @@ export function EventsCalendar({ events, buttonText, defaultFilter = 'all' }: { 
                                 <Card key={event._id} className="overflow-hidden hover:shadow-md transition-shadow duration-300 border-stone-100 bg-white group">
                                     <div className="flex flex-col md:flex-row">
                                         {/* Date Column with Dynamic Color */}
-                                        <div className={`p-6 flex flex-col items-center justify-center min-w-[130px] border-b md:border-b-0 md:border-r border-stone-100 shrink-0 ${event.activity.format === 'duo' ? 'bg-amber-50' : 'bg-emerald-50'
+                                        <div className={`p-6 flex flex-col items-center justify-center min-w-[130px] border-b md:border-b-0 md:border-r border-stone-100 shrink-0 ${event.activity.format === 'duo' ? 'bg-amber-50' : event.activity.format === 'multi' ? 'bg-blue-50' : 'bg-emerald-50'
                                             }`}>
-                                            <span className={`text-sm font-semibold uppercase tracking-widest ${event.activity.format === 'duo' ? 'text-amber-600' : 'text-emerald-600'
+                                            <span className={`text-sm font-semibold uppercase tracking-widest ${event.activity.format === 'duo' ? 'text-amber-600' : event.activity.format === 'multi' ? 'text-blue-600' : 'text-emerald-600'
                                                 }`}>
                                                 {format(new Date(event.date), 'MMM', { locale: fr })}
                                             </span>
-                                            <span className="text-4xl font-bold text-stone-900 my-1">
-                                                {format(new Date(event.date), 'dd')}
-                                            </span>
-                                            <div className="flex items-center gap-1 text-xs text-stone-500 bg-white/60 px-2 py-1 rounded-full">
+                                            
+                                            {/* Support multi-days display */}
+                                            {event.endDate ? (
+                                                <div className="text-xl font-bold text-stone-900 my-1 leading-none text-center">
+                                                    {format(new Date(event.date), 'dd')} - {format(new Date(event.endDate), 'dd')}
+                                                </div>
+                                            ) : (
+                                                <span className="text-4xl font-bold text-stone-900 my-1">
+                                                    {format(new Date(event.date), 'dd')}
+                                                </span>
+                                            )}
+
+                                            <div className="flex items-center gap-1 text-xs text-stone-500 bg-white/60 px-2 py-1 rounded-full mt-1">
                                                 <Clock className="w-3 h-3" />
                                                 {formatTimeParis(event.date)}
                                             </div>
                                             {/* Format Badge */}
-                                            <span className={`mt-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${event.activity.format === 'duo' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                                            <span className={`mt-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${event.activity.format === 'duo' ? 'bg-amber-100 text-amber-700' : event.activity.format === 'multi' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'
                                                 }`}>
-                                                {event.activity.format === 'duo' ? 'Duo' : 'Mono'}
+                                                {event.activity.format === 'duo' ? 'Duo' : event.activity.format === 'multi' ? 'Multi' : 'Mono'}
                                             </span>
                                         </div>
 
@@ -241,7 +292,8 @@ export function EventsCalendar({ events, buttonText, defaultFilter = 'all' }: { 
                                                     <Badge variant="secondary" className="bg-stone-100 text-stone-600">
                                                         {{
                                                             'half_day': 'Demi Journée',
-                                                            'full_day': 'Journée Complète'
+                                                            'full_day': 'Journée Complète',
+                                                            'multi_days': 'Plusieurs Jours'
                                                         }[event.duration] || event.duration}
                                                     </Badge>
                                                     <Badge variant="outline" className={`

@@ -34,7 +34,7 @@ export function Navbar() {
             children: [
                 { href: "/aventures/mono-activite", label: "Mono-activité" },
                 { href: "/aventures/duo-activites", label: "Duo d'activités" },
-                { href: "/aventures/sur-mesure", label: "Sur-mesure" },
+                { href: "/multi", label: "Multi / Sur-mesure" },
             ]
         },
         { href: "/calendrier", label: "Calendrier" },

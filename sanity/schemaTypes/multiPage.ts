@@ -1,8 +1,7 @@
-
 import { defineField, defineType } from 'sanity'
 
-export const surMesurePage = defineType({
-    name: 'surMesurePage',
+export const multiPage = defineType({
+    name: 'multiPage',
     title: 'Page Sur-Mesure / Multi',
     type: 'document',
     groups: [

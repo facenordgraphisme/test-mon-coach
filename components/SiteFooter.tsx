@@ -95,7 +95,7 @@ export async function SiteFooter() {
                         <ul className="space-y-3 text-stone-400 text-sm">
                             <li><FooterLink href="/aventures/mono-activite">Mono</FooterLink></li>
                             <li><FooterLink href="/aventures/duo-activites">Duo</FooterLink></li>
-                            <li><FooterLink href="/aventures/sur-mesure">Sur-mesure</FooterLink></li>
+                            <li><FooterLink href="/multi">Multi / Sur-mesure</FooterLink></li>
                         </ul>
                     </div>
 

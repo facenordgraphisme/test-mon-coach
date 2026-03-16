@@ -11,6 +11,7 @@ async function getData() {
             _id,
             title,
             date,
+            endDate,
             status,
             maxParticipants,
             seatsAvailable,

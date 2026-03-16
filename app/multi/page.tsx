@@ -8,10 +8,13 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { PortableText } from '@portabletext/react';
 import { ptComponents } from "@/components/PortableTextComponents";
+import { ActivityFilterableList } from "@/components/ActivityFilterableList";
+import { EventsCalendar } from "@/components/EventsCalendar";
+import { Suspense } from 'react';
 
 async function getData() {
     // 1. Fetch Singleton Page Content
-    const doc = await client.fetch(groq`*[_type == "surMesurePage"][0] {
+    let doc = await client.fetch(groq`*[_type == "multiPage"][0] {
         "title": heroTitle,
         "subtitle": heroSubtitle,
         "imageUrl": heroImage.asset->url,
@@ -26,20 +29,10 @@ async function getData() {
     }`);
 
     if (!doc) {
-        return {
-            title: "Sur-mesure",
+        doc = {
+            title: "Multi / Sur-mesure",
             subtitle: "Créez votre aventure (Contenu à configurer dans Sanity)",
-            description: [
-                {
-                    _type: 'block',
-                    children: [
-                        {
-                            _type: 'span',
-                            text: 'Votre texte de description apparaîtra ici. Remplissez le champ "Description Principale" dans Sanity pour le personnaliser.',
-                        },
-                    ],
-                },
-            ],
+            description: [],
             benefits: ["Accompagnement personnalisé", "Programme flexible", "Souvenirs inoubliables"],
             imageUrl: null,
             seo: null,
@@ -48,11 +41,56 @@ async function getData() {
         };
     }
 
-    return doc;
+    // 2. Fetch Related Data (Activities, Events)
+    const format = 'multi';
+    const extraData = await client.fetch(groq`
+        {
+            "events": *[_type == "event" && status != 'cancelled' && dateTime(date) > dateTime(now())] | order(date asc) {
+                _id,
+                title,
+                date,
+                endDate,
+                status,
+                maxParticipants,
+                seatsAvailable,
+                bookedCount,
+                price,
+                privatizationPrice,
+                duration,
+                difficulty->{ title, level, color },
+                activity->{
+                    title,
+                    "slug": slug.current,
+                    "imageUrl": mainImage.asset->url,
+                    format
+                }
+            },
+            "activities": *[_type == "activity" && format == $format] {
+                title,
+                "slug": slug.current,
+                format,
+                difficulty->{ title, level, color },
+                "imageUrl": mainImage.asset->url,
+                categories[]->{ title, element },
+                duration,
+                durationMode,
+                "difficulties": difficulties[]->{ title, level, color },
+                "upcomingEvents": *[_type == "event" && references(^._id) && date > now()] | order(date asc) {
+                    price,
+                    difficulty->{ title, level, color }
+                }
+            }
+        }
+    `, { format });
+
+    // 3. Fetch Site Settings for Card Button
+    const settings = await client.fetch(groq`*[_type == "siteSettings"][0] { cardButtonText }`, {}, { next: { revalidate: 0 } });
+
+    return { ...doc, ...extraData, cardButtonText: settings?.cardButtonText };
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-    const doc = await client.fetch(groq`*[_type == "surMesurePage"][0] {
+    const doc = await client.fetch(groq`*[_type == "multiPage"][0] {
         "title": heroTitle,
         description,
         "imageUrl": heroImage.asset->url,
@@ -61,26 +99,29 @@ export async function generateMetadata(): Promise<Metadata> {
 
     if (doc?.seo) return generateSeoMetadata(doc.seo, {
         title: doc.title,
-        description: "Aventure Sur-Mesure - Mon Coach Plein Air",
-        url: `https://moncoachpleinair.com/aventures/sur-mesure`
+        description: "Aventure Sur-Mesure / Multi - Mon Coach Plein Air",
+        url: `https://moncoachpleinair.com/multi`
     });
 
     return {
-        title: doc?.title || "Sur-Mesure",
+        title: doc?.title || "Multi / Sur-Mesure",
         description: "Mon Coach Plein Air"
     };
 }
 
 export const revalidate = 60;
 
-export default async function SurMesurePage() {
+export default async function MultiPage() {
     const data = await getData();
 
     if (!data) {
         notFound();
     }
 
-    const { title, subtitle, imageUrl, description, benefits, seo, introTitle, introDescription } = data;
+    const { 
+        title, subtitle, imageUrl, description, benefits, seo, introTitle, introDescription,
+        events, activities, cardButtonText
+    } = data;
     const customJsonLd = seo?.structuredData ? JSON.parse(seo.structuredData) : null;
 
     return (
@@ -118,7 +159,7 @@ export default async function SurMesurePage() {
 
             <div className="container px-4 md:px-6 mx-auto py-16 space-y-24">
 
-                {/* Description (Restored) */}
+                {/* Description */}
                 <div className="prose prose-stone text-lg md:text-xl text-stone-700 text-center mx-auto max-w-4xl">
                     <PortableText value={description} components={ptComponents} />
                 </div>
@@ -146,7 +187,7 @@ export default async function SurMesurePage() {
                     );
                 })()}
 
-                {/* DARK MULTI / SUR MESURE BLOCK (Restored Style) */}
+                {/* DARK MULTI / SUR MESURE BLOCK */}
                 <div className="bg-stone-900 rounded-3xl overflow-hidden p-8 md:p-16 text-center md:text-left relative max-w-6xl mx-auto">
                     <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
                         <div className="flex-1 space-y-6">
@@ -180,6 +221,35 @@ export default async function SurMesurePage() {
                     </div>
                     {/* Background pattern */}
                     <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-stone-800 via-stone-900 to-stone-950 -z-0 opacity-50" />
+                </div>
+
+                {/* Activities List */}
+                <div id="catalogue" className="space-y-8 pt-8">
+                    <div className="text-center space-y-4">
+                        <h2 className="text-3xl font-bold text-stone-900">Toutes les activités Multi</h2>
+                        <p className="text-stone-600 max-w-2xl mx-auto">
+                            Explorez notre catalogue de séjours et multi-activités.
+                        </p>
+                    </div>
+                    <Suspense fallback={<div>Chargement...</div>}>
+                        <ActivityFilterableList 
+                            initialActivities={activities} 
+                            hideFormatFilter={true}
+                            hideElementFilter={false}
+                            buttonText={cardButtonText}
+                        />
+                    </Suspense>
+                </div>
+
+                {/* Calendar */}
+                <div className="space-y-8">
+                    <div className="text-center space-y-4">
+                        <h2 className="text-3xl font-bold text-stone-900">Prochaines dates {title}</h2>
+                        <p className="text-stone-600 max-w-2xl mx-auto">
+                            Retrouvez ici toutes les sessions programmées pour ce format.
+                        </p>
+                    </div>
+                    <EventsCalendar events={events} buttonText={cardButtonText} defaultFilter="multi" />
                 </div>
             </div>
         </main>

@@ -33,8 +33,15 @@ export const event = defineType({
         }),
         defineField({
             name: 'date',
-            title: 'Date et Heure',
+            title: 'Date (et Heure de début)',
             type: 'datetime',
+            validation: Rule => Rule.required()
+        }),
+        defineField({
+            name: 'endDate',
+            title: 'Date (et Heure de fin)',
+            type: 'datetime',
+            description: 'Optionnel. Utile pour les séjours ou activités sur plusieurs jours.',
         }),
         defineField({
             name: 'maxParticipants',
@@ -104,6 +111,7 @@ export const event = defineType({
                 list: [
                     { title: 'Demi-journée', value: 'half_day' },
                     { title: 'Journée complète', value: 'full_day' },
+                    { title: 'Plusieurs jours', value: 'multi_days' },
                 ],
                 layout: 'radio'
             },

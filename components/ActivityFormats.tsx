@@ -54,7 +54,7 @@ export async function ActivityFormats({ hideTitle = false, className = "", varia
             imageUrl: "/assets/IMG_9962.png",
             benefits: ["Programme à la carte", "Groupes & Événements", "100% Personnalisable"],
             buttonText: "Créer mon aventure",
-            buttonLink: "/aventures/sur-mesure"
+            buttonLink: "/multi"
         }
     ];
 
@@ -63,7 +63,7 @@ export async function ActivityFormats({ hideTitle = false, className = "", varia
         let newLink = f.buttonLink;
         if (f.title.toLowerCase().includes('mono')) newLink = "/aventures/mono-activite";
         if (f.title.toLowerCase().includes('duo')) newLink = "/aventures/duo-activites";
-        if (f.title.toLowerCase().includes('sur') || f.title.toLowerCase().includes('multi')) newLink = "/aventures/sur-mesure";
+        if (f.title.toLowerCase().includes('sur') || f.title.toLowerCase().includes('multi')) newLink = "/multi";
         return { ...f, buttonLink: newLink };
     });
 

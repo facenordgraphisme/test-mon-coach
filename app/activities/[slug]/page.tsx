@@ -28,6 +28,7 @@ async function getActivity(slug: string) {
             equipment,
             "upcomingEvents": *[_type == "event" && activity->slug.current == $slug && date >= now()] | order(date asc) [0...3] {
                 date,
+                endDate,
                 status,
                 _id,
                 bookedCount,
@@ -180,7 +181,9 @@ export default async function SingleActivityPage({ params }: { params: { slug: s
                                             <div key={event._id} className="flex items-center justify-between p-3 bg-stone-50 rounded-lg border border-stone-100">
                                                 <div className="flex flex-col">
                                                     <span className="font-bold text-stone-900">
-                                                        {new Date(event.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
+                                                        {event.endDate 
+                                                            ? `Du ${new Date(event.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} au ${new Date(event.endDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}` 
+                                                            : new Date(event.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
                                                     </span>
                                                     <span className="text-xs text-stone-500">
                                                         {event.bookedCount || 0}/{event.maxParticipants} places

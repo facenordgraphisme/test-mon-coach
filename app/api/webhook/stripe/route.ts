@@ -84,23 +84,24 @@ export async function POST(req: Request) {
                         subject: `Nouvelle Réservation : ${customerName} - ${session.metadata?.activityTitle}`,
                         html: `
                              <div style="font-family: sans-serif; color: #333;">
-                                 <h1 style="color: #0ea5e9;">Nouvelle transaction reçue !</h1>
-                                 <p><strong>Activité :</strong> ${session.metadata?.activityTitle}</p>
-                                 <p><strong>Date :</strong> ${new Date(session.metadata?.date).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                                 <h1 style="color: #1c5748;">Nouvelle transaction reçue !</h1>
+                                 <p><strong>Activité réservée :</strong> ${session.metadata?.activityTitle}</p>
+                                 <p><strong>Date de la réservation:</strong> ${new Date(session.metadata?.date).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                                  <hr />
                                  <h3>Détails du client</h3>
                                  <p><strong>Nom :</strong> ${customerName}</p>
                                  <p><strong>Email :</strong> ${customerEmail}</p>
                                  <p><strong>Téléphone :</strong> ${session.metadata?.phone || 'Non renseigné'}</p>
                                  <hr />
-                                 <p><strong>Places réservées :</strong> ${quantity}</p>
-                                 <p><strong>Participants :</strong> ${booking.participantsNames || session.metadata?.participantsNames || 'Non spécifié'}</p>
-                                 <p><strong>Infos Médicales / Location :</strong> ${booking.medicalInfo || 'R.A.S'}</p>
+                                 <p><strong>Nombre de places réservées :</strong> ${quantity}</p>
+                                 <p><strong>Nombre de participants :</strong> ${booking.participantsNames || session.metadata?.participantsNames || 'Non spécifié'}</p>
+                                 <p><strong>Infos Médicales :</strong> ${session.metadata?.medicalInfo || 'R.A.S'}</p>
+                                 <p><strong>Location matériel :</strong> ${session.metadata?.rentalInfo || 'Aucune'}</p>
                                  <p><strong>Tailles :</strong> ${booking.height || '?'}</p>
                                  <p><strong>Poids :</strong> ${booking.weight || '?'}</p>
                                  <p><strong>Montant total :</strong> ${session.amount_total ? session.amount_total / 100 : 0} €</p>
                                  <br />
-                                 <p><a href="https://mon-coach-plein-air.sanity.studio" style="background-color: #0ea5e9; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Accéder au Dashboard Sanity</a></p>
+                                 <p><a href="https://www.revesdaventures.fr/studio/structure/booking" style="background-color: #1c5748; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Accéder au Dashboard Sanity</a></p>
                              </div>
                          `
                     });

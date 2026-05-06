@@ -5,7 +5,7 @@ import { writeClient } from '@/lib/sanity.server';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { eventId, activityTitle, price, rentalPriceTotal = 0, date, image, quantity = 1, customerName, email, phone, medicalInfo, height, weight, participantsNames } = body;
+        const { eventId, activityTitle, price, rentalPriceTotal = 0, date, image, quantity = 1, customerName, email, phone, medicalInfo, rentalInfo, height, weight, participantsNames } = body;
 
         console.log("Checkout init:", { eventId, customerName, rentalPriceTotal });
 
@@ -96,6 +96,7 @@ export async function POST(req: Request) {
                 date,
                 phone,
                 medicalInfo: medicalInfo ? medicalInfo.substring(0, 100) : "",
+                rentalInfo: rentalInfo ? rentalInfo.substring(0, 200) : "",
                 height,
                 weight,
                 participantsNames

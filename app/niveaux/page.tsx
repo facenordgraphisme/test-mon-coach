@@ -179,7 +179,7 @@ export default async function NiveauxPage() {
                     <div className="relative z-10 space-y-6">
                         <h2 className="text-3xl font-bold text-white">Prêt à choisir votre aventure ?</h2>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <a href="/aventures" className="inline-flex h-12 items-center justify-center rounded-full bg-white px-8 text-sm font-medium text-stone-900 shadow hover:bg-stone-100 transition-colors">
+                            <a href="/calendrier" className="inline-flex h-12 items-center justify-center rounded-full bg-white px-8 text-sm font-medium text-stone-900 shadow hover:bg-stone-100 transition-colors">
                                 Voir les aventures
                             </a>
                             <a href="/contact" className="inline-flex h-12 items-center justify-center rounded-full border border-white/20 bg-transparent px-8 text-sm font-medium text-white hover:bg-white/10 transition-colors">

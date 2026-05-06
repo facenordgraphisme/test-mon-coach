@@ -21,9 +21,19 @@ export function Navbar() {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 20)
         }
-        window.addEventListener("scroll", handleScroll)
-        handleScroll() // Check immediately
-        return () => window.removeEventListener("scroll", handleScroll)
+        
+        window.addEventListener("scroll", handleScroll, { passive: true })
+        
+        // Initial check
+        handleScroll()
+        
+        // Handle Next.js navigation/scroll restoration race conditions
+        const timeoutId = setTimeout(handleScroll, 100)
+        
+        return () => {
+            window.removeEventListener("scroll", handleScroll)
+            clearTimeout(timeoutId)
+        }
     }, [pathname])
 
     const navLinks = [

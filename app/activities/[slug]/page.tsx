@@ -265,5 +265,6 @@ export default async function SingleActivityPage({ params }: { params: { slug: s
 
             <SiteFooter />
         </div >
+        </>
     )
 }

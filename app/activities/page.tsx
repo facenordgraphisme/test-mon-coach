@@ -83,5 +83,6 @@ export default async function ActivitiesPage() {
             </main>
             <SiteFooter />
         </div>
+        </>
     )
 }

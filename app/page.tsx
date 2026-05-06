@@ -43,11 +43,12 @@ async function getData() {
 export async function generateMetadata() {
   const data = await getData();
   return generateSeoMetadata(data?.seo, {
-    title: "Rêves d'Aventures | Aventures Exclusives Hautes-Alpes",
-    description: "Guides de haute montagne et coaching sportif en Escalade, Canyon, VTT. Des expériences exclusives, pensées pour vous en Hautes-Alpes.",
-    url: 'https://moncoachpleinair.com',
+    title: "Rêves d'Aventures | Escalade, Canyoning & VTT Hautes-Alpes",
+    description: "Expériences exclusives de plein air dans les Hautes-Alpes. Guide diplômé pour vos sorties Escalade, Canyoning et VTT au Lac de Serre-Ponçon. Réservez votre aventure sur mesure.",
+    url: 'https://revesdaventures.fr',
   });
 }
+
 
 export default async function Home() {
   const data = await getData() || {};
@@ -60,7 +61,7 @@ export default async function Home() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify([orgSchema, websiteSchema, customJsonLd].filter(Boolean)) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([websiteSchema, customJsonLd].filter(Boolean)) }}
       />
       <div className="min-h-screen bg-stone-50 flex flex-col">
         <Hero data={data} />

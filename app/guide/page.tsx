@@ -24,11 +24,12 @@ async function getGuideProfile() {
 export async function generateMetadata(): Promise<Metadata> {
     const data = await client.fetch(groq`*[_type == "guide"][0] { seo }`);
     return generateSeoMetadata(data?.seo, {
-        title: "Votre Guide | Mon Coach Plein Air",
-        description: "Vivre la nature avec passion, sécurité et authenticité. Rencontrez votre guide.",
-        url: 'https://moncoachpleinair.com/guide'
+        title: "Votre Guide | Rêves d'Aventures",
+        description: "Vivez la nature avec passion, sécurité et authenticité. Découvrez le parcours de votre guide expert en escalade, canyoning et VTT dans les Hautes-Alpes.",
+        url: 'https://revesdaventures.fr/guide'
     });
 }
+
 
 
 

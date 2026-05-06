@@ -3,6 +3,17 @@ import { groq } from "next-sanity";
 import { SiteFooter } from "@/components/SiteFooter";
 import { EventsCalendar } from "@/components/EventsCalendar";
 import { PageHero } from "@/components/PageHero";
+import { Metadata } from "next";
+import { generateSeoMetadata } from "@/lib/seo";
+
+export async function generateMetadata(): Promise<Metadata> {
+    const data = await client.fetch(groq`*[_type == "calendarPage"][0] { seo }`);
+    return generateSeoMetadata(data?.seo, {
+        title: "Calendrier des Sorties | Rêves d'Aventures Hautes-Alpes",
+        description: "Consultez les prochaines dates de nos sorties Escalade, VTT et Canyoning dans les Hautes-Alpes. Réservez votre place en ligne.",
+        url: 'https://revesdaventures.fr/calendrier'
+    });
+}
 
 async function getData() {
     // 1. Fetch Events

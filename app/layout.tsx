@@ -12,31 +12,49 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Rêves d'Aventures | Aventures Exclusives Hautes-Alpes",
-  description: "Guides de haute montagne et coaching sportif en Escalade, Canyon, VTT. Des expériences exclusives, pensées pour vous en Hautes-Alpes. Mono, Duo et Multi activités.",
-  keywords: ["Escalade", "Canyoning", "VTT", "Hautes-Alpes", "Guide", "Coaching", "Aventure", "Plein Air"],
-  openGraph: {
-    type: 'website',
-    locale: 'fr_FR',
-    url: 'https://moncoachpleinair.com',
-    title: "Rêves d'Aventures",
-    description: 'Luxe, Nature et Sensations Pures.',
-    siteName: 'Mon Coach Plein Air'
-  }
-};
-
 import { Navbar } from "@/components/Navbar";
 import { CookieBanner } from "@/components/CookieBanner";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { generateLocalBusinessSchema, generateOrganizationSchema } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://revesdaventures.fr'),
+  title: {
+    template: "%s | Rêves d'Aventures",
+    default: "Rêves d'Aventures | Escalade, Canyoning & VTT Hautes-Alpes"
+  },
+  description: "Guide de haute montagne et coaching sportif dans les Hautes-Alpes. Activités exclusives d'Escalade, Canyoning et VTT autour du Lac de Serre-Ponçon, Embrun et Guillestre.",
+  keywords: ["Escalade Hautes-Alpes", "Canyoning Serre-Ponçon", "VTT Embrun", "Guide de haute montagne Hautes-Alpes", "Activités plein air Serre-Ponçon", "Coaching sportif 05"],
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'fr_FR',
+    url: 'https://revesdaventures.fr',
+    title: "Rêves d'Aventures | Aventures Exclusives Hautes-Alpes",
+    description: 'Guide de haute montagne et coaching sportif. Escalade, Canyon et VTT au Lac de Serre-Ponçon.',
+    siteName: "Rêves d'Aventures"
+  }
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const localBusinessSchema = generateLocalBusinessSchema();
+  const orgSchema = generateOrganizationSchema();
+
   return (
     <html lang="fr" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify([localBusinessSchema, orgSchema]) }}
+        />
+        <meta name="google-site-verification" content="XsbGoMP_MF6Gq47M4_-y3DsnLliVhH88Tb6kkPCiEuc" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

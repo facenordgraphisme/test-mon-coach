@@ -488,11 +488,12 @@ async function getCGVPageData() {
 export async function generateMetadata(): Promise<Metadata> {
     const data = await client.fetch(groq`*[_type == "cgvPage"][0] { seo }`);
     return generateSeoMetadata(data?.seo, {
-        title: "Conditions Générales de Vente | Mon Coach Plein Air",
-        description: "Conditions régissant les réservations, les ventes et les activités.",
-        url: 'https://moncoachpleinair.com/cgv'
+        title: "Conditions Générales de Vente | Rêves d'Aventures",
+        description: "Conditions régissant les réservations, les ventes et les activités de Rêves d'Aventures dans les Hautes-Alpes.",
+        url: 'https://revesdaventures.fr/cgv'
     });
 }
+
 
 
 

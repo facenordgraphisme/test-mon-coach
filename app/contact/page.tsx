@@ -15,13 +15,14 @@ export async function generateMetadata(): Promise<Metadata> {
     const data = await client.fetch(groq`*[_type == "contactPage"][0] {
         seo
     }`);
-
+ 
     return generateSeoMetadata(data?.seo, {
-        title: "Contact | Mon Coach Plein Air",
-        description: "Une envie particulière ? Un projet de groupe ? Écrivez-nous, réponse rapide garantie.",
-        url: 'https://moncoachpleinair.com/contact'
+        title: "Contact | Rêves d'Aventures",
+        description: "Une envie particulière ? Un projet de groupe ou une sortie sur mesure dans les Hautes-Alpes ? Écrivez-nous, réponse rapide garantie.",
+        url: 'https://revesdaventures.fr/contact'
     });
 }
+
 
 async function getData() {
     return await client.fetch(groq`*[_type == "contactPage"][0] {
@@ -84,7 +85,7 @@ export default async function ContactPage() {
                                         <div>
                                             <p className="font-medium text-stone-900">Email</p>
                                             <p className="text-stone-500 hover:text-[var(--brand-earth)] transition-colors">
-                                                <a href={`mailto:${data.email || "contact@moncoachpleinair.com"}`}>{data.email || "contact@moncoachpleinair.com"}</a>
+                                                <a href={`mailto:${data.email || "contact@revesdaventures.fr"}`}>{data.email || "contact@revesdaventures.fr"}</a>
                                             </p>
                                         </div>
                                     </div>

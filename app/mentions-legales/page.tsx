@@ -99,11 +99,12 @@ const fallbackContent = [
 export async function generateMetadata() {
     const data = await client.fetch(groq`*[_type == "legalPage"][0] { seo }`);
     return generateSeoMetadata(data?.seo, {
-        title: "Mentions Légales | Mon Coach Plein Air",
-        description: "Informations légales et juridiques.",
-        url: 'https://moncoachpleinair.com/mentions-legales'
+        title: "Mentions Légales | Rêves d'Aventures",
+        description: "Informations légales et juridiques concernant le site Rêves d'Aventures et l'EI Frédéric BUET.",
+        url: 'https://revesdaventures.fr/mentions-legales'
     });
 }
+
 
 async function getLegalPageData() {
     return client.fetch(groq`

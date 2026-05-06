@@ -37,22 +37,77 @@ export function generateSeoMetadata(
 export function generateOrganizationSchema() {
     return {
         '@context': 'https://schema.org',
-        '@type': 'SportsOrganization', // Or 'Organization' or 'LocalBusiness' depending on user pref
+        '@type': 'SportsOrganization',
         name: "Rêves d'Aventures",
-        url: 'https://moncoachpleinair.com',
-        logo: 'https://moncoachpleinair.com/logo.png', // Replace with actual logo URL if available or use a constantly defined one
+        url: 'https://revesdaventures.fr',
+        logo: 'https://revesdaventures.fr/assets/logo-v2.png',
         sameAs: [
-            // Add social profiles if available
-            'https://www.instagram.com/moncoachpleinair',
-            'https://www.facebook.com/moncoachpleinair',
+            'https://www.instagram.com/revesdaventures',
+            'https://www.facebook.com/revesdaventures',
         ],
         contactPoint: {
             '@type': 'ContactPoint',
-            telephone: '+33 6 00 00 00 00', // Replace with dynamic if possible or hardcode for now
+            telephone: '+33 6 00 00 00 00',
             contactType: 'customer service',
             areaServed: 'FR',
             availableLanguage: ['French', 'English'],
         },
+    };
+}
+
+export function generateLocalBusinessSchema() {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'SportsActivityLocation',
+        name: "Rêves d'Aventures",
+        description: "Coaching et guide de haute montagne en Escalade, Canyoning et VTT dans les Hautes-Alpes (Serre-Ponçon, Embrun, Guillestre).",
+        url: 'https://revesdaventures.fr',
+        telephone: '+33 6 00 00 00 00',
+        address: {
+            '@type': 'PostalAddress',
+            streetAddress: 'Lac de Serre-Ponçon',
+            addressLocality: 'Embrun',
+            addressRegion: 'Hautes-Alpes',
+            postalCode: '05200',
+            addressCountry: 'FR',
+        },
+        geo: {
+            '@type': 'GeoCoordinates',
+            latitude: 44.563,
+            longitude: 6.491,
+        },
+        areaServed: [
+            { '@type': 'Place', name: 'Hautes-Alpes' },
+            { '@type': 'Place', name: 'Lac de Serre-Ponçon' },
+            { '@type': 'Place', name: 'Embrun' },
+            { '@type': 'Place', name: 'Guillestre' },
+            { '@type': 'Place', name: 'Gap' }
+        ],
+        priceRange: '€€',
+        openingHours: 'Mo-Su 08:00-20:00'
+    };
+}
+
+export function generateProductSchema(activity: any) {
+    if (!activity) return null;
+
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: activity.title,
+        description: activity.description?.[0]?.children?.[0]?.text || activity.title,
+        image: activity.imageUrl,
+        offers: {
+            '@type': 'Offer',
+            price: activity.price,
+            priceCurrency: 'EUR',
+            availability: 'https://schema.org/InStock',
+            url: `https://revesdaventures.fr/activities/${activity.slug}`
+        },
+        brand: {
+            '@type': 'Brand',
+            name: "Rêves d'Aventures"
+        }
     };
 }
 
@@ -61,11 +116,12 @@ export function generateWebsiteSchema() {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
         name: "Rêves d'Aventures",
-        url: 'https://moncoachpleinair.com',
+        url: 'https://revesdaventures.fr',
         potentialAction: {
             '@type': 'SearchAction',
-            target: 'https://moncoachpleinair.com/search?q={search_term_string}',
+            target: 'https://revesdaventures.fr/search?q={search_term_string}',
             'query-input': 'required name=search_term_string'
         }
     }
 }
+

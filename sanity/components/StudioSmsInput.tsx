@@ -2,6 +2,31 @@ import { Stack, Text, Button, Card, TextArea, Label, Flex, Spinner } from '@sani
 import { useCallback, useState, useEffect } from 'react'
 import { useClient, useFormValue } from 'sanity'
 
+const convertEmbedToMapLink = (embedUrl: string): string => {
+    if (!embedUrl) return ''
+    
+    // Si ce n'est pas un lien Google Maps Embed classique, on le retourne tel quel
+    if (!embedUrl.includes('google.com/maps/embed') && !embedUrl.includes('google.com/maps/pb')) {
+        return embedUrl
+    }
+    
+    try {
+        // Extraction de la latitude (!3d...) et de la longitude (!2d...)
+        const latMatch = embedUrl.match(/!3d(-?\d+(?:\.\d+)?)/)
+        const lngMatch = embedUrl.match(/!2d(-?\d+(?:\.\d+)?)/)
+        
+        if (latMatch && lngMatch) {
+            const lat = latMatch[1]
+            const lng = lngMatch[1]
+            return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
+        }
+    } catch (e) {
+        console.error("Error parsing Google Maps Embed URL", e)
+    }
+    
+    return embedUrl
+}
+
 export const StudioSmsInput = (props: any) => {
     // accessing document fields reliably using useFormValue
     // "phone" and "customerName" are at the root
@@ -34,6 +59,7 @@ export const StudioSmsInput = (props: any) => {
                     title,
                     date,
                     locationInfo,
+                    locationEmbedUrl,
                     activity->{title}
                 }`, { id: eventRef })
 
@@ -43,10 +69,26 @@ export const StudioSmsInput = (props: any) => {
                     const timeStr = dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
 
                     const activityName = eventDoc.activity?.title || eventDoc.title || 'Votre activité'
-                    const location = eventDoc.locationInfo ? `Lieu: ${eventDoc.locationInfo}` : 'Lieu: voir confirmation'
+                    
+                    const mapLink = eventDoc.locationEmbedUrl ? convertEmbedToMapLink(eventDoc.locationEmbedUrl) : ''
+                    
+                    let locationText = eventDoc.locationInfo || 'voir confirmation'
+                    if (mapLink) {
+                        if (locationText.includes("de la carte ci-dessous")) {
+                            locationText = locationText.replace("de la carte ci-dessous", `de la carte : ${mapLink}`)
+                        } else if (locationText.includes("la carte ci-dessous")) {
+                            locationText = locationText.replace("la carte ci-dessous", `la carte : ${mapLink}`)
+                        } else {
+                            locationText = `${locationText.trim()} Carte : ${mapLink}`
+                        }
+                    }
+
+                    const location = `Lieu: ${locationText}`
                     const participantsText = quantity ? ` (${quantity} pers.)` : ''
 
-                    const msg = `Bonjour ${name || ''}, rappel pour votre séance : ${activityName}${participantsText} le ${dateStr} à ${timeStr}. ${location}. À très vite ! Fred de Rêves D'aventures`
+                    const locationTrimmed = location.trim()
+                    const separator = locationTrimmed.endsWith('.') ? '' : '.'
+                    const msg = `Bonjour ${name || ''}, rappel pour votre séance : ${activityName}${participantsText} le ${dateStr} à ${timeStr}. ${locationTrimmed}${separator} À très vite ! Fred de Rêves D'aventures`
                     setMessage(msg)
                 }
             } catch (error) {

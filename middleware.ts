@@ -8,7 +8,7 @@ const CSP = [
     "img-src 'self' data: https://cdn.sanity.io https://images.unsplash.com https://www.googletagmanager.com https://www.google-analytics.com",
     "font-src 'self' data:",
     "connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com",
-    "frame-src 'self'",
+    "frame-src 'self' https://www.google.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

@@ -7,7 +7,7 @@ const CSP = [
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https://cdn.sanity.io https://images.unsplash.com https://www.googletagmanager.com https://www.google-analytics.com",
     "font-src 'self' data:",
-    "connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com",
+    "connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.api.sanity.io https://*.apicdn.sanity.io",
     "frame-src 'self' https://www.google.com",
     "object-src 'none'",
     "base-uri 'self'",

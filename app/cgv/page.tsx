@@ -488,9 +488,9 @@ async function getCGVPageData() {
 export async function generateMetadata(): Promise<Metadata> {
     const data = await client.fetch(groq`*[_type == "cgvPage"][0] { seo }`);
     return generateSeoMetadata(data?.seo, {
-        title: "Conditions Générales de Vente | Rêves d'Aventures",
+        title: "Conditions Générales de Vente",
         description: "Conditions régissant les réservations, les ventes et les activités de Rêves d'Aventures dans les Hautes-Alpes.",
-        url: 'https://revesdaventures.fr/cgv'
+        url: 'https://www.revesdaventures.fr/cgv'
     });
 }
 

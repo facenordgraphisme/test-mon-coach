@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "./ui/button";
 import { Check } from "lucide-react";
 import { client } from "@/lib/sanity";
@@ -83,10 +84,12 @@ export async function ActivityFormats({ hideTitle = false, className = "", varia
                             {/* Image Header */}
                             <div className="h-48 overflow-hidden relative bg-stone-200">
                                 {format.imageUrl ? (
-                                    <img
+                                    <Image
                                         src={format.imageUrl}
                                         alt={format.title}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, 33vw"
+                                        className="object-cover group-hover:scale-105 transition-transform duration-500"
                                     />
                                 ) : (
                                     <div className={`w-full h-full bg-gradient-to-br ${i === 0 ? 'from-emerald-100 to-emerald-200' : i === 1 ? 'from-orange-100 to-orange-200' : 'from-blue-100 to-blue-200'}`} />

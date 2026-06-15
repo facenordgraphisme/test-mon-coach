@@ -9,9 +9,9 @@ import { generateSeoMetadata } from "@/lib/seo";
 export async function generateMetadata(): Promise<Metadata> {
     const data = await client.fetch(groq`*[_type == "calendarPage"][0] { seo }`);
     return generateSeoMetadata(data?.seo, {
-        title: "Calendrier des Sorties | Rêves d'Aventures Hautes-Alpes",
+        title: "Calendrier des Sorties",
         description: "Consultez les prochaines dates de nos sorties Escalade, VTT et Canyoning dans les Hautes-Alpes. Réservez votre place en ligne.",
-        url: 'https://revesdaventures.fr/calendrier'
+        url: 'https://www.revesdaventures.fr/calendrier'
     });
 }
 

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { SiteFooter } from "@/components/SiteFooter";
 import { BookingButton } from "@/components/BookingButton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { generateSeoMetadata, generateProductSchema } from "@/lib/seo";
+import { generateSeoMetadata } from "@/lib/seo";
 import { Metadata } from "next";
 
 async function getActivity(slug: string) {
@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     return generateSeoMetadata(activity?.seo, {
         title: `${activity?.title || 'Activité'} | Rêves d'Aventures Hautes-Alpes`,
         description: `Découvrez l'activité ${activity?.title} avec Rêves d'Aventures. Expérience exclusive au cœur des Hautes-Alpes et du lac de Serre-Ponçon.`,
-        url: `https://revesdaventures.fr/activities/${slug}`,
+        url: `https://www.revesdaventures.fr/activities/${slug}`,
     });
 }
 
@@ -69,16 +69,8 @@ export default async function SingleActivityPage({ params }: { params: { slug: s
         notFound();
     }
 
-    const productSchema = generateProductSchema(activity);
-
     return (
         <>
-            {productSchema && (
-                <script
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
-                />
-            )}
             <div className="min-h-screen bg-white">
             {/* Hero Header */}
             <div className="relative h-[60vh] md:h-[70vh]">

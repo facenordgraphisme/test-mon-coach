@@ -1,0 +1,41 @@
+# Rêves d'Aventures
+
+> Guide de haute montagne et coaching sportif dans les Hautes-Alpes (Lac de Serre-Ponçon, Embrun, Guillestre). Sorties d'Escalade, Canyoning, Via Ferrata, VTT, Vélo de route, Kayak et formules multi-activités sur-mesure encadrées par un guide diplômé.
+
+## Pages principales
+
+- [Accueil](https://www.revesdaventures.fr/): Présentation de Rêves d'Aventures, des activités et des formules disponibles dans les Hautes-Alpes.
+- [Votre guide](https://www.revesdaventures.fr/guide): Profil, parcours et diplômes de Frédéric Buet, guide de haute montagne et fondateur.
+- [Niveaux d'engagement](https://www.revesdaventures.fr/niveaux): Description des niveaux de difficulté pour choisir une activité adaptée à son profil.
+- [Accès](https://www.revesdaventures.fr/acces): Comment se rendre sur les lieux d'activité et hébergements à proximité.
+- [Avis](https://www.revesdaventures.fr/avis): Témoignages et avis clients sur les sorties Rêves d'Aventures.
+- [Calendrier](https://www.revesdaventures.fr/calendrier): Calendrier des prochaines sessions et réservation en ligne.
+- [Contact](https://www.revesdaventures.fr/contact): Coordonnées et formulaire de contact.
+
+## Formules
+
+- [Activités seules](https://www.revesdaventures.fr/aventures/mono-activite): Catalogue des activités individuelles (Escalade, Canyoning, Via Ferrata, VTT, Vélo de route...).
+- [Duo d'activités](https://www.revesdaventures.fr/aventures/duo-activites): Formules combinant deux activités complémentaires sur une même sortie.
+- [Multi / Sur-mesure](https://www.revesdaventures.fr/multi): Séjours multi-activités personnalisés conçus avec le guide.
+
+## Activités
+
+- [Escalade](https://www.revesdaventures.fr/aventures/escalade)
+- [Canyoning](https://www.revesdaventures.fr/aventures/canyoning)
+- [Via ferrata](https://www.revesdaventures.fr/aventures/via-ferrata)
+- [Vélo de route](https://www.revesdaventures.fr/aventures/velo-de-route)
+- [VTT et VTT électrique](https://www.revesdaventures.fr/aventures/vtt-et-vtt-electrique)
+- [Multi-activités](https://www.revesdaventures.fr/aventures/multi-activite)
+- [Kayak et Escalade](https://www.revesdaventures.fr/aventures/kayak-et-escalade)
+- [Via ferrata et Escalade](https://www.revesdaventures.fr/aventures/via-ferrata-et-escalade)
+- [Vélo de route et Via ferrata](https://www.revesdaventures.fr/aventures/velo-de-route-et-via-ferrata)
+- [Vélo de route et Escalade](https://www.revesdaventures.fr/aventures/velo-de-route-et-escalade)
+- [VTT et Escalade](https://www.revesdaventures.fr/aventures/vtt-et-escalade)
+- [VTT et planche à voile](https://www.revesdaventures.fr/aventures/vtt-et-planche-a-voile)
+- [Planche à voile - Windsurf](https://www.revesdaventures.fr/aventures/planche-a-voile-windsurf)
+- [Programme "TOUT à VELO !"](https://www.revesdaventures.fr/aventures/programme-tout-a-velo)
+
+## Optional
+
+- [Mentions légales](https://www.revesdaventures.fr/mentions-legales)
+- [CGV](https://www.revesdaventures.fr/cgv)

@@ -6,6 +6,9 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { PortableText } from "next-sanity";
+import Image from "next/image";
+
+const MotionImage = motion.create(Image);
 
 interface HeroProps {
     data: any;
@@ -42,11 +45,14 @@ export function Hero({ data }: HeroProps) {
             {/* Background Carousel */}
             <div className="absolute inset-0 z-0 select-none pointer-events-none">
                 <AnimatePresence mode="popLayout">
-                    <motion.img
+                    <MotionImage
                         key={currentIndex}
                         src={images[currentIndex]}
                         alt="Hero background"
-                        className="absolute inset-0 w-full h-full object-cover"
+                        fill
+                        sizes="100vw"
+                        priority={currentIndex === 0}
+                        className="object-cover"
                         initial={{ opacity: 0, scale: 1.1 }}
                         animate={{ opacity: 0.8, scale: 1 }}
                         exit={{ opacity: 0 }}
@@ -66,7 +72,7 @@ export function Hero({ data }: HeroProps) {
                     transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
                 >
                     <h2 className="text-xs md:text-sm font-bold tracking-[0.3em] text-stone-200 uppercase mb-4 drop-shadow-md">
-                        Rêves d'Aventures
+                        Escalade · Canyoning · VTT — Hautes-Alpes
                     </h2>
                     <h1 className="text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight mb-8 drop-shadow-2xl text-white">
                         {heroTitle}

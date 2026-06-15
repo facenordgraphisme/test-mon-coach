@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventsCalendar } from "@/components/EventsCalendar";
@@ -185,9 +186,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     `, { slug });
 
     return generateSeoMetadata(doc?.seo, {
-        title: doc?.title,
-        description: "Mon Coach Plein Air - Aventures dans les Hautes Alpes",
-        url: `https://moncoachpleinair.com/aventures/${slug}`
+        title: doc?.title || 'Activité',
+        description: `Découvrez l'activité ${doc?.title} avec Rêves d'Aventures. Expérience exclusive au cœur des Hautes-Alpes et du lac de Serre-Ponçon.`,
+        url: `https://www.revesdaventures.fr/aventures/${slug}`,
     });
 }
 
@@ -225,10 +226,13 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                     <div className="absolute inset-0 z-0">
                         <div className="absolute inset-0 bg-black/40 z-10" />
                         {displayImage ? (
-                            <img
+                            <Image
                                 src={displayImage}
                                 alt={displayTitle}
-                                className="w-full h-full object-cover"
+                                fill
+                                sizes="100vw"
+                                priority
+                                className="object-cover"
                             />
                         ) : (
                             <div className="bg-stone-900 w-full h-full" />
@@ -374,10 +378,13 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
             <div className="relative h-[60vh] md:h-[70vh]">
                 {heroImage ? (
                     <div className="absolute inset-0">
-                        <img
+                        <Image
                             src={heroImage}
                             alt={activity.title}
-                            className="w-full h-full object-cover"
+                            fill
+                            sizes="100vw"
+                            priority
+                            className="object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-stone-900/90 via-stone-900/40 to-transparent" />
                     </div>
@@ -563,11 +570,13 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                             {activity.availableBikes.map((bike: any, i: number) => (
                                                 <div key={i} className="bg-white rounded-xl overflow-hidden border border-stone-200 shadow-sm hover:shadow-md transition-shadow">
                                                     {bike.image && (
-                                                        <div className="h-48 overflow-hidden bg-stone-100">
-                                                            <img
+                                                        <div className="relative h-48 overflow-hidden bg-stone-100">
+                                                            <Image
                                                                 src={urlFor(bike.image).url()}
                                                                 alt={bike.name}
-                                                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                                                                fill
+                                                                sizes="(max-width: 768px) 100vw, 50vw"
+                                                                className="object-cover hover:scale-105 transition-transform duration-500"
                                                             />
                                                         </div>
                                                     )}
@@ -657,12 +666,14 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                         <div key={event._id} className="pb-4 border-b border-stone-100 last:border-0 last:pb-0">
                                             <div className="flex gap-4">
                                                 {/* Thumbnail */}
-                                                <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 bg-stone-100">
+                                                <div className="relative w-20 h-20 rounded-lg overflow-hidden shrink-0 bg-stone-100">
                                                     {(activity.mainImageUrl || activity.imageUrl) ? (
-                                                        <img
+                                                        <Image
                                                             src={activity.mainImageUrl || activity.imageUrl}
                                                             alt={event.title || activity.title}
-                                                            className="w-full h-full object-cover"
+                                                            fill
+                                                            sizes="80px"
+                                                            className="object-cover"
                                                         />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center text-stone-300">

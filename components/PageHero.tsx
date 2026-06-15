@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 interface PageHeroProps {
     title: string;
@@ -14,10 +15,13 @@ export function PageHero({ title, subtitle, label, image }: PageHeroProps) {
         <section className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden flex items-center justify-center bg-stone-900">
             {/* Background Image */}
             <div className="absolute inset-0 z-0 select-none pointer-events-none">
-                <img
+                <Image
                     src={image}
                     alt={title}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    fill
+                    sizes="100vw"
+                    priority
+                    className="object-cover"
                 />
                 {/* Gradient Overlay for text readability */}
                 <div className="absolute inset-0 bg-stone-900/40" />

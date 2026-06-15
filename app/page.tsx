@@ -11,7 +11,7 @@ import { ReviewSection } from "@/components/ReviewSection";
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 
-import { generateSeoMetadata, generateOrganizationSchema, generateWebsiteSchema } from "@/lib/seo";
+import { generateSeoMetadata, generateOrganizationSchema, generateWebsiteSchema, generateFAQSchema } from "@/lib/seo";
 
 async function getData() {
   return await client.fetch(groq`*[_type == "homepage"][0] {
@@ -45,7 +45,7 @@ export async function generateMetadata() {
   return generateSeoMetadata(data?.seo, {
     title: "Rêves d'Aventures | Escalade, Canyoning & VTT Hautes-Alpes",
     description: "Expériences exclusives de plein air dans les Hautes-Alpes. Guide diplômé pour vos sorties Escalade, Canyoning et VTT au Lac de Serre-Ponçon. Réservez votre aventure sur mesure.",
-    url: 'https://revesdaventures.fr',
+    url: 'https://www.revesdaventures.fr',
   });
 }
 
@@ -54,6 +54,7 @@ export default async function Home() {
   const data = await getData() || {};
   const orgSchema = generateOrganizationSchema();
   const websiteSchema = generateWebsiteSchema();
+  const faqSchema = generateFAQSchema(data?.faq);
   const customJsonLd = data?.seo?.structuredData ? JSON.parse(data.seo.structuredData) : null;
 
 
@@ -61,7 +62,7 @@ export default async function Home() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify([websiteSchema, customJsonLd].filter(Boolean)) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([websiteSchema, faqSchema, customJsonLd].filter(Boolean)) }}
       />
       <div className="min-h-screen bg-stone-50 flex flex-col">
         <Hero data={data} />

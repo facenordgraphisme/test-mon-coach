@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
@@ -80,11 +81,13 @@ export function ActivitySlider({ activities }: { activities: Activity[] }) {
                             >
                                 <div className="group relative block overflow-hidden rounded-2xl bg-gray-100 aspect-[4/5] hover:shadow-xl transition-all duration-300 select-none">
                                     {activity.imageUrl ? (
-                                        <img
+                                        <Image
                                             src={activity.imageUrl}
                                             alt={activity.title}
+                                            fill
+                                            sizes="(max-width: 768px) 85vw, 33vw"
                                             draggable={false} // Prevent native drag on image
-                                            className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                                            className="object-cover transition-transform duration-500 group-hover:scale-105"
                                         />
                                     ) : (
                                         <div className="w-full h-full bg-stone-200 flex items-center justify-center text-stone-400">

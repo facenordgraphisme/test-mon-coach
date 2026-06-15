@@ -12,6 +12,7 @@ import { format, isSameDay, isWithinInterval, startOfDay, endOfDay, eachDayOfInt
 import { fr } from "date-fns/locale"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatTimeParis } from "@/lib/utils"
+import Image from "next/image"
 
 type Event = {
     _id: string
@@ -253,10 +254,12 @@ export function EventsCalendar({ events, buttonText, defaultFilter = 'all' }: { 
                                         {/* Image Column */}
                                         <div className="relative w-full md:w-32 h-32 md:h-auto shrink-0 border-b md:border-b-0 md:border-r border-stone-100">
                                             {event.activity.imageUrl ? (
-                                                <img
+                                                <Image
                                                     src={event.activity.imageUrl}
                                                     alt={event.activity.title}
-                                                    className="w-full h-full object-cover"
+                                                    fill
+                                                    sizes="(max-width: 768px) 100vw, 128px"
+                                                    className="object-cover"
                                                 />
                                             ) : (
                                                 <div className="w-full h-full bg-stone-200 flex items-center justify-center text-stone-400">

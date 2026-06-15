@@ -79,6 +79,7 @@ export function Navbar() {
                         src="/assets/logo-v2.png"
                         alt="Mon Coach Plein Air"
                         fill
+                        sizes="(max-width: 768px) 160px, 208px"
                         className={cn(
                             "object-contain object-left transition-all duration-300",
                             !showScrolledState && "brightness-0 invert"

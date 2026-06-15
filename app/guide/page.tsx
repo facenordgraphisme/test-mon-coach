@@ -6,6 +6,7 @@ import { PortableText } from "@portabletext/react";
 import { PageHero } from "@/components/PageHero";
 import { generateSeoMetadata } from "@/lib/seo";
 import { Metadata } from "next";
+import Image from "next/image";
 
 async function getGuideProfile() {
     return client.fetch(groq`
@@ -24,9 +25,9 @@ async function getGuideProfile() {
 export async function generateMetadata(): Promise<Metadata> {
     const data = await client.fetch(groq`*[_type == "guide"][0] { seo }`);
     return generateSeoMetadata(data?.seo, {
-        title: "Votre Guide | Rêves d'Aventures",
+        title: "Votre Guide",
         description: "Vivez la nature avec passion, sécurité et authenticité. Découvrez le parcours de votre guide expert en escalade, canyoning et VTT dans les Hautes-Alpes.",
-        url: 'https://revesdaventures.fr/guide'
+        url: 'https://www.revesdaventures.fr/guide'
     });
 }
 
@@ -57,10 +58,12 @@ export default async function GuidePage() {
                         {/* Image Side */}
                         <div className="md:col-span-2 bg-stone-200 h-[400px] md:h-auto relative">
                             {guide?.imageUrl ? (
-                                <img
+                                <Image
                                     src={guide.imageUrl}
                                     alt={guide.name}
-                                    className="absolute inset-0 w-full h-full object-cover"
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, 40vw"
+                                    className="object-cover"
                                 />
                             ) : (
                                 // Fallback Placeholder if no image in Sanity
@@ -125,8 +128,14 @@ export default async function GuidePage() {
                                 <h3 className="font-bold text-stone-900 mb-6 uppercase tracking-wider text-sm center">En action</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     {guide.photos.map((photo: string, index: number) => (
-                                        <div key={index} className="aspect-square rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                            <img src={photo} alt={`Guide photo ${index + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                                        <div key={index} className="relative aspect-square rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                            <Image
+                                                src={photo}
+                                                alt={`Guide photo ${index + 1}`}
+                                                fill
+                                                sizes="(max-width: 768px) 50vw, 25vw"
+                                                className="object-cover hover:scale-105 transition-transform duration-500"
+                                            />
                                         </div>
                                     ))}
                                 </div>

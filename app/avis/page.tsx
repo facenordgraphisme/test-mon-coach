@@ -5,7 +5,7 @@ import { Star, Quote, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PageHero } from "@/components/PageHero";
-import { generateSeoMetadata } from "@/lib/seo";
+import { generateSeoMetadata, generateReviewSchema } from "@/lib/seo";
 import { Metadata } from "next";
 
 async function getData() {
@@ -34,9 +34,9 @@ async function getData() {
 export async function generateMetadata(): Promise<Metadata> {
     const data = await client.fetch(groq`*[_type == "reviewsPage"][0] { seo }`);
     return generateSeoMetadata(data?.seo, {
-        title: "Avis Clients | Mon Coach Plein Air",
+        title: "Avis Clients",
         description: "Découvrez ce que nos aventuriers pensent de leurs expériences avec nous.",
-        url: 'https://moncoachpleinair.com/avis'
+        url: 'https://www.revesdaventures.fr/avis'
     });
 }
 
@@ -81,11 +81,14 @@ export default async function ReviewsPage() {
         }
     ];
 
+    // Only generate Review/AggregateRating schema from real Sanity reviews (never the demo fallback)
+    const reviewSchema = generateReviewSchema(reviews);
+
     return (
         <div className="min-h-screen bg-stone-50 flex flex-col">
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
+                dangerouslySetInnerHTML={{ __html: JSON.stringify([reviewSchema, customJsonLd].filter(Boolean)) }}
             />
             <PageHero
                 title={title}

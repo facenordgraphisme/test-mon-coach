@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -183,10 +184,12 @@ export function ActivityFilterableList({
                             <Link key={activity.slug} href={`/aventures/${activity.slug}`} className="group block bg-white rounded-2xl overflow-hidden border border-stone-100 shadow-sm hover:shadow-lg transition-all duration-300">
                                 <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
                                     {activity.imageUrl ? (
-                                        <img
+                                        <Image
                                             src={activity.imageUrl}
                                             alt={activity.title}
-                                            className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, 33vw"
+                                            className="object-cover transition-transform duration-500 group-hover:scale-105"
                                         />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-stone-300">

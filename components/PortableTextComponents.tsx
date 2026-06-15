@@ -1,5 +1,12 @@
 import { urlFor } from "@/lib/sanity";
 import Link from "next/link";
+import Image from "next/image";
+
+function getImageDimensions(ref: string) {
+    const [, , dimensions] = ref.split('-');
+    const [width, height] = dimensions.split('x').map(Number);
+    return { width, height };
+}
 
 export const ptComponents = {
     types: {
@@ -7,11 +14,15 @@ export const ptComponents = {
             if (!value?.asset?._ref) {
                 return null;
             }
+            const { width, height } = getImageDimensions(value.asset._ref);
             return (
                 <div className="my-6 relative w-full flex justify-center">
-                    <img
+                    <Image
                         src={urlFor(value).url()}
                         alt={value.alt || 'Image'}
+                        width={width}
+                        height={height}
+                        sizes="(max-width: 768px) 100vw, 800px"
                         className="max-h-[500px] w-auto h-auto rounded-xl shadow-sm border border-stone-100"
                     />
                 </div>

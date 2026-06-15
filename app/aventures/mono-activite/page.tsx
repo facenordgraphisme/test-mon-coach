@@ -1,6 +1,7 @@
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { CheckCircle2, Gem, Mountain, Waves, Bike } from "lucide-react";
 import { PortableText } from '@portabletext/react';
@@ -33,7 +34,7 @@ async function getData() {
     if (!doc) {
         doc = {
             title: "Mono-activité",
-            subtitle: "Découvrez nos offres (Contenu à configurer dans Sanity)",
+            subtitle: "Escalade, canyoning ou VTT : choisissez une activité et vivez-la pleinement avec votre guide dans les Hautes-Alpes.",
             description: [],
             benefits: [],
             imageUrl: null,
@@ -99,16 +100,11 @@ export async function generateMetadata(): Promise<Metadata> {
         seo
     }`);
 
-    if (doc?.seo) return generateSeoMetadata(doc.seo, {
-        title: doc.title,
-        description: "Aventure Mono-activité - Mon Coach Plein Air",
-        url: `https://moncoachpleinair.com/aventures/mono-activite`
-    });
-
-    return {
+    return generateSeoMetadata(doc?.seo, {
         title: doc?.title || "Mono-activité",
-        description: "Mon Coach Plein Air"
-    };
+        description: "Choisissez une activité - escalade, canyoning ou VTT - et vivez-la pleinement avec votre guide dans les Hautes-Alpes et autour du lac de Serre-Ponçon.",
+        url: `https://www.revesdaventures.fr/aventures/mono-activite`
+    });
 }
 
 export const revalidate = 60;
@@ -140,10 +136,13 @@ export default async function MonoActivitePage() {
                 <div className="absolute inset-0 z-0">
                     <div className="absolute inset-0 bg-black/40 z-10" />
                     {imageUrl ? (
-                        <img
+                        <Image
                             src={imageUrl}
                             alt={title}
-                            className="w-full h-full object-cover"
+                            fill
+                            sizes="100vw"
+                            priority
+                            className="object-cover"
                         />
                     ) : (
                         <div className="bg-stone-900 w-full h-full" />

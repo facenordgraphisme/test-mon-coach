@@ -1,6 +1,7 @@
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { Calendar, Clock, MapPin, Users, CheckCircle2, ArrowRight, Waves, Zap, Sun } from "lucide-react";
 import { PortableText } from '@portabletext/react';
 import { generateSeoMetadata } from "@/lib/seo";
@@ -32,7 +33,7 @@ async function getData() {
     if (!doc) {
         doc = {
             title: "Duo d'activités",
-            subtitle: "Découvrez nos offres (Contenu à configurer dans Sanity)",
+            subtitle: "Combinez deux activités - escalade, canyoning ou VTT - pour une journée riche en sensations avec votre guide dans les Hautes-Alpes.",
             description: [],
             benefits: [],
             imageUrl: null,
@@ -89,23 +90,18 @@ async function getData() {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-    const doc = await client.fetch(groq`* [_type == "duoActivitesPage"][0] {
-    "title": heroTitle,
+    const doc = await client.fetch(groq`*[_type == "duoActivitesPage"][0] {
+        "title": heroTitle,
         description,
-        "imageUrl": heroImage.asset -> url,
-            seo
-} `);
+        "imageUrl": heroImage.asset->url,
+        seo
+    }`);
 
-    if (doc?.seo) return generateSeoMetadata(doc.seo, {
-        title: doc.title,
-        description: "Aventure Duo Activités - Mon Coach Plein Air",
-        url: `https://moncoachpleinair.com/aventures/duo-activites`
-    });
-
-    return {
+    return generateSeoMetadata(doc?.seo, {
         title: doc?.title || "Duo Activités",
-        description: "Mon Coach Plein Air"
-    };
+        description: "Combinez deux activités - escalade, canyoning ou VTT - pour une journée riche en sensations avec votre guide dans les Hautes-Alpes et autour du lac de Serre-Ponçon.",
+        url: `https://www.revesdaventures.fr/aventures/duo-activites`
+    });
 }
 
 export const revalidate = 60;
@@ -137,10 +133,13 @@ export default async function DuoActivitesPage() {
                 <div className="absolute inset-0 z-0">
                     <div className="absolute inset-0 bg-black/40 z-10" />
                     {imageUrl ? (
-                        <img
+                        <Image
                             src={imageUrl}
                             alt={title}
-                            className="w-full h-full object-cover"
+                            fill
+                            sizes="100vw"
+                            priority
+                            className="object-cover"
                         />
                     ) : (
                         <div className="bg-stone-900 w-full h-full" />

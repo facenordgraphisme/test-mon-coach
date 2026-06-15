@@ -18,23 +18,21 @@ import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { generateLocalBusinessSchema, generateOrganizationSchema } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://revesdaventures.fr'),
+  metadataBase: new URL('https://www.revesdaventures.fr'),
   title: {
     template: "%s | Rêves d'Aventures",
     default: "Rêves d'Aventures | Escalade, Canyoning & VTT Hautes-Alpes"
   },
   description: "Guide de haute montagne et coaching sportif dans les Hautes-Alpes. Activités exclusives d'Escalade, Canyoning et VTT autour du Lac de Serre-Ponçon, Embrun et Guillestre.",
   keywords: ["Escalade Hautes-Alpes", "Canyoning Serre-Ponçon", "VTT Embrun", "Guide de haute montagne Hautes-Alpes", "Activités plein air Serre-Ponçon", "Coaching sportif 05"],
-  alternates: {
-    canonical: '/',
-  },
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
-    url: 'https://revesdaventures.fr',
+    url: 'https://www.revesdaventures.fr',
     title: "Rêves d'Aventures | Aventures Exclusives Hautes-Alpes",
     description: 'Guide de haute montagne et coaching sportif. Escalade, Canyon et VTT au Lac de Serre-Ponçon.',
-    siteName: "Rêves d'Aventures"
+    siteName: "Rêves d'Aventures",
+    images: [{ url: '/assets/og-default.png', width: 1200, height: 630 }]
   }
 };
 

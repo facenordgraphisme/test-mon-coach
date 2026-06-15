@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     openGraph: {
         title: "Catalogue d'Activités | Rêves d'Aventures Hautes-Alpes",
         description: "Escalade, Canyoning, VTT dans les Hautes-Alpes. Trouvez votre prochaine aventure.",
-        url: 'https://revesdaventures.fr/activities',
+        url: 'https://www.revesdaventures.fr/activities',
     }
 };
 
@@ -49,13 +49,13 @@ export default async function ActivitiesPage() {
                 '@type': 'ListItem',
                 position: 1,
                 name: 'Accueil',
-                item: 'https://revesdaventures.fr',
+                item: 'https://www.revesdaventures.fr',
             },
             {
                 '@type': 'ListItem',
                 position: 2,
                 name: 'Activités',
-                item: 'https://revesdaventures.fr/activities',
+                item: 'https://www.revesdaventures.fr/activities',
             },
         ],
     };

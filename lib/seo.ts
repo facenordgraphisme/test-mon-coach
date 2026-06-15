@@ -8,29 +8,44 @@ export interface SanitySeo {
     structuredData?: string;
 }
 
+const DEFAULT_OG_IMAGE = 'https://www.revesdaventures.fr/assets/og-default.png';
+
 export function generateSeoMetadata(
     seo: SanitySeo | null | undefined,
     fallback: { title: string; description: string; url: string }
 ): Metadata {
     const title = seo?.metaTitle || fallback.title;
     const description = seo?.metaDescription || fallback.description;
-    const imageUrl = seo?.openGraphImage ? urlFor(seo.openGraphImage).width(1200).height(630).url() : null;
+    const imageUrl = seo?.openGraphImage ? urlFor(seo.openGraphImage).width(1200).height(630).url() : DEFAULT_OG_IMAGE;
 
     return {
         title,
         description,
+        alternates: {
+            canonical: fallback.url,
+        },
         openGraph: {
             title,
             description,
             url: fallback.url,
-            images: imageUrl ? [{ url: imageUrl }] : [],
+            images: [{ url: imageUrl, width: 1200, height: 630 }],
         },
         twitter: {
             card: 'summary_large_image',
             title,
             description,
-            images: imageUrl ? [imageUrl] : [],
+            images: [imageUrl],
         },
+    };
+}
+
+export function generateFounderSchema() {
+    return {
+        '@type': 'Person',
+        name: 'Frédéric Buet',
+        jobTitle: 'Guide de haute montagne',
+        description: "Ancien sportif de haut niveau en canoë-kayak, guide de haute montagne depuis plus de 30 ans et fondateur de Rêves d'Aventures.",
+        url: 'https://www.revesdaventures.fr/guide',
     };
 }
 
@@ -39,19 +54,37 @@ export function generateOrganizationSchema() {
         '@context': 'https://schema.org',
         '@type': 'SportsOrganization',
         name: "Rêves d'Aventures",
-        url: 'https://revesdaventures.fr',
-        logo: 'https://revesdaventures.fr/assets/logo-v2.png',
+        url: 'https://www.revesdaventures.fr',
+        logo: 'https://www.revesdaventures.fr/assets/logo-v2.png',
+        founder: generateFounderSchema(),
         sameAs: [
             'https://www.instagram.com/revesdaventures',
             'https://www.facebook.com/revesdaventures',
         ],
         contactPoint: {
             '@type': 'ContactPoint',
-            telephone: '+33 6 00 00 00 00',
+            telephone: '+33 6 83 16 94 02',
             contactType: 'customer service',
             areaServed: 'FR',
             availableLanguage: ['French', 'English'],
         },
+    };
+}
+
+export function generateFAQSchema(faqs: { question: string; answer: string }[] | null | undefined) {
+    if (!faqs || faqs.length === 0) return null;
+
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((item) => ({
+            '@type': 'Question',
+            name: item.question,
+            acceptedAnswer: {
+                '@type': 'Answer',
+                text: item.answer,
+            },
+        })),
     };
 }
 
@@ -61,8 +94,8 @@ export function generateLocalBusinessSchema() {
         '@type': 'SportsActivityLocation',
         name: "Rêves d'Aventures",
         description: "Coaching et guide de haute montagne en Escalade, Canyoning et VTT dans les Hautes-Alpes (Serre-Ponçon, Embrun, Guillestre).",
-        url: 'https://revesdaventures.fr',
-        telephone: '+33 6 00 00 00 00',
+        url: 'https://www.revesdaventures.fr',
+        telephone: '+33 6 83 16 94 02',
         address: {
             '@type': 'PostalAddress',
             streetAddress: 'Lac de Serre-Ponçon',
@@ -88,26 +121,32 @@ export function generateLocalBusinessSchema() {
     };
 }
 
-export function generateProductSchema(activity: any) {
-    if (!activity) return null;
+export function generateReviewSchema(reviews: { author: string; rating: number; text: string; date: string }[]) {
+    if (!reviews || reviews.length === 0) return null;
+
+    const ratingValue = reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length;
 
     return {
-        '@context': 'https://schema.org',
-        '@type': 'Product',
-        name: activity.title,
-        description: activity.description?.[0]?.children?.[0]?.text || activity.title,
-        image: activity.imageUrl,
-        offers: {
-            '@type': 'Offer',
-            price: activity.price,
-            priceCurrency: 'EUR',
-            availability: 'https://schema.org/InStock',
-            url: `https://revesdaventures.fr/activities/${activity.slug}`
+        ...generateLocalBusinessSchema(),
+        aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: ratingValue.toFixed(1),
+            reviewCount: reviews.length,
+            bestRating: 5,
+            worstRating: 1,
         },
-        brand: {
-            '@type': 'Brand',
-            name: "Rêves d'Aventures"
-        }
+        review: reviews.map((r) => ({
+            '@type': 'Review',
+            author: { '@type': 'Person', name: r.author },
+            datePublished: r.date,
+            reviewRating: {
+                '@type': 'Rating',
+                ratingValue: r.rating,
+                bestRating: 5,
+                worstRating: 1,
+            },
+            reviewBody: r.text,
+        })),
     };
 }
 
@@ -116,10 +155,10 @@ export function generateWebsiteSchema() {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
         name: "Rêves d'Aventures",
-        url: 'https://revesdaventures.fr',
+        url: 'https://www.revesdaventures.fr',
         potentialAction: {
             '@type': 'SearchAction',
-            target: 'https://revesdaventures.fr/search?q={search_term_string}',
+            target: 'https://www.revesdaventures.fr/search?q={search_term_string}',
             'query-input': 'required name=search_term_string'
         }
     }

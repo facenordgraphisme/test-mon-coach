@@ -6,6 +6,7 @@ import { Metadata } from "next";
 import { Map, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 import { PortableText } from '@portabletext/react';
 import { ptComponents } from "@/components/PortableTextComponents";
 import { ActivityFilterableList } from "@/components/ActivityFilterableList";
@@ -31,7 +32,7 @@ async function getData() {
     if (!doc) {
         doc = {
             title: "Multi / Sur-mesure",
-            subtitle: "Créez votre aventure (Contenu à configurer dans Sanity)",
+            subtitle: "Créez votre séjour sur-mesure : combinez escalade, canyoning et VTT avec votre guide dans les Hautes-Alpes.",
             description: [],
             benefits: ["Accompagnement personnalisé", "Programme flexible", "Souvenirs inoubliables"],
             imageUrl: null,
@@ -97,16 +98,11 @@ export async function generateMetadata(): Promise<Metadata> {
         seo
     }`);
 
-    if (doc?.seo) return generateSeoMetadata(doc.seo, {
-        title: doc.title,
-        description: "Aventure Sur-Mesure / Multi - Mon Coach Plein Air",
-        url: `https://moncoachpleinair.com/multi`
-    });
-
-    return {
+    return generateSeoMetadata(doc?.seo, {
         title: doc?.title || "Multi / Sur-Mesure",
-        description: "Mon Coach Plein Air"
-    };
+        description: "Combinez plusieurs activités (escalade, canyoning, VTT) sur un format Multi ou créez un séjour 100% sur-mesure avec votre guide dans les Hautes-Alpes.",
+        url: `https://www.revesdaventures.fr/multi`
+    });
 }
 
 export const revalidate = 60;
@@ -138,10 +134,13 @@ export default async function MultiPage() {
                 <div className="absolute inset-0 z-0">
                     <div className="absolute inset-0 bg-black/40 z-10" />
                     {imageUrl ? (
-                        <img
+                        <Image
                             src={imageUrl}
                             alt={title}
-                            className="w-full h-full object-cover"
+                            fill
+                            sizes="100vw"
+                            priority
+                            className="object-cover"
                         />
                     ) : (
                         <div className="bg-stone-900 w-full h-full" />

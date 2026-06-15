@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
             allow: '/',
             disallow: '/api/',
         },
-        sitemap: 'https://revesdaventures.fr/sitemap.xml',
+        sitemap: 'https://www.revesdaventures.fr/sitemap.xml',
     };
 }

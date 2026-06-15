@@ -17,9 +17,9 @@ export async function generateMetadata(): Promise<Metadata> {
     }`);
  
     return generateSeoMetadata(data?.seo, {
-        title: "Contact | Rêves d'Aventures",
+        title: "Contact",
         description: "Une envie particulière ? Un projet de groupe ou une sortie sur mesure dans les Hautes-Alpes ? Écrivez-nous, réponse rapide garantie.",
-        url: 'https://revesdaventures.fr/contact'
+        url: 'https://www.revesdaventures.fr/contact'
     });
 }
 

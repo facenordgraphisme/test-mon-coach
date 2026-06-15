@@ -1,6 +1,7 @@
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { BookingForm } from "@/components/BookingForm";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -127,10 +128,12 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                         {/* Image */}
                         {displayImage && (
                             <div className="relative h-64 md:h-96 rounded-2xl overflow-hidden shadow-lg">
-                                <img
+                                <Image
                                     src={displayImage}
                                     alt={event.title || activity.title}
-                                    className="w-full h-full object-cover"
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, 800px"
+                                    className="object-cover"
                                 />
                             </div>
                         )}
@@ -324,11 +327,13 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                                                         return (
                                                             <div key={i} className="bg-white rounded-xl overflow-hidden border border-stone-200 shadow-sm hover:shadow-md transition-shadow">
                                                                 {bike.imageUrl && (
-                                                                    <div className="h-48 overflow-hidden bg-stone-100">
-                                                                        <img
+                                                                    <div className="relative h-48 overflow-hidden bg-stone-100">
+                                                                        <Image
                                                                             src={bike.imageUrl}
                                                                             alt={bike.name}
-                                                                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                                                                            fill
+                                                                            sizes="(max-width: 768px) 100vw, 50vw"
+                                                                            className="object-cover hover:scale-105 transition-transform duration-500"
                                                                         />
                                                                     </div>
                                                                 )}

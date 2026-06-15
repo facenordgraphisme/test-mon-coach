@@ -5,6 +5,7 @@ import { Check, Activity, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { generateSeoMetadata } from "@/lib/seo";
 import { Metadata } from "next";
+import Image from "next/image";
 
 async function getData() {
     const levels = await client.fetch(groq`
@@ -37,9 +38,9 @@ async function getData() {
 export async function generateMetadata(): Promise<Metadata> {
     const data = await client.fetch(groq`*[_type == "levelsPage"][0] { seo }`);
     return generateSeoMetadata(data?.seo, {
-        title: "Niveaux d'Engagement | Mon Coach Plein Air",
+        title: "Niveaux d'Engagement",
         description: "Comprendre les niveaux de difficulté : Découverte, Aventure et Warrior. Choisissez l'expérience adaptée à vos envies.",
-        url: 'https://moncoachpleinair.com/niveaux'
+        url: 'https://www.revesdaventures.fr/niveaux'
     });
 }
 
@@ -62,10 +63,13 @@ export default async function NiveauxPage() {
             {/* Header Section - Force Recompile */}
             <div className="bg-stone-900 text-white py-24 md:py-32 relative overflow-hidden flex flex-col items-center justify-center text-center">
                 <div className="absolute inset-0 z-0">
-                    <img
+                    <Image
                         src={heroImage}
                         alt="Background"
-                        className="w-full h-full object-cover opacity-70"
+                        fill
+                        sizes="100vw"
+                        priority
+                        className="object-cover opacity-70"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-transparent to-transparent" />
                 </div>

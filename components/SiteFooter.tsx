@@ -54,6 +54,7 @@ export async function SiteFooter() {
                                 src="/assets/logo-v2.png"
                                 alt="Mon Coach Plein Air"
                                 fill
+                                sizes="128px"
                                 className="object-contain object-left brightness-0 invert opacity-90"
                             />
                         </Link>

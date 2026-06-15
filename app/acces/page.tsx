@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { Train, Car, Plane, MapPin, ArrowRight, Home, Bus, Info } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { RichText } from "@/components/RichText";
 import { generateSeoMetadata } from "@/lib/seo";
@@ -30,9 +31,9 @@ async function getAccessPageData() {
 export async function generateMetadata(): Promise<Metadata> {
     const data = await client.fetch(groq`*[_type == "accessPage"][0] { seo }`);
     return generateSeoMetadata(data?.seo, {
-        title: "Accès & Hébergement | Mon Coach Plein Air",
+        title: "Accès & Hébergement",
         description: "Toutes les informations pour nous rejoindre dans les Hautes-Alpes et préparer votre séjour.",
-        url: 'https://moncoachpleinair.com/acces'
+        url: 'https://www.revesdaventures.fr/acces'
     });
 }
 
@@ -159,10 +160,12 @@ export default async function AccessPage() {
                                 <div key={i} className="group bg-white overflow-hidden rounded-2xl border border-stone-100 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col">
                                     <div className="relative aspect-video bg-stone-200 overflow-hidden">
                                         {place.image ? (
-                                            <img
+                                            <Image
                                                 src={urlFor(place.image).url()}
                                                 alt={place.name}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, 33vw"
+                                                className="object-cover group-hover:scale-105 transition-transform duration-500"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-stone-400 bg-stone-100">

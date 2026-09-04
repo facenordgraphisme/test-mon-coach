@@ -150,6 +150,36 @@ export function generateReviewSchema(reviews: { author: string; rating: number; 
     };
 }
 
+export function generateArticleSchema(post: { title: string; excerpt?: string; imageUrl?: string; publishedAt?: string; updatedAt?: string; author?: string; slug: string } | null | undefined) {
+    if (!post) return null;
+
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: post.title,
+        description: post.excerpt,
+        image: post.imageUrl || DEFAULT_OG_IMAGE,
+        datePublished: post.publishedAt,
+        dateModified: post.updatedAt || post.publishedAt,
+        author: {
+            '@type': 'Person',
+            name: post.author || 'Frédéric Buet',
+        },
+        publisher: {
+            '@type': 'Organization',
+            name: "Rêves d'Aventures",
+            logo: {
+                '@type': 'ImageObject',
+                url: 'https://www.revesdaventures.fr/assets/logo-v2.png',
+            },
+        },
+        mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': `https://www.revesdaventures.fr/blog/${post.slug}`,
+        },
+    };
+}
+
 export function generateWebsiteSchema() {
     return {
         '@context': 'https://schema.org',

@@ -15,6 +15,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
     }));
 
+    // Fetch all blog post slugs from Sanity
+    const posts = await client.fetch(groq`*[_type == "post"] { "slug": slug.current, _updatedAt }`);
+
+    const postUrls = posts.map((post: any) => ({
+        url: `${baseUrl}/blog/${post.slug}`,
+        lastModified: new Date(post._updatedAt),
+        changeFrequency: 'monthly' as const,
+        priority: 0.6,
+    }));
+
     const staticUrls = [
         {
             url: baseUrl,
@@ -65,6 +75,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.7,
         },
         {
+            url: `${baseUrl}/blog`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly' as const,
+            priority: 0.7,
+        },
+        {
             url: `${baseUrl}/guide`,
             lastModified: new Date(),
             changeFrequency: 'monthly' as const,
@@ -90,5 +106,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
     ];
 
-    return [...staticUrls, ...activityUrls];
+    return [...staticUrls, ...activityUrls, ...postUrls];
 }

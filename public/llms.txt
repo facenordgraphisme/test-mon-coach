@@ -35,6 +35,12 @@
 - [Planche à voile - Windsurf](https://www.revesdaventures.fr/aventures/planche-a-voile-windsurf)
 - [Programme "TOUT à VELO !"](https://www.revesdaventures.fr/aventures/programme-tout-a-velo)
 
+## Blog
+
+- [Blog](https://www.revesdaventures.fr/blog): Conseils, guides pratiques et récits pour préparer ses sorties en Hautes-Alpes.
+- [Canyoning dans les Hautes-Alpes : le guide complet pour réussir sa première sortie](https://www.revesdaventures.fr/blog/canyoning-hautes-alpes-guide-debutant)
+- [Via Ferrata ou Escalade : comment choisir son activité en Hautes-Alpes ?](https://www.revesdaventures.fr/blog/via-ferrata-ou-escalade-comment-choisir)
+
 ## Optional
 
 - [Mentions légales](https://www.revesdaventures.fr/mentions-legales)

@@ -57,6 +57,7 @@ export function Navbar() {
                 { href: "/niveaux", label: "Niveaux" },
                 { href: "/avis", label: "Avis Clients" },
                 { href: "/acces", label: "Accès & Hébergement" },
+                { href: "/blog", label: "Blog" },
             ]
         },
     ]

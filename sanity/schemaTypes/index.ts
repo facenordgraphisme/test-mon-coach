@@ -22,6 +22,7 @@ import { seo } from './seo'
 import { monoActivitePage } from './monoActivitePage'
 import { duoActivitesPage } from './duoActivitesPage'
 import { multiPage } from './multiPage'
+import { post } from './post'
 
 import { siteSettings } from './siteSettings'
 
@@ -49,5 +50,6 @@ export const schemaTypes: SchemaTypeDefinition[] = [
     monoActivitePage,
     duoActivitesPage,
     multiPage,
+    post,
     siteSettings
 ]

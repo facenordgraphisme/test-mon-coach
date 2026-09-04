@@ -87,6 +87,7 @@ export async function SiteFooter() {
                             <li><FooterLink href="/calendrier">Le Calendrier</FooterLink></li>
                             <li><FooterLink href="/niveaux">Niveaux</FooterLink></li>
                             <li><FooterLink href="/guide">Le Guide</FooterLink></li>
+                            <li><FooterLink href="/blog">Blog</FooterLink></li>
                         </ul>
                     </div>
 

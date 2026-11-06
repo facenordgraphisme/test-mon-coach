@@ -2,6 +2,12 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Calendar, MapPin } from "lucide-react";
 import { stripe } from "@/lib/stripe";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Réservation confirmée",
+    robots: { index: false, follow: false },
+};
 
 export default async function SuccessPage({ searchParams }: { searchParams: Promise<{ session_id: string }> }) {
     const { session_id } = await searchParams;

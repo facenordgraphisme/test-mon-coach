@@ -14,6 +14,21 @@ import { RichText } from "@/components/RichText";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { GoBackButton } from "@/components/GoBackButton";
+import type { Metadata } from "next";
+
+// Page de réservation d'une séance : utile aux visiteurs, mais éphémère → hors index Google.
+// Pas de blocage dans robots.txt, sinon Google ne verrait pas ce noindex.
+export const metadata: Metadata = {
+    title: "Réserver une séance",
+    robots: { index: false, follow: true },
+};
+
+// Identifiants de documents Sanity (UUID ou id personnalisé) : tout le reste → 404 sans requête CMS.
+const EVENT_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]{2,}$/;
+
+function isPastEvent(date?: string): boolean {
+    return !!date && new Date(date).getTime() < Date.now();
+}
 
 function getMapSrc(input: string | undefined): string | undefined {
     if (!input) return undefined;
@@ -80,9 +95,15 @@ async function getEventDetails(eventId: string) {
 
 export default async function BookingPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
+    if (!EVENT_ID_PATTERN.test(id)) notFound();
     const event = await getEventDetails(id);
 
     if (!event || !event.activity) {
+        notFound();
+    }
+
+    // Séance passée : la page n'a plus d'objet (et ne doit pas rester dans l'index).
+    if (isPastEvent(event.date)) {
         notFound();
     }
 

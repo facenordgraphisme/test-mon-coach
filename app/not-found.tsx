@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { SiteFooter } from "@/components/SiteFooter";
 
 // Page 404 statique (aucune lecture de requête) : servie depuis le CDN, sans rendu serveur.
+// Next.js ajoute déjà <meta name="robots" content="noindex"> sur les 404.
 export const metadata: Metadata = {
     title: "Page introuvable",
-    robots: { index: false, follow: true },
 };
 
 export default function NotFound() {

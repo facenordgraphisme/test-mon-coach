@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { GoBackButton } from "@/components/GoBackButton";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Suspense } from 'react';
 import { PortableText } from '@portabletext/react';
 import { generateSeoMetadata } from "@/lib/seo";
 import { ptComponents } from "@/components/PortableTextComponents";
@@ -300,13 +299,11 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                 Explorez notre catalogue complet.
                             </p>
                         </div>
-                        <Suspense fallback={<div>Chargement...</div>}>
-                            <ActivityFilterableList
-                                initialActivities={formula.activities}
-                                hideFormatFilter={true}
-                                hideElementFilter={false}
-                            />
-                        </Suspense>
+                        <ActivityFilterableList
+                            initialActivities={formula.activities}
+                            hideFormatFilter={true}
+                            hideElementFilter={false}
+                        />
                     </div>
 
                     {/* Calendar */}

@@ -1,13 +1,18 @@
-"use client";
-
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
-import { useEffect, useState } from "react";
 import { Star, Quote } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-async function getReviews() {
+interface Review {
+    author: string;
+    rating: number;
+    text: string;
+    date?: string;
+    source?: string;
+}
+
+async function getReviews(): Promise<Review[]> {
     return client.fetch(groq`
         *[_type == "review"] | order(date desc)[0...3] {
             author,
@@ -16,40 +21,16 @@ async function getReviews() {
             date,
             source
         }
-    `);
+    `, {}, { next: { revalidate: 3600 } });
 }
 
-export function ReviewSection() {
-    const [reviews, setReviews] = useState<any[]>([]);
+// Composant serveur : les vrais avis Sanity sont dans le HTML (plus d'avis de démonstration en secours).
+export async function ReviewSection() {
+    const displayReviews = await getReviews();
 
-    useEffect(() => {
-        getReviews().then(setReviews);
-    }, []);
-
-    // Fallback data if no reviews exist yet
-    const displayReviews = reviews.length > 0 ? reviews : [
-        {
-            author: "Aventurier Anonyme",
-            rating: 5,
-            text: "Une expérience incroyable en pleine nature. Le guide était passionné et très professionnel.",
-            date: "2024-06-15",
-            source: "direct"
-        },
-        {
-            author: "Marie L.",
-            rating: 5,
-            text: "Superbe journée d'escalade ! Pédagogie au top, je me suis sentie en sécurité tout du long.",
-            date: "2024-07-22",
-            source: "google"
-        },
-        {
-            author: "Thomas B.",
-            rating: 5,
-            text: "Le canyoning était génial. Sensations fortes garanties dans un cadre magnifique.",
-            date: "2024-08-10",
-            source: "google"
-        }
-    ];
+    if (!displayReviews || displayReviews.length === 0) {
+        return null;
+    }
 
     return (
         <section className="py-24 bg-stone-100 relative overflow-hidden">

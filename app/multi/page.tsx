@@ -11,7 +11,6 @@ import { PortableText } from '@portabletext/react';
 import { ptComponents } from "@/components/PortableTextComponents";
 import { ActivityFilterableList } from "@/components/ActivityFilterableList";
 import { EventsCalendar } from "@/components/EventsCalendar";
-import { Suspense } from 'react';
 
 async function getData() {
     // 1. Fetch Singleton Page Content
@@ -230,14 +229,12 @@ export default async function MultiPage() {
                             Explorez notre catalogue de séjours et multi-activités.
                         </p>
                     </div>
-                    <Suspense fallback={<div>Chargement...</div>}>
-                        <ActivityFilterableList 
-                            initialActivities={activities} 
-                            hideFormatFilter={true}
-                            hideElementFilter={false}
-                            buttonText={cardButtonText}
-                        />
-                    </Suspense>
+                    <ActivityFilterableList 
+                        initialActivities={activities} 
+                        hideFormatFilter={true}
+                        hideElementFilter={false}
+                        buttonText={cardButtonText}
+                    />
                 </div>
 
                 {/* Calendar */}

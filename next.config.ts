@@ -35,6 +35,17 @@ const nextConfig: NextConfig = {
         destination: '/aventures/:slug',
         permanent: true,
       },
+      // Anciens slugs d'activités supprimés de Sanity (encore vus par Google).
+      {
+        source: '/aventures/planche-a-voile-windsurf',
+        destination: '/aventures/vtt-et-planche-a-voile',
+        permanent: true,
+      },
+      {
+        source: '/aventures/vtt',
+        destination: '/aventures/vtt-et-vtt-electrique',
+        permanent: true,
+      },
       {
         source: '/activities',
         destination: '/aventures/mono-activite',

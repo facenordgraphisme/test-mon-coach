@@ -9,7 +9,6 @@ import { generateSeoMetadata } from "@/lib/seo";
 import { Metadata } from "next";
 import { ActivityFilterableList } from "@/components/ActivityFilterableList";
 import { EventsCalendar } from "@/components/EventsCalendar";
-import { Suspense } from 'react';
 import { ptComponents } from "@/components/PortableTextComponents";
 
 // Fetch data for Mono Activité
@@ -323,14 +322,12 @@ export default async function MonoActivitePage() {
                             Explorez notre catalogue complet.
                         </p>
                     </div>
-                    <Suspense fallback={<div>Chargement...</div>}>
-                        <ActivityFilterableList
-                            initialActivities={activities}
-                            hideFormatFilter={true}
-                            hideElementFilter={false}
-                            buttonText={cardButtonText}
-                        />
-                    </Suspense>
+                    <ActivityFilterableList
+                        initialActivities={activities}
+                        hideFormatFilter={true}
+                        hideElementFilter={false}
+                        buttonText={cardButtonText}
+                    />
                 </div>
 
                 {/* Calendar */}

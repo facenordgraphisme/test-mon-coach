@@ -48,41 +48,13 @@ export default async function ReviewsPage() {
     const heroImage = pageContent?.heroImageUrl || "/assets/IMG_3019.JPG";
     const customJsonLd = pageContent?.seo?.structuredData ? JSON.parse(pageContent.seo.structuredData) : null;
 
-    // Fallback if no reviews (for demo puposes)
-    const displayReviews = reviews.length > 0 ? reviews : [
-        {
-            author: "Aventurier Anonyme",
-            rating: 5,
-            text: "Une expérience incroyable en pleine nature. Le guide était passionné et très professionnel.",
-            date: "2024-06-15",
-            source: "direct"
-        },
-        // ... (truncated fallback data for brevity if desired, but keeping logic simpler)
-        {
-            author: "Marie L.",
-            rating: 5,
-            text: "Superbe journée d'escalade ! Pédagogie au top, je me suis sentie en sécurité tout du long.",
-            date: "2024-07-22",
-            source: "google"
-        },
-        {
-            author: "Thomas B.",
-            rating: 5,
-            text: "Le canyoning était génial. Sensations fortes garanties dans un cadre magnifique.",
-            date: "2024-08-10",
-            source: "google"
-        },
-        {
-            author: "Lucas P.",
-            rating: 4,
-            text: "Très bonne sortie VTT, paysages grandioses. Un peu physique mais ça vaut le coup.",
-            date: "2024-09-05",
-            source: "other"
-        }
-    ];
+    const displayReviews = reviews;
 
-    // Only generate Review/AggregateRating schema from real Sanity reviews (never the demo fallback)
-    const reviewSchema = generateReviewSchema(reviews);
+    // Balisage Review/AggregateRating : uniquement les avis recueillis par le site.
+    // Les avis recopiés depuis Google (source "google") restent affichés, mais Google interdit
+    // de les baliser comme avis du site (avis provenant d'un tiers).
+    const ownReviews = reviews.filter((r: { source?: string }) => r.source !== 'google');
+    const reviewSchema = ownReviews.length > 0 ? generateReviewSchema(ownReviews) : null;
 
     return (
         <div className="min-h-screen bg-stone-50 flex flex-col">

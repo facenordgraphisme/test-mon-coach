@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -59,39 +59,19 @@ export function ActivityFilterableList({
     hiddenFormats = [],
     buttonText
 }: ActivityFilterableListProps) {
-    const searchParams = useSearchParams();
-    const initialFilter = searchParams.get('format');
-
     // Logic: if hideFilters is true, we effectively hide both.
     const effectiveHideFormat = hideFilters || hideFormatFilter;
     const effectiveHideElement = hideFilters || hideElementFilter;
 
-    // Map 'mono'/'duo' from URL to the correct initial state. Default to 'Tous'.
-
-    // Map 'mono'/'duo' from URL to the correct initial state. Default to 'Tous'.
-    // URL params are lowercase 'mono', 'duo'. internal state uses 'Tous', 'mono', 'duo', 'multi'
-    // If filters are hidden (format specifically), we assume pre-filtered or "Tous"
-    const [filter, setFilter] = useState(initialFilter && !effectiveHideFormat ? initialFilter.toLowerCase() : 'Tous');
+    // État initial neutre : la liste complète est rendue côté serveur (SEO, liens dans le HTML).
+    // Les filtres passés dans l'URL (?format=, ?element=) sont appliqués après hydratation par <UrlFilterSync>.
+    const [filter, setFilter] = useState('Tous');
     const [activeElement, setActiveElement] = useState('Tous');
 
-    useEffect(() => {
-        if (!effectiveHideFormat) {
-            const param = searchParams.get('format');
-            if (param) {
-                setFilter(param.toLowerCase());
-            }
-        }
-
-        // Handle element from URL
-        const elementParam = searchParams.get('element');
-        if (elementParam && !effectiveHideElement) {
-            // Mapping English/Sanity values to UI labels if needed, but assuming direct match for now
-            // Or casing normalization
-            setActiveElement(elementParam.charAt(0).toUpperCase() + elementParam.slice(1).toLowerCase());
-        }
-    }, [searchParams, effectiveHideFormat, effectiveHideElement]);
-
     const filteredActivities = initialActivities.filter(activity => {
+        // Activité sans slug dans Sanity : pas de page, donc pas de carte (évitait un lien /aventures/null).
+        if (!activity.slug) return false;
+
         // Filter by format
         const matchesFormat = filter === 'Tous' || activity.format === filter.toLowerCase();
 
@@ -119,6 +99,16 @@ export function ActivityFilterableList({
 
     return (
         <div>
+            {/* Isolé dans son propre Suspense : useSearchParams ne fait plus basculer toute la liste en rendu client */}
+            <Suspense fallback={null}>
+                <UrlFilterSync
+                    syncFormat={!effectiveHideFormat}
+                    syncElement={!effectiveHideElement}
+                    onFormat={setFilter}
+                    onElement={setActiveElement}
+                />
+            </Suspense>
+
             {/* Filters */}
             <div className="mb-8 space-y-4">
                 {/* Format Filters */}
@@ -275,4 +265,31 @@ export function ActivityFilterableList({
             </div>
         </div>
     );
+}
+
+function UrlFilterSync({
+    syncFormat,
+    syncElement,
+    onFormat,
+    onElement,
+}: {
+    syncFormat: boolean;
+    syncElement: boolean;
+    onFormat: (value: string) => void;
+    onElement: (value: string) => void;
+}) {
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const formatParam = searchParams.get('format');
+        if (syncFormat && formatParam) {
+            onFormat(formatParam.toLowerCase());
+        }
+        const elementParam = searchParams.get('element');
+        if (syncElement && elementParam) {
+            onElement(elementParam.charAt(0).toUpperCase() + elementParam.slice(1).toLowerCase());
+        }
+    }, [searchParams, syncFormat, syncElement, onFormat, onElement]);
+
+    return null;
 }

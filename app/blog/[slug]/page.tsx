@@ -34,13 +34,26 @@ async function getPost(slug: string) {
                 "imageUrl": mainImage.asset->url,
             }
         }
-    `, { slug }, { next: { revalidate: 60 } });
+    `, { slug }, { next: { revalidate: 3600 } });
 }
 
-export const revalidate = 60;
+export const revalidate = 3600;
+
+// Slugs Sanity : minuscules, chiffres et tirets. Tout le reste (scanners, URLs inventées) → 404 sans requête CMS.
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+// Pré-rend tous les articles au build. Les articles publiés ensuite restent accessibles
+// (dynamicParams par défaut) : rendus une fois puis mis en cache (ISR).
+export async function generateStaticParams() {
+    const slugs: string[] = await client.fetch(
+        groq`*[_type == "post" && defined(slug.current)].slug.current`
+    );
+    return slugs.filter((slug) => SLUG_PATTERN.test(slug)).map((slug) => ({ slug }));
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const { slug } = await params;
+    if (!SLUG_PATTERN.test(slug)) return {};
     const post = await getPost(slug);
 
     return generateSeoMetadata(post?.seo, {
@@ -52,6 +65,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
+    if (!SLUG_PATTERN.test(slug)) notFound();
     const post = await getPost(slug);
 
     if (!post) {

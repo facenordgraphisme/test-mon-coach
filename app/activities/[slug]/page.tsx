@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 export default async function SingleActivityPage({ params }: { params: { slug: string } }) {
     const { slug } = await params;

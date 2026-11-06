@@ -19,7 +19,7 @@ async function getGuideProfile() {
             "photos": photos[].asset->url,
             seo
         }
-    `, {}, { next: { revalidate: 10 } });
+    `, {}, { next: { revalidate: 3600 } });
 }
 
 export async function generateMetadata(): Promise<Metadata> {

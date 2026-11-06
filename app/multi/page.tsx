@@ -85,7 +85,7 @@ async function getData() {
     `, { format });
 
     // 3. Fetch Site Settings for Card Button
-    const settings = await client.fetch(groq`*[_type == "siteSettings"][0] { cardButtonText }`, {}, { next: { revalidate: 0 } });
+    const settings = await client.fetch(groq`*[_type == "siteSettings"][0] { cardButtonText }`, {}, { next: { revalidate: 3600 } });
 
     return { ...doc, ...extraData, cardButtonText: settings?.cardButtonText };
 }
@@ -105,7 +105,7 @@ export async function generateMetadata(): Promise<Metadata> {
     });
 }
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 export default async function MultiPage() {
     const data = await getData();

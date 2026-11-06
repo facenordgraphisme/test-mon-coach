@@ -20,7 +20,7 @@ async function getPosts() {
             publishedAt,
             tags
         }
-    `, {}, { next: { revalidate: 60 } });
+    `, {}, { next: { revalidate: 3600 } });
 }
 
 export async function generateMetadata(): Promise<Metadata> {

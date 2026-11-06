@@ -48,12 +48,12 @@ async function getData() {
     }`);
 
     // 3. Fetch Site Settings for Card Button
-    const settings = await client.fetch(groq`*[_type == "siteSettings"][0] { cardButtonText }`, {}, { next: { revalidate: 0 } });
+    const settings = await client.fetch(groq`*[_type == "siteSettings"][0] { cardButtonText }`, {}, { next: { revalidate: 3600 } });
 
     return { events, pageContent, cardButtonText: settings?.cardButtonText };
 }
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 export default async function CalendarPage() {
     const { events, pageContent, cardButtonText } = await getData();

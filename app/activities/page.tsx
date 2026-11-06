@@ -36,7 +36,7 @@ async function getActivities() {
     `);
 }
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 export default async function ActivitiesPage() {
     const activities = await getActivities();

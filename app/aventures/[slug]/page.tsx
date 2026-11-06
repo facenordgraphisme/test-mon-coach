@@ -165,15 +165,28 @@ async function getData(slug: string) {
     }
 
     // Fetch Site Settings for Card Button
-    const settings = await client.fetch(groq`*[_type == "siteSettings"][0] { cardButtonText }`, {}, { next: { revalidate: 0 } });
+    const settings = await client.fetch(groq`*[_type == "siteSettings"][0] { cardButtonText }`, {}, { next: { revalidate: 3600 } });
 
     return { ...doc, cardButtonText: settings?.cardButtonText };
 }
 
-export const revalidate = 60;
+export const revalidate = 3600;
+
+// Slugs Sanity : minuscules, chiffres et tirets. Tout le reste (scanners, URLs inventées) → 404 sans requête CMS.
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+// Pré-rend toutes les activités/formules au build. Les nouveaux slugs créés ensuite dans Sanity
+// restent accessibles (dynamicParams par défaut) : rendus une fois puis mis en cache (ISR).
+export async function generateStaticParams() {
+    const slugs: string[] = await client.fetch(
+        groq`*[(_type == "activity" || _type == "formula") && defined(slug.current)].slug.current`
+    );
+    return slugs.filter((slug) => SLUG_PATTERN.test(slug)).map((slug) => ({ slug }));
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const { slug } = await params;
+    if (!SLUG_PATTERN.test(slug)) return {};
 
     // Default for Activity / other Formula documents
     const doc = await client.fetch(groq`
@@ -194,6 +207,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
+    if (!SLUG_PATTERN.test(slug)) notFound();
     const data = await getData(slug);
 
     if (!data) {

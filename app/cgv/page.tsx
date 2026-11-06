@@ -482,7 +482,7 @@ async function getCGVPageData() {
             content,
             seo
         }
-    `, {}, { next: { revalidate: 10 } });
+    `, {}, { next: { revalidate: 3600 } });
 }
 
 export async function generateMetadata(): Promise<Metadata> {

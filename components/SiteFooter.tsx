@@ -12,7 +12,7 @@ async function getFooterData() {
                 icon
             }
         }
-    `, {}, { next: { revalidate: 10 } });
+    `, {}, { next: { revalidate: 3600 } });
 
     const settingsData = await client.fetch(groq`
         *[_type == "siteSettings"][0] {
@@ -22,7 +22,7 @@ async function getFooterData() {
             address,
             socialLinks
         }
-    `, {}, { next: { revalidate: 10 } });
+    `, {}, { next: { revalidate: 3600 } });
 
     return { accessData, settingsData };
 }

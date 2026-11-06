@@ -1,5 +1,3 @@
-const dynamic = 'force-dynamic'
-
 import { Hero } from "@/components/Hero";
 import { Features } from "@/components/Features";
 import { LevelDescriptions } from "@/components/LevelDescriptions";
@@ -37,7 +35,7 @@ async function getData() {
     featuresCtaLink,
     faq,
     seo
-  }`, {}, { next: { revalidate: 10 } });
+  }`, {}, { next: { revalidate: 3600 } });
 }
 
 export async function generateMetadata() {

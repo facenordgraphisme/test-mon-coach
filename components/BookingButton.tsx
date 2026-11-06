@@ -31,7 +31,9 @@ export function BookingButton({
             variant={variant}
             size={size}
         >
-            <Link href={`/booking/${eventId}`}>
+            {/* Pas de prefetch : /booking/[id] est rendu à la demande (places en temps réel) ;
+                le prefetch déclenchait une invocation serveur par bouton visible à l'écran. */}
+            <Link href={`/booking/${eventId}`} prefetch={false}>
                 {children}
             </Link>
         </Button>

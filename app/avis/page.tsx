@@ -17,7 +17,7 @@ async function getData() {
             date,
             source
         }
-    `, {}, { next: { revalidate: 10 } });
+    `, {}, { next: { revalidate: 3600 } });
 
     const pageContent = await client.fetch(groq`
         *[_type == "reviewsPage"][0] {
@@ -26,7 +26,7 @@ async function getData() {
             "heroImageUrl": heroImage.asset->url,
             seo
         }
-    `, {}, { next: { revalidate: 10 } });
+    `, {}, { next: { revalidate: 3600 } });
 
     return { reviews, pageContent };
 }

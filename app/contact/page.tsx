@@ -38,7 +38,7 @@ async function getData() {
         calendarPromoText,
         calendarPromoButtonText,
         seo
-    }`, {}, { next: { revalidate: 10 } });
+    }`, {}, { next: { revalidate: 3600 } });
 }
 
 export default async function ContactPage() {

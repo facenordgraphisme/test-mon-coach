@@ -46,6 +46,26 @@ export const activity = defineType({
             description: 'Ex: "1 à 5 pers." ou "Groupe 4-12". Si vide, la valeur par défaut sera utilisée.',
             type: 'string',
         }),
+        // Infos clés affichées en haut de la page activité (et reprises dans les données structurées).
+        defineField({
+            name: 'priceFrom',
+            title: 'Prix « à partir de » (€ / pers.)',
+            description: "Affiché même quand aucune séance n'est programmée. Laisser vide si le prix est uniquement sur devis.",
+            type: 'number',
+            validation: Rule => Rule.min(0),
+        }),
+        defineField({
+            name: 'minAge',
+            title: 'Âge minimum (ans)',
+            type: 'number',
+            validation: Rule => Rule.min(0).max(99),
+        }),
+        defineField({
+            name: 'meetingPoint',
+            title: 'Lieu(x) de pratique / rendez-vous',
+            description: 'Ex : "Via ferrata des Orres ou de la Cascade (Embrun)". Citer les lieux réels aide le référencement.',
+            type: 'string',
+        }),
         defineField({
             name: 'durationMode',
             title: 'Mode de durée',

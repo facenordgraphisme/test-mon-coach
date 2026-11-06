@@ -78,14 +78,13 @@ export function Navbar() {
                 <Link href="/" className="relative h-14 w-40 md:h-16 md:w-52">
                     <Image
                         src="/assets/logo-v2.png"
-                        alt="Mon Coach Plein Air"
+                        alt="Rêves d'Aventures – accueil"
                         fill
                         sizes="(max-width: 768px) 160px, 208px"
                         className={cn(
                             "object-contain object-left transition-all duration-300",
                             !showScrolledState && "brightness-0 invert"
                         )}
-                        priority
                     />
                 </Link>
 
@@ -132,10 +131,18 @@ export function Navbar() {
                     </Button>
                 </nav>
 
-                {/* Mobile Toggle */}
+                {/* Mobile : bouton Réserver toujours visible + menu */}
+                <div className="md:hidden flex items-center gap-2 relative z-50">
+                <Button asChild size="sm" className={cn("rounded-full h-10 px-4", (showScrolledState || mobileMenuOpen) ? "bg-stone-900 text-white" : "bg-white text-stone-900 hover:bg-gray-100")}>
+                    <Link href="/calendrier" onClick={() => setMobileMenuOpen(false)}>Réserver</Link>
+                </Button>
                 <button
-                    className="md:hidden p-2 relative z-50"
+                    type="button"
+                    className="p-2.5"
                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    aria-label={mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+                    aria-expanded={mobileMenuOpen}
+                    aria-controls="mobile-menu"
                 >
                     <AnimatePresence mode="wait">
                         {mobileMenuOpen ? (
@@ -161,11 +168,13 @@ export function Navbar() {
                         )}
                     </AnimatePresence>
                 </button>
+                </div>
 
                 {/* Mobile Menu Overlay */}
                 <AnimatePresence>
                     {mobileMenuOpen && (
                         <motion.div
+                            id="mobile-menu"
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}

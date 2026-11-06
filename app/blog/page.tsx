@@ -37,7 +37,7 @@ export default async function BlogPage() {
     return (
         <div className="min-h-screen bg-stone-50 flex flex-col">
             <PageHero
-                title="Le Blog"
+                title="Blog outdoor des Hautes-Alpes"
                 subtitle="Conseils, guides pratiques et récits pour préparer vos prochaines aventures dans les Hautes-Alpes."
                 label="CONSEILS & RÉCITS"
                 image="/assets/IMG_3771.JPG"

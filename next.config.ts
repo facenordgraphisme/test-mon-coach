@@ -22,7 +22,14 @@ const nextConfig: NextConfig = {
     styledComponents: true,
   },
   reactStrictMode: false,
+  experimental: {
+    // CSS (≈ 20 Ko) intégré au HTML : supprime les 2 feuilles bloquantes (≈ 0,5 s de rendu sur mobile).
+    inlineCss: true,
+  },
   images: {
+    // Les URLs Sanity changent à chaque nouvelle image : cache long sans risque de contenu périmé,
+    // et moins de transformations facturées (WebP seul : AVIF doublerait les transformations).
+    minimumCacheTTL: 2678400, // 31 jours
     remotePatterns: [
       { protocol: 'https', hostname: 'cdn.sanity.io' },
       { protocol: 'https', hostname: 'images.unsplash.com' },

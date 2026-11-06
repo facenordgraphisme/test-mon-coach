@@ -1,3 +1,4 @@
+import { JsonLd } from "@/components/JsonLd";
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -100,7 +101,7 @@ export async function generateMetadata() {
     const data = await client.fetch(groq`*[_type == "legalPage"][0] { seo }`);
     return generateSeoMetadata(data?.seo, {
         title: "Mentions Légales",
-        description: "Informations légales et juridiques concernant le site Rêves d'Aventures et l'EI Frédéric BUET.",
+        description: "Mentions légales du site Rêves d'Aventures : éditeur (EI Frédéric Buet), hébergement, propriété intellectuelle et protection des données personnelles.",
         url: 'https://www.revesdaventures.fr/mentions-legales'
     });
 }
@@ -128,10 +129,7 @@ export default async function LegalPage() {
 
     return (
         <div className="min-h-screen bg-stone-50 flex flex-col">
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
-            />
+            <JsonLd data={customJsonLd} />
             <PageHero
                 title={title}
                 subtitle="Informations légales et juridiques"

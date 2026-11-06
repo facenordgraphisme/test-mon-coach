@@ -5,6 +5,7 @@ import { Check, Activity, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { generateSeoMetadata } from "@/lib/seo";
 import { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
 import Image from "next/image";
 
 async function getData() {
@@ -56,10 +57,7 @@ export default async function NiveauxPage() {
 
     return (
         <div className="min-h-screen bg-stone-50" suppressHydrationWarning>
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
-            />
+            <JsonLd data={customJsonLd} />
             {/* Header Section - Force Recompile */}
             <div className="bg-stone-900 text-white py-24 md:py-32 relative overflow-hidden flex flex-col items-center justify-center text-center">
                 <div className="absolute inset-0 z-0">

@@ -19,7 +19,7 @@ export const ptComponents = {
                 <div className="my-6 relative w-full flex justify-center">
                     <Image
                         src={urlFor(value).url()}
-                        alt={value.alt || 'Image'}
+                        alt={value.alt || ''}
                         width={width}
                         height={height}
                         sizes="(max-width: 768px) 100vw, 800px"
@@ -55,7 +55,8 @@ export const ptComponents = {
         number: ({ children }: any) => <li className="pl-1">{children}</li>,
     },
     block: {
-        h1: ({ children }: any) => <h1 className="text-3xl font-bold mt-8 mb-4 text-stone-900">{children}</h1>,
+        // Le H1 de la page est dans le hero : un « H1 » saisi dans Sanity devient un H2 (même rendu visuel).
+        h1: ({ children }: any) => <h2 className="text-3xl font-bold mt-8 mb-4 text-stone-900">{children}</h2>,
         h2: ({ children }: any) => <h2 className="text-2xl font-bold mt-8 mb-4 text-stone-900 flex items-center gap-2"><span className="w-8 h-1 bg-[var(--brand-water)] rounded-full block"></span>{children}</h2>,
         h3: ({ children }: any) => <h3 className="text-xl font-bold mt-6 mb-3 text-stone-900">{children}</h3>,
         h4: ({ children }: any) => <h4 className="text-lg font-bold mt-4 mb-2 text-stone-900">{children}</h4>,

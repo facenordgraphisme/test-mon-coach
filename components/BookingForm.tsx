@@ -428,8 +428,9 @@ export function BookingForm({
                         </h4>
 
                         <div className="mb-3">
-                            <label className="text-xs font-medium text-stone-600 mb-1 block">Nom & Prénom</label>
+                            <label htmlFor={`participant-${index}-name`} className="text-xs font-medium text-stone-600 mb-1 block">Nom & Prénom</label>
                             <input
+                                id={`participant-${index}-name`}
                                 type="text"
                                 className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-[var(--brand-water)] focus:border-transparent outline-none"
                                 placeholder="ex: Thomas Martin"
@@ -465,9 +466,11 @@ export function BookingForm({
                         {requiresHeightWeight && (
                             <div className="grid grid-cols-2 gap-4 mb-3">
                                 <div className="space-y-1">
-                                    <label className="text-xs font-medium text-stone-600">Taille (cm)</label>
+                                    <label htmlFor={`participant-${index}-height`} className="text-xs font-medium text-stone-600">Taille (cm)</label>
                                     <input
+                                        id={`participant-${index}-height`}
                                         type="text"
+                                        inputMode="numeric"
                                         className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-[var(--brand-water)] focus:border-transparent outline-none"
                                         placeholder="ex: 175"
                                         value={participant.height}
@@ -475,9 +478,11 @@ export function BookingForm({
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-medium text-stone-600">Poids (kg)</label>
+                                    <label htmlFor={`participant-${index}-weight`} className="text-xs font-medium text-stone-600">Poids (kg)</label>
                                     <input
+                                        id={`participant-${index}-weight`}
                                         type="text"
+                                        inputMode="numeric"
                                         className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-[var(--brand-water)] focus:border-transparent outline-none"
                                         placeholder="ex: 70"
                                         value={participant.weight}
@@ -489,11 +494,12 @@ export function BookingForm({
 
                         {/* Medical Info */}
                         <div className="space-y-1">
-                            <label className="text-xs font-medium text-stone-600">
+                            <label htmlFor={`participant-${index}-medical`} className="text-xs font-medium text-stone-600">
                                 Santé / Régime (Allergies, Asthme...)
                                 <span className="text-stone-400 font-normal ml-1">(Optionnel)</span>
                             </label>
                             <textarea
+                                id={`participant-${index}-medical`}
                                 className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-[var(--brand-water)] focus:border-transparent outline-none min-h-[60px]"
                                 placeholder="R.A.S."
                                 value={participant.medicalInfo}
@@ -527,8 +533,10 @@ export function BookingForm({
 
                     <div className="space-y-3">
                         <div className="space-y-1">
-                            <label className="text-xs font-medium text-stone-600">Nom complet</label>
+                            <label htmlFor="booking-name" className="text-xs font-medium text-stone-600">Nom complet</label>
                             <input
+                                id="booking-name"
+                                autoComplete="name"
                                 type="text"
                                 required
                                 className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-[var(--brand-water)] focus:border-transparent outline-none transition-all"
@@ -538,8 +546,10 @@ export function BookingForm({
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-medium text-stone-600">Email</label>
+                            <label htmlFor="booking-email" className="text-xs font-medium text-stone-600">Email</label>
                             <input
+                                id="booking-email"
+                                autoComplete="email"
                                 type="email"
                                 required
                                 className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-[var(--brand-water)] focus:border-transparent outline-none transition-all"
@@ -549,8 +559,10 @@ export function BookingForm({
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-medium text-stone-600">Téléphone (pour SMS)</label>
+                            <label htmlFor="booking-phone" className="text-xs font-medium text-stone-600">Téléphone (pour SMS)</label>
                             <input
+                                id="booking-phone"
+                                autoComplete="tel"
                                 type="tel"
                                 required
                                 className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-[var(--brand-water)] focus:border-transparent outline-none transition-all"
@@ -568,8 +580,9 @@ export function BookingForm({
                                 À qui offrez-vous ce cadeau ?
                             </h4>
                             <div className="space-y-1">
-                                <label className="text-xs font-medium text-stone-600">Nom du bénéficiaire</label>
+                                <label htmlFor="gift-recipient-name" className="text-xs font-medium text-stone-600">Nom du bénéficiaire</label>
                                 <input
+                                    id="gift-recipient-name"
                                     type="text"
                                     required
                                     className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-[var(--brand-water)] focus:border-transparent outline-none transition-all"

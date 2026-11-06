@@ -10,6 +10,7 @@ import Link from "next/link"
 import { ArrowRight, Clock, Users, Filter } from "lucide-react"
 import { format, isSameDay, isWithinInterval, startOfDay, endOfDay, eachDayOfInterval } from "date-fns"
 import { fr } from "date-fns/locale"
+import { fr as dayPickerFr } from "react-day-picker/locale"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatTimeParis } from "@/lib/utils"
 import Image from "next/image"
@@ -155,7 +156,7 @@ export function EventsCalendar({ events, buttonText, defaultFilter = 'all' }: { 
                                 multi: "!bg-blue-600 !font-bold !text-white hover:!bg-blue-700",
                                 today: "font-bold border-2 border-stone-800"
                             }}
-                            locale={fr}
+                            locale={dayPickerFr}
                         />
                     </div>
                     <div className="mt-6 px-4 space-y-3 text-sm text-stone-500 border-t border-stone-50 pt-4">

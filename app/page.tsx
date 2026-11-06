@@ -9,7 +9,8 @@ import { ReviewSection } from "@/components/ReviewSection";
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 
-import { generateSeoMetadata, generateOrganizationSchema, generateWebsiteSchema, generateFAQSchema } from "@/lib/seo";
+import { generateSeoMetadata, generateFAQSchema } from "@/lib/seo";
+import { JsonLd } from "@/components/JsonLd";
 
 async function getData() {
   return await client.fetch(groq`*[_type == "homepage"][0] {
@@ -50,18 +51,13 @@ export async function generateMetadata() {
 
 export default async function Home() {
   const data = await getData() || {};
-  const orgSchema = generateOrganizationSchema();
-  const websiteSchema = generateWebsiteSchema();
   const faqSchema = generateFAQSchema(data?.faq);
   const customJsonLd = data?.seo?.structuredData ? JSON.parse(data.seo.structuredData) : null;
 
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify([websiteSchema, faqSchema, customJsonLd].filter(Boolean)) }}
-      />
+      <JsonLd data={[faqSchema, customJsonLd]} />
       <div className="min-h-screen bg-stone-50 flex flex-col">
         <Hero data={data} />
         <ActivityFormats />

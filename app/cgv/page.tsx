@@ -2,7 +2,14 @@ import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
-import { PortableText } from '@portabletext/react';
+import { PortableText, type PortableTextComponents } from '@portabletext/react';
+
+// Un seul H1 par page (celui du hero) : les titres d'articles saisis en « H1 » deviennent des H2.
+const cgvComponents: PortableTextComponents = {
+    block: {
+        h1: ({ children }) => <h2>{children}</h2>,
+    },
+};
 
 // Define the fallback content using the user's text
 const fallbackContent = [
@@ -472,6 +479,7 @@ const fallbackContent = [
 
 import { generateSeoMetadata } from "@/lib/seo";
 import { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
 
 // ... existing imports
 
@@ -489,7 +497,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const data = await client.fetch(groq`*[_type == "cgvPage"][0] { seo }`);
     return generateSeoMetadata(data?.seo, {
         title: "Conditions Générales de Vente",
-        description: "Conditions régissant les réservations, les ventes et les activités de Rêves d'Aventures dans les Hautes-Alpes.",
+        description: "Conditions générales de vente de Rêves d'Aventures : réservation en ligne, paiement, annulation et déroulement des sorties encadrées dans les Hautes-Alpes.",
         url: 'https://www.revesdaventures.fr/cgv'
     });
 }
@@ -505,10 +513,7 @@ export default async function CGVPage() {
 
     return (
         <div className="min-h-screen bg-stone-50 flex flex-col">
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
-            />
+            <JsonLd data={customJsonLd} />
             <PageHero
                 title={title}
                 subtitle="Conditions régissant les réservations, les ventes et les activités"
@@ -517,7 +522,7 @@ export default async function CGVPage() {
 
             <main className="flex-1 py-16 md:py-24 container px-4 md:px-6 mx-auto">
                 <div className="prose prose-stone max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-stone-100 dark:prose-invert">
-                    <PortableText value={content} />
+                    <PortableText value={content} components={cgvComponents} />
                 </div>
             </main>
 

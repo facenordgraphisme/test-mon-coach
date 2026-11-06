@@ -6,6 +6,7 @@ import { PageHero } from "@/components/PageHero";
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
 import { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
 import { generateSeoMetadata } from "@/lib/seo";
 import { ContactForm } from "@/components/ContactForm";
 
@@ -47,10 +48,7 @@ export default async function ContactPage() {
 
     return (
         <>
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
-            />
+            <JsonLd data={customJsonLd} />
             <div className="min-h-screen flex flex-col bg-stone-50">
                 <PageHero
                     title={data.heroTitle || "Contact"}
@@ -73,7 +71,7 @@ export default async function ContactPage() {
                                         <div>
                                             <p className="font-medium text-stone-900">Téléphone</p>
                                             <p className="text-stone-500 hover:text-[var(--brand-water)] transition-colors">
-                                                <a href={`tel:${(data.phone || "+33 6 00 00 00 00").replace(/\s/g, '')}`}>{data.phone || "+33 6 00 00 00 00"}</a>
+                                                <a href={`tel:${(data.phone || "+33 6 83 16 94 02").replace(/\s/g, '')}`}>{data.phone || "+33 6 83 16 94 02"}</a>
                                             </p>
                                         </div>
                                     </div>

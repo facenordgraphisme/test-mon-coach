@@ -5,7 +5,8 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { PageHero } from "@/components/PageHero";
 import { PortableText } from "@portabletext/react";
 import { ptComponents } from "@/components/PortableTextComponents";
-import { generateSeoMetadata, generateArticleSchema, generateFAQSchema } from "@/lib/seo";
+import { generateSeoMetadata, generateArticleSchema, generateFAQSchema, generateBreadcrumbSchema } from "@/lib/seo";
+import { JsonLd } from "@/components/JsonLd";
 import { ArrowLeft, ArrowRight, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -87,9 +88,17 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
     return (
         <div className="min-h-screen bg-stone-50 flex flex-col">
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify([articleSchema, customJsonLd, faqSchema].filter(Boolean)) }}
+            <JsonLd
+                data={[
+                    articleSchema,
+                    faqSchema,
+                    generateBreadcrumbSchema([
+                        { name: "Accueil", path: "/" },
+                        { name: "Blog", path: "/blog" },
+                        { name: post.title },
+                    ]),
+                    customJsonLd,
+                ]}
             />
             <PageHero
                 title={post.title}

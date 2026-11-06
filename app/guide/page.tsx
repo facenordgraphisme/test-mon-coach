@@ -4,7 +4,8 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { Badge } from "@/components/ui/badge";
 import { PortableText } from "@portabletext/react";
 import { PageHero } from "@/components/PageHero";
-import { generateSeoMetadata } from "@/lib/seo";
+import { generateSeoMetadata, generateGuideProfileSchema, generateBreadcrumbSchema } from "@/lib/seo";
+import { JsonLd } from "@/components/JsonLd";
 import { Metadata } from "next";
 import Image from "next/image";
 
@@ -40,13 +41,10 @@ export default async function GuidePage() {
 
     return (
         <div className="min-h-screen flex flex-col bg-stone-50">
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify([customJsonLd].filter(Boolean)) }}
-            />
+            <JsonLd data={[generateGuideProfileSchema(guide), generateBreadcrumbSchema([{ name: "Accueil", path: "/" }, { name: "Votre guide" }]), customJsonLd]} />
             {/* Hero Profile */}
             <PageHero
-                title="Qui suis-je"
+                title="Frédéric Buet, votre guide"
                 subtitle="&quot;Vivre la nature avec passion, sécurité et authenticité.&quot;"
                 label="RENCONTRE"
                 image={guide.heroImageUrl || "/assets/IMG_9962.png"}

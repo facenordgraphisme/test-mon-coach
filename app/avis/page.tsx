@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PageHero } from "@/components/PageHero";
 import { generateSeoMetadata, generateReviewSchema } from "@/lib/seo";
+import { JsonLd } from "@/components/JsonLd";
 import { Metadata } from "next";
 
 async function getData() {
@@ -35,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const data = await client.fetch(groq`*[_type == "reviewsPage"][0] { seo }`);
     return generateSeoMetadata(data?.seo, {
         title: "Avis Clients",
-        description: "Découvrez ce que nos aventuriers pensent de leurs expériences avec nous.",
+        description: "Avis et témoignages de clients sur leurs sorties escalade, canyoning, via ferrata et VTT avec Rêves d'Aventures, autour du lac de Serre-Ponçon.",
         url: 'https://www.revesdaventures.fr/avis'
     });
 }
@@ -58,10 +59,7 @@ export default async function ReviewsPage() {
 
     return (
         <div className="min-h-screen bg-stone-50 flex flex-col">
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify([reviewSchema, customJsonLd].filter(Boolean)) }}
-            />
+            <JsonLd data={[reviewSchema, customJsonLd]} />
             <PageHero
                 title={title}
                 subtitle={subtitle}

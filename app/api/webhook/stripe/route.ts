@@ -60,7 +60,7 @@ export async function POST(req: Request) {
                     // Email to Customer
                     await sendEmail({
                         to: customerEmail,
-                        subject: 'Confirmation de votre réservation - Mon Coach Plein Air',
+                        subject: "Confirmation de votre réservation - Rêves d'Aventures",
                         html: `
                              <div style="font-family: sans-serif; color: #333;">
                                  <h1>Merci ${customerName} !</h1>

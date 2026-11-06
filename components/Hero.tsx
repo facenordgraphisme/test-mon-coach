@@ -16,6 +16,9 @@ interface HeroProps {
 
 export function Hero({ data }: HeroProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
+    // La 1re image s'affiche sans fondu (sinon Chrome ne compte le LCP qu'à la fin de l'animation) ;
+    // le fondu ne s'applique qu'aux images suivantes du carrousel.
+    const [hasCycled, setHasCycled] = useState(false);
 
     // Images array
     const images = data?.gallery?.length ? data.gallery : (data?.heroImageUrl ? [data.heroImageUrl] : ["/assets/AFZN9428.JPG"]);
@@ -24,6 +27,7 @@ export function Hero({ data }: HeroProps) {
         if (images.length <= 1) return;
 
         const interval = setInterval(() => {
+            setHasCycled(true);
             setCurrentIndex((prev) => (prev + 1) % images.length);
         }, 6000);
         return () => clearInterval(interval);
@@ -48,12 +52,12 @@ export function Hero({ data }: HeroProps) {
                     <MotionImage
                         key={currentIndex}
                         src={images[currentIndex]}
-                        alt="Hero background"
+                        alt=""
                         fill
                         sizes="100vw"
                         priority={currentIndex === 0}
                         className="object-cover"
-                        initial={{ opacity: 0, scale: 1.1 }}
+                        initial={hasCycled ? { opacity: 0, scale: 1.1 } : false}
                         animate={{ opacity: 0.8, scale: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 1.5, ease: "easeInOut" }}
@@ -66,16 +70,16 @@ export function Hero({ data }: HeroProps) {
 
             {/* Content */}
             <div className="relative z-10 container px-4 md:px-6 text-center text-white space-y-8 pt-20">
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
-                >
-                    <h2 className="text-xs md:text-sm font-bold tracking-[0.3em] text-stone-200 uppercase mb-4 drop-shadow-md">
-                        Escalade · Canyoning · VTT — Hautes-Alpes
-                    </h2>
-                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight mb-8 drop-shadow-2xl text-white">
-                        {heroTitle}
+                {/* Bloc titre affiché immédiatement : c'est l'élément LCP potentiel sur mobile. */}
+                <div>
+                    {/* H1 descriptif (activités + lieu) sans changer le rendu : sur-titre + titre de marque */}
+                    <h1 className="mb-8">
+                        <span className="block text-xs md:text-sm font-bold tracking-[0.3em] text-stone-200 uppercase mb-4 drop-shadow-md">
+                            Escalade · Canyoning · Via ferrata · VTT — Serre-Ponçon, Hautes-Alpes
+                        </span>
+                        <span className="block text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight drop-shadow-2xl text-white">
+                            {heroTitle}
+                        </span>
                     </h1>
                     <div className="w-16 h-1 bg-white mx-auto rounded-full opacity-80 mb-8" />
 
@@ -86,7 +90,7 @@ export function Hero({ data }: HeroProps) {
                             <p>« Escalade, Canyon, VTT en Hautes-Alpes. Vivez le luxe des sensations pures, sans la foule. »</p>
                         )}
                     </div>
-                </motion.div>
+                </div>
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -97,13 +101,13 @@ export function Hero({ data }: HeroProps) {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.8, duration: 0.8 }}
-                        className="flex flex-col md:flex-row gap-4 md:gap-8 justify-center items-center mb-10"
+                        className="flex flex-col md:flex-row md:flex-wrap gap-4 md:gap-x-8 md:gap-y-3 justify-center items-center mb-10"
                     >
                         {[flexibleOffer1, flexibleOffer2, flexibleOffer3].map((text: string, i: number) => (
                             <motion.div
                                 key={i}
                                 whileHover={{ scale: 1.05 }}
-                                className="flex items-center gap-2 text-sm md:text-lg font-bold text-stone-100 tracking-wide cursor-default transition-colors duration-300"
+                                className="flex items-center gap-2 text-sm md:text-base 2xl:text-lg font-bold text-stone-100 tracking-wide cursor-default transition-colors duration-300 lg:whitespace-nowrap"
                             >
                                 <div className="w-2 h-2 rounded-full bg-white shadow-[0_0_10px_var(--brand-water)]" />
                                 <span className="drop-shadow-md">{text}</span>

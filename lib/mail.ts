@@ -13,7 +13,7 @@ export const sendEmail = async ({
 }) => {
     try {
         const data = await resend.emails.send({
-            from: 'Mon Coach Plein Air <contact@revesdaventures.fr>',
+            from: "Rêves d'Aventures <contact@revesdaventures.fr>",
             to,
             subject,
             html,

@@ -15,8 +15,10 @@ import { Button } from "@/components/ui/button";
 import { GoBackButton } from "@/components/GoBackButton";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { PortableText } from '@portabletext/react';
-import { generateSeoMetadata } from "@/lib/seo";
+import { PortableText, toPlainText } from '@portabletext/react';
+import { generateSeoMetadata, generateActivitySchema } from "@/lib/seo";
+import { JsonLd } from "@/components/JsonLd";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ptComponents } from "@/components/PortableTextComponents";
 import { Metadata } from "next";
 
@@ -30,6 +32,9 @@ async function getData(slug: string) {
             format,
             participantsRange,
             durationMode,
+            priceFrom,
+            minAge,
+            meetingPoint,
             
             // Formula specific fields
             description, // Portable Text
@@ -93,10 +98,16 @@ async function getData(slug: string) {
                 locationEmbedUrl
             },
             // For Activity: Related activities
-            "relatedActivities": *[_type == "activity" && count((categories[]->title)[@ in ^.categories[]->title]) > 0 && slug.current != $slug][0...3] {
+            "relatedActivities": *[_type == "activity" && defined(slug.current) && count((categories[]->title)[@ in ^.categories[]->title]) > 0 && slug.current != $slug][0...3] {
                 title,
                 "slug": slug.current,
                 "imageUrl": mainImage.asset->url
+            },
+            // Articles du blog qui citent cette activité (maillage activité → blog)
+            "relatedPosts": *[_type == "post" && defined(slug.current) && references(^._id)] | order(publishedAt desc)[0...3] {
+                title,
+                "slug": slug.current,
+                excerpt
             }
         }
     `, { slug });
@@ -183,6 +194,18 @@ export async function generateStaticParams() {
     return slugs.filter((slug) => SLUG_PATTERN.test(slug)).map((slug) => ({ slug }));
 }
 
+/** Premier(s) paragraphe(s) du texte Sanity, coupé proprement vers 155 caractères. */
+function descriptionFromContent(description: unknown): string | null {
+    let text = '';
+    if (Array.isArray(description)) text = toPlainText(description);
+    else if (typeof description === 'string') text = description;
+    text = text.replace(/\s+/g, ' ').trim();
+    if (text.length < 60) return null;
+    if (text.length <= 158) return text;
+    const cut = text.slice(0, 155);
+    return `${cut.slice(0, cut.lastIndexOf(' '))}…`;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const { slug } = await params;
     if (!SLUG_PATTERN.test(slug)) return {};
@@ -197,9 +220,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         }
     `, { slug });
 
+    // Valeurs de secours uniques par activité (les champs SEO de Sanity restent prioritaires).
+    const title: string = doc?.title || 'Activité';
+    const seoTitle = title.length <= 24 ? `${title} à Serre-Ponçon (Hautes-Alpes)` : `${title} – Hautes-Alpes`;
     return generateSeoMetadata(doc?.seo, {
-        title: doc?.title || 'Activité',
-        description: `Découvrez l'activité ${doc?.title} avec Rêves d'Aventures. Expérience exclusive au cœur des Hautes-Alpes et du lac de Serre-Ponçon.`,
+        title: seoTitle,
+        description: descriptionFromContent(doc?.description)
+            || `${title} encadré par un moniteur diplômé d'État autour du lac de Serre-Ponçon et d'Embrun, dans les Hautes-Alpes. Dates et réservation en ligne.`,
         url: `https://www.revesdaventures.fr/aventures/${slug}`,
     });
 }
@@ -378,15 +405,22 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
     return (
         <div className="min-h-screen bg-white">
-            {customJsonLd && (
-                <script
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify(customJsonLd) }}
-                />
-            )}
+            <JsonLd
+                data={[
+                    generateActivitySchema({
+                        title: activity.title,
+                        slug,
+                        imageUrl: heroImage,
+                        description: Array.isArray(activity.description) ? toPlainText(activity.description) : undefined,
+                        upcomingEvents: activity.upcomingEvents,
+                        priceFrom: activity.priceFrom,
+                    }),
+                    customJsonLd,
+                ]}
+            />
 
             {/* Hero Header */}
-            <div className="relative h-[60vh] md:h-[70vh]">
+            <div className="relative h-[60vh] min-h-[560px] md:h-[70vh]">
                 {heroImage ? (
                     <div className="absolute inset-0">
                         <Image
@@ -419,7 +453,12 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                                 </Badge>
                             ))}
                         </div>
-                        <h1 className="text-4xl md:text-6xl font-bold mb-4">{displayTitle}</h1>
+                        <h1 className="mb-4">
+                            <span className="block text-3xl sm:text-4xl md:text-6xl font-bold">{displayTitle}</span>
+                            <span className="block mt-2 text-sm md:text-xl font-medium text-gray-200">
+                                Sortie encadrée · Serre-Ponçon, Hautes-Alpes
+                            </span>
+                        </h1>
                         {/* Subtitle removed as it was only an override in previous logic */}
                         <div className="flex flex-wrap gap-6 text-sm md:text-base text-gray-200">
                             <div className="flex items-center gap-2">
@@ -455,6 +494,48 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div className="container mx-auto px-4 md:px-6 pt-6">
+                <Breadcrumbs
+                    items={[
+                        { name: "Accueil", href: "/" },
+                        { name: "Aventures", href: "/aventures/mono-activite" },
+                        { name: displayTitle },
+                    ]}
+                />
+                {(typeof activity.priceFrom === 'number' || typeof activity.minAge === 'number' || activity.meetingPoint || activity.participantsRange) && (
+                    <dl className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                        {typeof activity.priceFrom === 'number' && (
+                            <div className="rounded-xl bg-stone-50 border border-stone-100 p-3">
+                                <dt className="text-stone-500">Tarif</dt>
+                                <dd className="font-bold text-stone-900">dès {activity.priceFrom} € / pers.</dd>
+                            </div>
+                        )}
+                        <div className="rounded-xl bg-stone-50 border border-stone-100 p-3">
+                            <dt className="text-stone-500">Durée</dt>
+                            <dd className="font-bold text-stone-900">{displayDuration}</dd>
+                        </div>
+                        {typeof activity.minAge === 'number' && (
+                            <div className="rounded-xl bg-stone-50 border border-stone-100 p-3">
+                                <dt className="text-stone-500">Âge minimum</dt>
+                                <dd className="font-bold text-stone-900">{activity.minAge} ans</dd>
+                            </div>
+                        )}
+                        {activity.participantsRange && (
+                            <div className="rounded-xl bg-stone-50 border border-stone-100 p-3">
+                                <dt className="text-stone-500">Groupe</dt>
+                                <dd className="font-bold text-stone-900">{activity.participantsRange}</dd>
+                            </div>
+                        )}
+                        {activity.meetingPoint && (
+                            <div className="rounded-xl bg-stone-50 border border-stone-100 p-3 col-span-2 md:col-span-4">
+                                <dt className="text-stone-500">Lieu</dt>
+                                <dd className="font-bold text-stone-900">{activity.meetingPoint}</dd>
+                            </div>
+                        )}
+                    </dl>
+                )}
             </div>
 
             <main className="container mx-auto px-4 md:px-6 py-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -761,6 +842,45 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                     </div>
                 </div>
             </main>
+
+            {(activity.relatedPosts?.length > 0 || activity.relatedActivities?.length > 0) && (
+                <section className="container mx-auto px-4 md:px-6 pb-16 grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    {activity.relatedPosts?.length > 0 && (
+                        <div>
+                            <h2 className="text-2xl font-bold text-stone-900 mb-4">Pour préparer votre sortie</h2>
+                            <ul className="space-y-3">
+                                {activity.relatedPosts.map((post: { slug: string; title: string; excerpt?: string }) => (
+                                    <li key={post.slug}>
+                                        <Link href={`/blog/${post.slug}`} className="block p-4 rounded-xl border border-stone-200 hover:border-[var(--brand-water)] hover:bg-stone-50 transition-colors">
+                                            <span className="font-semibold text-stone-900">{post.title}</span>
+                                            {post.excerpt && <span className="block mt-1 text-sm text-stone-600 line-clamp-2">{post.excerpt}</span>}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                    {activity.relatedActivities?.length > 0 && (
+                        <div>
+                            <h2 className="text-2xl font-bold text-stone-900 mb-4">Activités similaires</h2>
+                            <ul className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                {activity.relatedActivities.map((rel: { slug: string; title: string; imageUrl?: string }) => (
+                                    <li key={rel.slug}>
+                                        <Link href={`/aventures/${rel.slug}`} className="group block rounded-xl overflow-hidden border border-stone-200 hover:shadow-md transition-shadow">
+                                            <div className="relative aspect-[4/3] bg-stone-100">
+                                                {rel.imageUrl && (
+                                                    <Image src={rel.imageUrl} alt={rel.title} fill sizes="(max-width: 640px) 100vw, 200px" className="object-cover" />
+                                                )}
+                                            </div>
+                                            <span className="block p-3 text-sm font-semibold text-stone-900 group-hover:text-[var(--brand-rock)]">{rel.title}</span>
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </section>
+            )}
         </div>
     );
 }

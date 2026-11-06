@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const data = await client.fetch(groq`*[_type == "accessPage"][0] { seo }`);
     return generateSeoMetadata(data?.seo, {
         title: "Accès & Hébergement",
-        description: "Toutes les informations pour nous rejoindre dans les Hautes-Alpes et préparer votre séjour.",
+        description: "Venir à Embrun et au lac de Serre-Ponçon en train, en voiture ou à vélo, et où dormir : infos pratiques pour vos sorties outdoor dans les Hautes-Alpes.",
         url: 'https://www.revesdaventures.fr/acces'
     });
 }

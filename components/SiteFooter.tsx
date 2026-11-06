@@ -52,7 +52,7 @@ export async function SiteFooter() {
                         <Link href="/" className="block relative h-16 w-32 mb-6">
                             <Image
                                 src="/assets/logo-v2.png"
-                                alt="Mon Coach Plein Air"
+                                alt="Rêves d'Aventures"
                                 fill
                                 sizes="128px"
                                 className="object-contain object-left brightness-0 invert opacity-90"
@@ -132,12 +132,14 @@ export async function SiteFooter() {
                                 <MapPin className="w-5 h-5 text-stone-500 shrink-0" />
                                 <span>{settingsData?.address || "Hautes-Alpes"}</span>
                             </li>
-                            <li className="flex items-center gap-3">
-                                <Mail className="w-5 h-5 text-stone-500 shrink-0" />
-                                <a href={`mailto:${settingsData?.email || 'hello@moncoach.com'}`} className="hover:text-white transition-colors truncate">
-                                    {settingsData?.email || 'contact@...'}
-                                </a>
-                            </li>
+                            {settingsData?.email && (
+                                <li className="flex items-center gap-3">
+                                    <Mail className="w-5 h-5 text-stone-500 shrink-0" />
+                                    <a href={`mailto:${settingsData.email}`} className="hover:text-white transition-colors truncate">
+                                        {settingsData.email}
+                                    </a>
+                                </li>
+                            )}
                             {settingsData?.phone && (
                                 <li className="flex items-center gap-3">
                                     <Phone className="w-5 h-5 text-stone-500 shrink-0" />

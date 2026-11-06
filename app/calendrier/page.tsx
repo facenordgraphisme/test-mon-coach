@@ -60,7 +60,7 @@ export default async function CalendarPage() {
 
     // Fallback if no page content
     const hero = pageContent || {
-        heroTitle: "Le Calendrier",
+        heroTitle: "Calendrier des sorties encadrées",
         heroSubtitle: "Retrouvez toutes les prochaines dates confirmées. Premier arrivé, premier servi ! (Max 5 pers.)",
         heroLabel: "PLANNING",
         heroImage: "/assets/100_0070.JPG"

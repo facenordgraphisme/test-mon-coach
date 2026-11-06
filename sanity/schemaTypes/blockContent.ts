@@ -62,6 +62,14 @@ export const blockContent = defineType({
         defineArrayMember({
             type: 'image',
             options: { hotspot: true },
+            fields: [
+                {
+                    name: 'alt',
+                    type: 'string',
+                    title: 'Texte alternatif',
+                    description: "Décrivez l'image en une phrase (ex. « Passage de la tyrolienne sur la via ferrata des Orres »). Utile au référencement et aux lecteurs d'écran.",
+                },
+            ],
         }),
     ],
 })

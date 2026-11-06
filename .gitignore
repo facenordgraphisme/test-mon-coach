@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Audits SEO : captures et données brutes (volumineuses, régénérables)
+*-audit/screenshots/
+*-audit/raw/

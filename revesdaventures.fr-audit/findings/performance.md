@@ -1,60 +1,74 @@
-# Performance & Images — Rêves d'Aventures (revesdaventures.fr)
+# Performance / Core Web Vitals - revesdaventures.fr (2026-11-06)
 
-Performance score: **40/100** (lab estimate — see note)
-Images score: **35/100**
+Score: **82/100** (previous audit 40/100, which had no PSI data). PSI run with Lighthouse 13.6.0.
 
-> **Note on data source:** Google PageSpeed Insights / CrUX field data could not be retrieved (API quota exhausted — `429 RESOURCE_EXHAUSTED` for `pagespeedonline.googleapis.com`). The findings below are based on direct measurement of actual asset sizes and code inspection, which independently point to the same conclusion: large, unoptimized hero/content images are the dominant performance risk (LCP).
+## Field data (CrUX)
+No CrUX data for the origin (API: insufficient Chrome traffic), which is expected at about 924 GSC impressions per 90 days. Field CWV status is unknown. Do not claim pass or fail on field data. Re-check once traffic grows. Lab data only below.
+
+## Lab results (PSI, Lighthouse 13.6.0)
+| URL | Mobile perf | LCP | FCP | TBT | CLS | Desktop perf | Desktop LCP |
+|---|---|---|---|---|---|---|---|
+| / | 83 | **4.7 s (poor)** | 1.1 | 20 ms | 0 | 97 | 1.3 |
+| /aventures/via-ferrata | 93 | 3.2 s | 0.9 | 50 | 0 | 99 | 1.0 |
+| /aventures/mono-activite | 93 | 3.2 s | 0.9 | 30 | 0 | 100 | 0.6 |
+| /calendrier | 88 | 4.0 s (borderline) | 0.9 | 40 | 0 | 95 | 1.5 |
+| /blog/canyoning-...-debutant | 89 | 3.2 s | 1.7 | 20 | 0 | 98 | 0.9 |
+
+Mobile is simulated slow 4G with 4x CPU throttling. LCP is the only metric in "needs improvement" or "poor". CLS is 0 everywhere and TBT is 0-100 ms, so INP risk is low. TTFB is a few ms in the lab (Vercel edge, `X-Vercel-Cache: HIT`). Static assets send `max-age=31536000, immutable`; HTML is `max-age=0, must-revalidate` (fine for ISR).
 
 ## What works
+- Prerendered ISR pages with edge cache hits; TTFB is no longer a concern.
+- LCP images are discoverable in the HTML: `<link rel="preload" as="image">` present, `next/image` with `priority`, srcset and `sizes`; below-the-fold images are lazy.
+- Fonts self-hosted via `next/font`, preloaded (2 woff2, about 55 KB). CLS 0.
+- JS is modest: about 335 KB transferred over 20 scripts. Total page weight 660 KB to 1.3 MB.
+- styled-components, `@sanity/ui` and Studio are NOT shipped to public pages (I fetched all 14 home chunks: no styled-components, no Sanity UI).
+- GA4 is consent-gated (`components/GoogleAnalytics.tsx`): no gtag in HTML and no third-party request before consent; `afterInteractive`. Lighthouse third-parties shows only sanity.io (1.6 KB).
+- DOM is small (430-584 elements).
 
-- Hosted on Vercel: HTTP/2, Brotli compression (`Content-Encoding: br`), ISR caching (`X-Vercel-Cache: HIT`, `Cache-Control: public, max-age=0, must-revalidate`), fast TTFB (~0.26s for HTML).
-- `Navbar` and `SiteFooter` components correctly use `next/image` (20 usages found across the codebase, but **only** in these two components).
-- `font-display`/preloading is handled via `next/font` (`Geist`, `Geist_Mono`), which avoids render-blocking font requests.
+## Fixed vs 2026-06-15 audit
+- FIXED: raw 3 MB Sanity images; they now go through `next/image` (remotePatterns in `next.config.ts:26-29`), served resized (750w, 90-200 KB).
+- FIXED: server CPU / TTFB (prerender + ISR).
+- STILL OPEN: oversized card images and no AVIF (M1).
 
-## Critical Issues
+## Findings
 
-### 1. Every content image (Sanity CDN) is served at full native resolution with no optimization
-**Severity: Critical**
+### H1 - Home mobile LCP 4.7 s (poor): hero image starts at opacity 0 and waits for hydration plus a 1.5 s fade
+- `components/Hero.tsx:45-58`: `MotionImage` uses `initial={{opacity:0, scale:1.1}} animate={{opacity:0.8, scale:1}} transition={{duration:1.5}}` inside `AnimatePresence`. SSR HTML ships `style="opacity:0;transform:scale(1.1)"`.
+- Chrome counts the image as LCP only once visible, so LCP waits for framer-motion to load, hydrate and animate. This explains home 4.7 s versus inner pages 3.2 s (they use a plain `next/image`, `app/aventures/[slug]/page.tsx:243`). Hero.tsx is `"use client"`, so framer-motion (about 35-40 KB gz) is on the critical path.
+- Fix: render slide 0 with no entrance animation (`initial={currentIndex === 0 ? false : {opacity:0, scale:1.1}}`), or render slide 0 as a static `<Image priority className="opacity-80">` and mount the carousel via `next/dynamic` after idle. Drop the `scale(1.1)` on slide 0. Expected: LCP about 4.7 s to about 3.0 s on mobile.
+- Hero source is a 1536x1024 PNG on Sanity (`c975964b...png`). Re-upload as JPG/WebP and set `quality={60}` (750w variant is 91 KB).
+- The logo uses `priority` (Navbar, `logo-v2.png`) and emits a second preload with a 15-width srcset that competes with the hero. Remove `priority` or restrict the srcset.
 
-All hero/activity images on the homepage are raw `<img src="https://cdn.sanity.io/...">` tags with **no resizing, quality, or format parameters**. Measured directly:
+### H2 - Render-blocking CSS: 2 stylesheets, about 560 ms estimated LCP delay on every page
+- `/_next/static/chunks/3f9384a07f1cd795.css` (18 KB) and `7af0e173cf372ed8.css` (2.3 KB).
+- Fix: in `next.config.ts` set `experimental: { inlineCss: true }` (pages are fully prerendered and the CSS is small). Also check `app/globals.css` for unused imports and tighten Tailwind content globs.
 
-| Image | Native dimensions | File size | Format |
-|---|---|---|---|
-| Hero background | 1536×1024 | **3.0 MB** | PNG |
-| "Vélo de route" | 3024×4032 | **2.4 MB** | JPEG |
-| "Planche à voile - Windsurf" | 4592×3448 | **1.7 MB** | JPEG |
-| ...6 more activity images | up to 4032×3024 | ~1-3 MB each | JPEG/PNG |
+### M1 - Card images oversized (80-130 KB wasted each), no AVIF
+- Image-delivery insight: home "Duos" 128 KB wasted, "Mono-Activité" 82 KB, hero 70 KB; /aventures/mono-activite Canyoning 132 KB, Escalade 130 KB, Vélo de route 99 KB. Sources are 2000-3000 px portrait JPG/PNG shown in boxes about 380x192 px.
+- Fix in `next.config.ts`: `images: { formats: ['image/avif','image/webp'], qualities: [60,75], remotePatterns: [...] }`. Use `quality={60}` on cards, a correct `sizes` (e.g. `(max-width:768px) 92vw, 33vw`) and a landscape crop via Sanity hotspot. Same for `components/ActivityFilterableList.tsx`. Gain: about 300-500 KB on mobile.
 
-The homepage alone references **9 such images**, most in the multi-megabyte range, none with `srcset`, `sizes`, `loading="lazy"`, or explicit `width`/`height` attributes (only the logo and footer logo, which go through `next/image`, have any of this).
+### M2 - /calendrier mobile LCP 4.0 s (score 88)
+- Unused JS (450 ms est.), network dependency chain flagged, 153 KB HTML including the SSR calendar table.
+- Fix: `next/dynamic` for booking modal and filters; confirm the LCP element in DevTools and preload it if it is an image.
 
-**Root cause:**
-- [next.config.ts](next.config.ts) has **no `images.remotePatterns`** entry for `cdn.sanity.io`, so `next/image` cannot be used for these URLs without config changes.
-- The 20 raw `<img>` usages across `app/aventures/[slug]/page.tsx`, `app/multi/page.tsx`, `app/page.tsx`, etc. pull `mainImage.asset->url` / `heroImage.asset->url` directly from Sanity's GROQ response — the **original** uploaded file URL — instead of using Sanity's image URL builder (`urlFor(image).width(...).quality(...).auto('format')`), which is already imported and used elsewhere (`lib/sanity.ts` exports `urlFor`, and it **is** used for `bike.image` in the rental tab, [app/aventures/[slug]/page.tsx:568](app/aventures/[slug]/page.tsx#L568)).
+### M3 - Unused and legacy JS (260-450 ms est.)
+- Chunk `d0300bff...js` (64 KB gz, 202 KB raw) holds about 220 ms of scripting (React/Next runtime plus libraries). Legacy-JS insight: 16 KB wasted in `ae7b2070...js`, plus a `noModule` chunk `a6dad97d...js` (40 KB; modern browsers skip it).
+- Fix: add a `browserslist` to `package.json` (chrome>=111, safari>=16.4, firefox>=111). Use `LazyMotion` + `m` from framer-motion (about 5 KB instead of about 35 KB) or CSS for simple fades (`Hero.tsx:63-67`). Add `optimizePackageImports: ['lucide-react','framer-motion']` in `next.config.ts` experimental.
 
-**Impact:** A 1536×1024 PNG hero background (3MB) and 3024×4032 photos (2.4MB) served untouched to mobile devices is a severe LCP penalty — likely pushing LCP well past the 2.5s "good" threshold on 4G, especially since the hero image is above-the-fold and blocks the largest paint.
+### L1 - Client-side Sanity CDN request on home
+- `lgiw0vhg.apicdn.sanity.io` is contacted from the browser on home (CSP allows it, `next.config.ts:10`). The page is prerendered, so move that fetch to the server (grep `client.fetch` inside `use client` components in `components/`).
 
-**Fix (two parts):**
-1. Add `cdn.sanity.io` to `images.remotePatterns` in `next.config.ts`.
-2. Replace raw `<img src={mainImageUrl}>` / `<img src={heroImage}>` with either:
-   - `next/image` (`<Image src={...} fill sizes="100vw" />` for hero/cover images), or
-   - Sanity's `urlFor(image).width(1600).quality(75).auto('format').url()` (already used for `bike.image`) applied consistently to `mainImage`/`heroImage` across `app/aventures/[slug]/page.tsx`, `app/multi/page.tsx`, `app/page.tsx`, and the activity card components.
+### L2 - Misc
+- `public/assets` contains large raw originals and `.HEIC` files (not browser-renderable); clean up repo weight.
+- Logo `alt="Mon Coach Plein Air"` is the old brand name.
+- Lighthouse accessibility 91: `button-name`, `color-contrast`, `heading-order` failures (not CWV).
+- HSTS has no `includeSubDomains` or `preload`. CSP `script-src 'unsafe-inline'` is needed for static Next; nonces would force dynamic rendering, so avoid them.
 
-   `auto('format')` lets Sanity serve WebP/AVIF automatically, which alone would cut these files by 60-80%.
+## Priority order
+1. H1 Hero.tsx (about -1.5 s home mobile LCP).
+2. H2 `inlineCss` (about -0.3 to -0.5 s LCP everywhere).
+3. M1 AVIF plus right-sized card images.
+4. M3 browserslist plus LazyMotion.
+5. M2 calendrier code-splitting.
 
-## High Issues
-
-### 2. Site logo requested at 3840px width via `next/image`
-**Severity: Medium-High**
-
-The logo (`/assets/logo-v2.png`) is requested as `/_next/image?url=%2Fassets%2Flogo-v2.png&w=3840&q=75`. `w=3840` is Next.js's largest default device-size bucket — appropriate for a full-bleed hero photo, not a logo that renders at maybe 150-250px wide in a navbar/footer. This forces Next.js to generate and cache an unnecessarily large image variant.
-
-**Fix:** Add an explicit `sizes` prop to the `<Image>` usage for the logo (e.g. `sizes="160px"`) so Next.js selects an appropriately small device-size bucket, or reduce `next.config.ts`'s `images.deviceSizes`/`imageSizes` if 3840 is never needed for content this small.
-
-### 3. No explicit `width`/`height` on raw `<img>` tags → CLS risk
-**Severity: Medium**
-
-Because the 20 raw `<img>` tags have no `width`/`height` (or `aspect-ratio` styling tied to intrinsic size), the browser can't reserve layout space before the image loads, risking Cumulative Layout Shift on slower connections. Fixing issue #1 via `next/image` (which requires/derives intrinsic dimensions) resolves this as a side effect.
-
-## Info
-
-- Could not run Lighthouse/CrUX directly due to PSI API quota exhaustion at audit time. Recommend re-running `PageSpeed Insights` (web UI or API with a valid key) for `https://www.revesdaventures.fr/` after the image fixes above to quantify the LCP improvement.
+Raw PSI JSON (5 URLs, mobile+desktop) is in the scratchpad: ps1.json to ps5.json.

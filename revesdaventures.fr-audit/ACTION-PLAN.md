@@ -1,218 +1,69 @@
-# SEO Action Plan — Rêves d'Aventures (revesdaventures.fr)
+# Plan d'action SEO — Rêves d'Aventures (2026-11-06)
 
-Prioritized by severity (Critical > High > Medium > Low) per the audit's findings. Since this codebase **is** the site, every item below includes the exact file/line to change.
-
----
-
-## Phase 1: Critical Fixes (Week 1)
-
-These five items are all small, low-risk code changes, but together they touch the canonical tags, sitemap, schema, and content of nearly every page on the site. This phase alone is expected to move the health score from **44 → low-60s/70s**.
-
-### 1.1 Fix the sitewide canonical bug
-**Files:** [app/layout.tsx:28-30](app/layout.tsx#L28-L30), [lib/seo.ts](lib/seo.ts)
-**Severity:** Critical | **Category:** Technical SEO, GEO
-
-- Remove the hardcoded `alternates: { canonical: '/' }` from the root layout's metadata (or keep it only as the homepage-specific default, applied via the homepage's own `generateMetadata`/static metadata, not the root layout that all routes inherit).
-- Update `generateSeoMetadata()` in `lib/seo.ts` to **always** set `alternates: { canonical: fallback.url }` (it currently sets `openGraph.url` and `twitter` fields from `fallback.url` but never sets `alternates.canonical`).
-- Every page that calls `generateSeoMetadata()` already passes a `url` in its `fallback` object — so once `generateSeoMetadata` sets `alternates.canonical` from it, every page gets a correct, unique canonical with no per-page changes needed beyond this helper.
-- Verify pages that **don't** call `generateSeoMetadata` (if any) get an explicit canonical too.
-
-**Validation:** After deploy, spot-check `<link rel="canonical">` on `/`, `/guide`, `/contact`, and 2-3 `/aventures/{slug}` pages — each should show its own URL, not the homepage.
-
-### 1.2 Rebuild app/sitemap.ts for the current route structure
-**File:** [app/sitemap.ts](app/sitemap.ts)
-**Severity:** Critical | **Category:** Technical SEO
-
-- Replace `/activities/${activity.slug}` with `/aventures/${activity.slug}` (or whatever the canonical activity route prefix is post-migration).
-- Add the missing static routes: `/aventures/mono-activite`, `/aventures/duo-activites`, `/multi`, `/niveaux`, `/acces`, `/avis`.
-- Remove entries for any routes being deprecated in 1.3 (the old `/activities/*`).
-- Use real `lastModified` from `_updatedAt` (already partially done for activities — confirm it's applied to all dynamic entries).
-
-**Validation:** Fetch `https://www.revesdaventures.fr/sitemap.xml` and confirm every URL returns 200 and matches the live navigation.
-
-### 1.3 Decide the fate of /activities/* (redirect or remove)
-**Files:** `app/activities/[slug]/page.tsx` and related route files
-**Severity:** Critical | **Category:** Technical SEO
-
-- These routes return 200 and duplicate `/aventures/*` content but aren't linked or in the sitemap (orphaned + duplicate).
-- **Recommended fix:** add a permanent redirect (`redirect()` in the page, or a `redirects()` entry in `next.config.ts`) from `/activities/{slug}` → `/aventures/{slug}` (308). This consolidates any residual link equity from the old URLs and eliminates duplicate-content risk.
-- If these old slugs don't map 1:1 to new ones, redirect to the closest equivalent or to `/` with a note, but a per-slug mapping is preferable if the slugs match.
-
-**Validation:** `curl -I https://www.revesdaventures.fr/activities/{any-old-slug}` should return a 301/308 to `/aventures/{slug}`, not 200.
-
-### 1.4 Fix the activity-page meta description fallback (6 pages, generic + wrong brand)
-**File:** [app/aventures/[slug]/page.tsx:174-192](app/aventures/[slug]/page.tsx#L174-L192)
-**Severity:** Critical | **Category:** On-Page SEO
-
-Replace the current fallback:
-```ts
-return generateSeoMetadata(doc?.seo, {
-    title: doc?.title,
-    description: "Mon Coach Plein Air - Aventures dans les Hautes Alpes",
-    url: `https://moncoachpleinair.com/aventures/${slug}`
-});
-```
-with the pattern already proven on the legacy route ([app/activities/[slug]/page.tsx:54-58](app/activities/[slug]/page.tsx#L54-L58)):
-```ts
-return generateSeoMetadata(doc?.seo, {
-    title: `${doc?.title || 'Activité'} | Rêves d'Aventures Hautes-Alpes`,
-    description: `Découvrez l'activité ${doc?.title} avec Rêves d'Aventures. Expérience exclusive au cœur des Hautes-Alpes et du lac de Serre-Ponçon.`,
-    url: `https://www.revesdaventures.fr/aventures/${slug}`,
-});
-```
-This single change fixes both the 53-char generic description **and** the 19-char description on `/aventures/mono-activite` and `/aventures/duo-activites` (which hit the same `description: doc?.description` path with `doc.description` empty — confirm by checking what `doc?.description` resolves to for those two slugs; if it's a short Sanity field rather than `undefined`, this fallback won't trigger and the Sanity content itself needs editing instead).
-
-**Validation:** Check `<meta name="description">` and `<meta property="og:url">` on all 6 affected `/aventures/*` pages — should be unique per activity and point at `revesdaventures.fr`.
-
-### 1.5 Replace the placeholder phone number in structured data
-**File:** [lib/seo.ts:50](lib/seo.ts#L50) and [lib/seo.ts:65](lib/seo.ts#L65)
-**Severity:** Critical | **Category:** Schema, GEO
-
-- Replace both occurrences of `'+33 6 00 00 00 00'` with the real number used on `/contact`: `'+33683169402'` (or `'+33 6 83 16 94 02'` to match whatever format is registered in Google Business Profile — keep it consistent across the site and GBP).
-
-**Validation:** Extract the JSON-LD from any page and confirm `telephone` matches the `/contact` page's `tel:` link.
-
-### 1.6 Remove the live placeholder content on /multi
-**File:** [app/multi/page.tsx:31-42](app/multi/page.tsx#L31-L42)
-**Severity:** Critical | **Category:** Content Quality, On-Page SEO
-
-- Either populate the `multiPage` document in Sanity (preferred — removes the fallback path entirely), or, as an immediate stopgap, rewrite the hardcoded fallback object so `subtitle` and `description` read as real marketing copy instead of `"Créez votre aventure (Contenu à configurer dans Sanity)"`.
-- Also fix `generateMetadata()` in the same file: it returns `description: "Aventure Sur-Mesure / Multi - Mon Coach Plein Air"` (old brand, 19-40 chars) when `doc?.seo` is absent — replace with a real ~150-160 char description and `url: 'https://www.revesdaventures.fr/multi'`.
-
-**Validation:** View-source `/multi` and confirm "configurer dans Sanity" no longer appears anywhere in the response.
+Score actuel : **60/100** (juin : 44). Objectif réaliste après les phases 1 et 2 : environ 75.
+Chaque action est marquée selon qui peut la faire :
+- **[Code]** : modification du dépôt, faisable tout de suite ;
+- **[Sanity]** : contenu à saisir dans le Studio ;
+- **[Client]** : information ou validation de Frédéric ;
+- **[Externe]** : Vercel, GSC, Google Business Profile, office de tourisme.
 
 ---
 
-## Phase 2: High-Impact Improvements (Weeks 2-3)
+## Phase 1 — Corrections critiques (semaine 1)
 
-### 2.1 Clean up brand-mixed and oversized `<title>` tags
-**Files:** `app/niveaux/page.tsx`, `app/acces/page.tsx`, `app/avis/page.tsx`, `app/calendrier/page.tsx`, `app/guide/page.tsx`, `app/contact/page.tsx`
-**Severity:** High/Medium | **Category:** On-Page SEO
+| # | Action | Qui | Fichiers | Effort |
+|---|---|---|---|---|
+| 1.1 | Supprimer les faux avis de secours et rendre les vrais avis **côté serveur** (composant serveur ou données passées en props) | Code | [components/ReviewSection.tsx:29-52](../components/ReviewSection.tsx#L29-L52), [app/page.tsx](../app/page.tsx) | 30 min |
+| 1.2 | Corriger le titre « Guide de haute montagne », ou l'étayer si Frédéric a bien ce diplôme ; ajouter `hasCredential` pour chaque diplôme dans le schéma | Client → Code | [lib/seo.ts:46-47,96](../lib/seo.ts#L46), [app/layout.tsx:26-33](../app/layout.tsx#L26), [app/blog/page.tsx:29](../app/blog/page.tsx#L29), [app/blog/[slug]/page.tsx:61](../app/blog/[slug]/page.tsx#L61), `public/llms.txt` | 30 min |
+| 1.3 | Rendre le catalogue d'activités **côté serveur** : liste rendue dans le HTML, filtre initial lu sans `useSearchParams` au rendu (ou filtres en liens `?format=`) | Code | [components/ActivityFilterableList.tsx](../components/ActivityFilterableList.tsx), pages mono, duo et multi | 1-2 h |
+| 1.4 | `noindex, follow` + vrai titre sur `/booking/[id]` et `/success` ; `notFound()` pour les séances passées ou inexistantes | Code | [app/booking/[id]/page.tsx](../app/booking/[id]/page.tsx), [app/success/page.tsx](../app/success/page.tsx) | 20 min |
+| 1.5 | 301 `/aventures/planche-a-voile-windsurf` et `/aventures/vtt` vers la page active (ou recréer la page windsurf : à décider), mettre à jour `llms.txt` | Code (+ Client) | [next.config.ts](../next.config.ts), `public/llms.txt` | 15 min |
+| 1.6 | Sitemap : `defined(slug.current)`, `lastModified` réel (`_updatedAt`), suppression de changefreq et priority, `revalidate` pour intégrer les nouveaux contenus | Code | [app/sitemap.ts](../app/sitemap.ts) | 20 min |
+| 1.7 | Mentions légales : nom du responsable de publication, hébergeur (Vercel Inc.), e-mail valide | Client → Code | [app/mentions-legales/page.tsx:29](../app/mentions-legales/page.tsx#L29) | 15 min |
+| 1.8 | Vercel → Domains : `revesdaventures.fr` → « Redirect to www » en **308 Permanent** (un seul saut) | Externe (toi) | — | 5 min |
+| 1.9 | GSC : demander l'indexation de `/aventures/canyoning`, `/aventures/escalade`, `/blog` et des 2 articles après le déploiement de 1.3 ; resoumettre le sitemap | Externe (toi) | — | 10 min |
 
-- `/niveaux`, `/acces`, `/avis`: titles currently mix both brands, e.g. *"Niveaux d'Engagement | Mon Coach Plein Air | Rêves d'Aventures"* (72 chars). The `%s | Rêves d'Aventures` template in `app/layout.tsx` already appends the new brand — so these page-level fallback titles should **not** include any brand suffix at all. E.g. `app/niveaux/page.tsx`'s fallback should become just `"Niveaux d'Engagement"` (the template adds `| Rêves d'Aventures`).
-- `/calendrier`, `/guide`, `/contact`: same issue but with the new brand duplicated (up to 85 chars) — strip the trailing `| Rêves d'Aventures` from each page's fallback title string.
+## Phase 2 — Améliorations à fort impact (semaines 2-3)
 
-**Validation:** Each `<title>` should read `"{Page Name} | Rêves d'Aventures"` exactly once, ≤60 chars where possible.
-
-### 2.2 Add a sitewide fallback OG/Twitter image
-**Files:** [lib/seo.ts](lib/seo.ts), [app/layout.tsx](app/layout.tsx)
-**Severity:** High | **Category:** On-Page SEO, Images
-
-- `generateSeoMetadata()` currently returns `images: []` when `seo.openGraphImage` is unset, and the root layout's `openGraph` has no fallback `images` array.
-- Add a default 1200x630 image (e.g. derive from `public/assets/logo-v2.png` composited on a brand background, or pick an existing high-quality photo from `public/assets/`) and reference it in `lib/seo.ts`'s default `openGraph`/`twitter` fields, and as a fallback in `generateSeoMetadata()` when `imageUrl` is null.
-
-**Validation:** Test 3-4 page URLs in a social share debugger (Facebook Sharing Debugger / Twitter Card Validator) — every page should show a preview image.
-
-### 2.3 Add Review/AggregateRating schema to /avis
-**File:** `app/avis/page.tsx`, [lib/seo.ts](lib/seo.ts)
-**Severity:** High | **Category:** Schema
-
-- Add a `Review[]` (or `AggregateRating`) JSON-LD block sourced from the real testimonials already rendered on `/avis`, attached to the `SportsActivityLocation`/`LocalBusiness` entity.
-- Confirm current Google eligibility for self-serving review rich snippets before expecting a visible star rating in SERPs — but the structured data still benefits AI answer engines (GEO) regardless.
-
-### 2.4 Fix the homepage duplicate H1/H2
-**File:** `app/page.tsx` (homepage hero section)
-**Severity:** Medium | **Category:** On-Page SEO
-
-- The homepage has a non-descriptive `<h2>` ("Rêves d'Aventures") immediately preceding an identical `<h1>`. Either remove the duplicate heading or rewrite the `<h2>` as a descriptive subheading (e.g. a tagline mentioning the core activities/location) so heading structure adds semantic value instead of repeating the brand name.
-
-### 2.5 Add cdn.sanity.io to Next.js image config (prerequisite for Phase 3 image fixes)
-**File:** [next.config.ts](next.config.ts)
-**Severity:** High (enabler) | **Category:** Performance, Images
-
-```ts
-const nextConfig: NextConfig = {
-  compiler: { styledComponents: true },
-  reactStrictMode: false,
-  images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: 'cdn.sanity.io' },
-    ],
-  },
-};
-```
-This unblocks the image-optimization work in Phase 3 and can ship independently/immediately since it's purely additive config.
-
----
-
-## Phase 3: Content & Performance (Month 2)
-
-### 3.1 Replace all raw `<img>` Sanity images with optimized equivalents
-**Files:** `app/page.tsx`, `app/aventures/[slug]/page.tsx`, `app/multi/page.tsx`, and any activity card components (20 usages total)
-**Severity:** Critical (Performance/Images, deferred to this phase due to scope) | **Category:** Performance, Images
-
-- For each raw `<img src={mainImage/heroImage...}>`, either:
-  - Switch to `next/image` (`<Image fill sizes="100vw" .../>` for full-bleed hero/cover images), now that `cdn.sanity.io` is allow-listed (2.5), or
-  - Apply Sanity's `urlFor(image).width(1600).quality(75).auto('format').url()` — the same builder already used correctly for `bike.image` ([app/aventures/[slug]/page.tsx:568](app/aventures/[slug]/page.tsx#L568)) — to cap dimensions and enable WebP/AVIF.
-- Prioritize the **homepage's 9 images** first (hero PNG at 3MB, 8 activity photos at 1.7-2.4MB each) since they're above-the-fold/LCP-relevant for the highest-traffic page.
-
-**Validation:** Re-run PageSpeed Insights (wait for quota reset, or use the web UI) on `/` — expect LCP to drop significantly given the hero image alone was 3MB.
-
-### 3.2 Right-size the logo image request
-**File:** wherever the logo `<Image>` is used in `components/Navbar.tsx` / `components/SiteFooter.tsx`
-**Severity:** Medium | **Category:** Performance
-
-- Add an explicit `sizes="160px"` (or appropriate value) to the logo's `<Image>` usage so Next.js stops generating/serving the 3840px device-size variant for a nav/footer logo.
-
-### 3.3 Audit and fill thin/duplicate activity descriptions
-**Files:** Sanity Studio content (activity documents), referenced via `app/aventures/[slug]/page.tsx:490`
-**Severity:** Medium | **Category:** Content Quality
-
-- For each activity currently falling back to *"Description détaillée à venir ou non disponible pour les sessions actuelles"*, write a real 100-200 word description in Sanity covering what the activity involves, who it's for, duration, and what's included — reusing/expanding the good copy patterns already present in `/guide` and the legacy `/activities/[slug]` descriptions.
-- Cross-check for content that's duplicated verbatim between `/activities/{slug}` (pre-redirect, if any content needs preserving) and `/aventures/{slug}` before the 1.3 redirect goes live, so nothing unique is lost.
-
-### 3.4 Clean up the Product schema generator
-**File:** [lib/seo.ts:91-112](lib/seo.ts#L91-L112)
-**Severity:** Medium | **Category:** Schema
-
-- Determine whether `generateProductSchema()` is actually called from `/aventures/[slug]`. If yes: source `price` from the nearest `upcomingEvents[].price` and fix `url` to `https://www.revesdaventures.fr/aventures/${slug}`. If it's dead code from the old route, remove it as part of the `/activities` cleanup (1.3).
-
----
-
-## Phase 4: Monitoring & Iteration (Ongoing)
-
-### 4.1 Add security headers
-**File:** [next.config.ts](next.config.ts) (via `headers()`) or `middleware.ts`
-**Severity:** Medium | **Category:** Technical SEO
-
-- Add `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN` (or `DENY`), `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, and a `Content-Security-Policy` appropriate for the Sanity/analytics/embed scripts in use.
-
-### 4.2 Normalize apex vs www in canonical/sitemap/OG URLs
-**Files:** [app/sitemap.ts](app/sitemap.ts), [lib/seo.ts](lib/seo.ts), [app/layout.tsx](app/layout.tsx)
-**Severity:** Medium | **Category:** Technical SEO
-
-- All canonical/`og:url`/sitemap URLs currently use `https://revesdaventures.fr` (apex), which 307-redirects to `https://www.revesdaventures.fr`. Pick the serving host (`www`, per the redirect target) as the single source of truth everywhere, including `metadataBase` in `app/layout.tsx`.
-
-### 4.3 Re-run PageSpeed Insights once quota resets
-**Severity:** Info | **Category:** Performance
-
-- Quantify the real-world LCP/CLS impact of the Phase 3 image fixes with live Lighthouse/CrUX data.
-
-### 4.4 Add llms.txt
-**Severity:** Low | **Category:** GEO
-
-- Add a `public/llms.txt` (or `app/llms.txt/route.ts`) listing key pages (`/`, `/guide`, `/aventures/*`, `/niveaux`, `/acces`, `/avis`, `/calendrier`, `/contact`) with one-line descriptions, to help AI crawlers map the site.
-
-### 4.5 Add FAQPage and Person/founder schema
-**Severity:** Low (opportunity) | **Category:** Schema, GEO
-
-- Mark up the homepage's existing "Questions Fréquentes" accordion as `FAQPage` JSON-LD.
-- Add a `Person` entity for Frédéric Buet (30 years experience, ex-competitive canoe-kayak athlete) linked from `SportsOrganization` via `founder` — reinforces E-E-A-T and gives AI answer engines a clear "who" to cite.
-
-### 4.6 Off-site authority signals
-**Severity:** Info | **Category:** GEO, Backlinks
-
-- The site has zero presence in Common Crawl. Ensure Google Business Profile is fully populated (with the **correct** phone number, matching 1.5) and consider directory listings relevant to outdoor adventure tourism in Hautes-Alpes — these feed both classic backlink authority and AI training-data crawl coverage over time.
-
----
-
-## Summary
-
-| Phase | Timeframe | # Items | Primary effect |
+| # | Action | Qui | Effort |
 |---|---|---|---|
-| 1: Critical Fixes | Week 1 | 6 | Fixes sitewide canonical, sitemap, NAP, and 6-page meta description / placeholder-content issues |
-| 2: High-Impact | Weeks 2-3 | 5 | Title cleanup, OG images, review schema, heading structure, image-config prerequisite |
-| 3: Content & Performance | Month 2 | 4 | Image optimization (biggest CWV win), content depth, schema cleanup |
-| 4: Monitoring & Iteration | Ongoing | 6 | Security headers, host normalization, PSI re-check, llms.txt, FAQ/Person schema, off-site signals |
+| 2.1 | Bandeau « Infos clés » sur chaque page d'activité : dès X €, durée, âge minimum, niveau, lieu de rendez-vous, encadrement diplômé, toujours affiché même sans séance. Ajouter les champs `priceFrom`, `minAge`, `meetingPoint` au schéma Sanity si absents | Code + Sanity | 2-3 h code |
+| 2.2 | Titres et descriptions SEO uniques par activité, avec le lieu (« Via ferrata à Serre-Ponçon et aux Orres avec un moniteur diplômé ») | Sanity (je peux rédiger les propositions) | 1-2 h |
+| 2.3 | Schéma : `@graph` unique (entreprise, Person, WebSite avec `@id`), Service + Offer + BreadcrumbList sur les activités, Event par séance, Person + `hasCredential` sur `/guide` ; suppression du SearchAction, des blocs `[]` vides, de l'adresse factice, des horaires et de l'anglais | Code | 2-3 h |
+| 2.4 | Identité (NAP) : choisir **une** base (Savines-le-Lac ? Embrun ?), une adresse e-mail et une liste de zones desservies, puis les aligner sur le site, le schéma, la fiche Google Business Profile et Apidae | Client → Code + Externe | 1 h + e-mail à l'office de tourisme |
+| 2.5 | Google Business Profile : vérifier, créer ou revendiquer (zone de chalandise), ajouter le lien dans `sameAs` et un bouton « Laisser un avis Google » sur `/avis` | Externe + Code | 1 h |
+| 2.6 | Mobile : bannière cookies compacte (environ 120 px, boutons côte à côte, « Refuser » aussi visible qu'« Accepter ») et bouton « Réserver » visible sur mobile (pilule dans l'en-tête ou barre fixe en bas) | Code | 1-2 h |
+| 2.7 | LCP de l'accueil : 1ʳᵉ diapositive du hero sans fondu, retirer `priority` du logo, `experimental.inlineCss`, `images.formats` AVIF + WebP, `minimumCacheTTL` | Code | 1 h |
+| 2.8 | On-page : H1 descriptifs (accueil, `/guide`, `/blog`, `/calendrier`), 12 H1 → H2 sur `/cgv`, descriptions trop courtes (`/avis`, `/acces`, `/mentions-legales`) | Code | 45 min |
+| 2.9 | Maillage : liens articles ↔ activités, liens vers les activités duo, fil d'Ariane visible + BreadcrumbList | Code | 1-2 h |
+| 2.10 | Accessibilité et agents : `aria-label` / `aria-expanded` sur le bouton du menu, labels `htmlFor` / `id` / `autocomplete` dans le formulaire de réservation, libellés FR du calendrier, zones tactiles ≥ 44 px | Code | 1 h |
+| 2.11 | Alt : remplacer « Mon Coach Plein Air » par la bonne marque, récupérer `mainImage.alt`, ajouter un champ alt aux images du corps Sanity ; renommer l'expéditeur des e-mails ([lib/mail.ts:16](../lib/mail.ts#L16)) et retirer `hello@moncoach.com` | Code | 45 min |
 
-Phase 1 is the highest-leverage block: six small, code-level fixes that touch every page on the site. Recommend starting there.
+## Phase 3 — Contenu et autorité (mois 2)
+
+| # | Action | Qui |
+|---|---|---|
+| 3.1 | Enrichir les 14 pages d'activité (300 à 500 mots uniques chacune) : déroulé, lieux nommés (via ferrata des Orres, de Cascade, de Marcellinas ; canyons de la Blache, Rabou…), matériel, sécurité, FAQ, avis liés. Corriger les doublons (vélo + escalade / vélo + via ferrata) et le paragraphe windsurf dans kayak + escalade | Client (infos) + rédaction |
+| 3.2 | Nouvelles pages ou articles, par ordre de priorité : via ferrata autour de Serre-Ponçon et des Orres ; canyoning près d'Embrun ; groupes et team building ; « que faire à Serre-Ponçon / Les Orres » ; familles et ados ; windsurf et voile à Serre-Ponçon ; cols à vélo ; « tout à vélo » + accès en train | Rédaction + Client |
+| 3.3 | Retravailler les 2 articles (cohérence avec les pages d'activité, retirer « encordée » pour la via ferrata, ajouter l'expérience vécue du guide) | Rédaction + Client |
+| 3.4 | `/guide` enrichi (parcours, diplômes en texte, assurance RC Pro MAIF, photos terrain) ; diplômes et assurance visibles sur l'accueil et les activités | Client + Code |
+| 3.5 | Présence dans les fiches qui occupent la première page de Google : mise à jour de la fiche Apidae via l'office de tourisme de Serre-Ponçon (lien vers le site), offices d'Embrun et des Orres, éventuellement places de marché (Funbooker, Manawa, CheckYeti) | Externe |
+| 3.6 | Liens locaux : hébergeurs partenaires (pages « activités à proximité »), Hautes-Alpes Tourisme, fédérations, presse locale | Externe |
+| 3.7 | Collecte d'avis Google après chaque sortie (lien direct dans l'e-mail de confirmation) | Code + Client |
+| 3.8 | Nettoyage de `public/assets` (environ 120 Mo dont un PNG de 30 Mo, des HEIC), suppression de `app/activities/` (code mort) | Code |
+
+## Phase 4 — Suivi (continu)
+- Search Console mensuelle : couverture (pages découvertes / indexées), requêtes via ferrata / canyoning / team building, CTR des pages d'activité.
+- Configurer l'ID de propriété GA4 dans `~/.config/claude-seo/google-api.json` pour les prochains audits ; ajouter une propriété GSC « Domaine ».
+- Configurer le webhook Sanity → `/api/revalidate` (sinon délai de mise à jour de 1 h).
+- Nouvel audit au printemps 2027, avant la saison.
+
+---
+
+## Questions pour le client (à poser avant la phase 1)
+1. Frédéric est-il **guide de haute montagne** (diplôme d'État) ? Sinon, quel intitulé utiliser (« moniteur d'escalade et de canyoning diplômé d'État » ?).
+2. Quelle **base officielle** : Savines-le-Lac, Embrun, Saint-Apollinaire ? Quelle adresse e-mail publique ?
+3. Une **fiche Google Business Profile** existe-t-elle ? Qui y a accès ?
+4. L'activité **windsurf / planche à voile seule** existe-t-elle encore ? Si oui, on recrée la page ; sinon, redirection vers VTT + planche à voile.
+5. Prix « à partir de », durées et âges minimums par activité (pour le bandeau d'infos clés).
+6. Responsable de publication à indiquer dans les mentions légales.

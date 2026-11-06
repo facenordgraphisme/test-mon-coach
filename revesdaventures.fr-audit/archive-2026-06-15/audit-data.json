@@ -1,0 +1,336 @@
+{
+  "summary": {
+    "health_score": 44,
+    "business_type": "Local Service - Outdoor Adventure Sports Guide/Coaching (Escalade, Canyoning, VTT, Via Ferrata, Vélo de route, Planche à voile/Windsurf) - Hautes-Alpes / Lac de Serre-Ponçon / Embrun, France. Single operator (Frédéric Buet).",
+    "top_findings": [
+      "CRITICAL: Every single page on the site outputs <link rel=\"canonical\" href=\"https://revesdaventures.fr\"/> (the homepage), caused by a blanket `alternates.canonical: '/'` in app/layout.tsx with no per-page override. This tells search engines every page is a duplicate of the homepage.",
+      "CRITICAL: sitemap.xml lists 15 URLs under the old /activities/{slug} structure and is missing 12 live, linked pages under /aventures/*, /multi, /niveaux, /acces, /avis (app/sitemap.ts never updated after the route migration).",
+      "CRITICAL: Six /aventures/* activity pages share one identical, generic meta description referencing the OLD brand name 'Mon Coach Plein Air' instead of 'Rêves d'Aventures' (fallback in app/aventures/[slug]/page.tsx).",
+      "CRITICAL: The /multi page renders live placeholder text '(Contenu à configurer dans Sanity)' as its hero subtitle for all visitors and crawlers.",
+      "CRITICAL: Sitewide JSON-LD (SportsActivityLocation + SportsOrganization, injected on every page via lib/seo.ts) declares the phone number '+33 6 00 00 00 00' (placeholder), while the real working number used on /contact is +33 6 83 16 94 02 - a NAP inconsistency baked into structured data on every page."
+    ],
+    "quick_wins": [
+      "Replace the placeholder telephone '+33 6 00 00 00 00' with '+33683169402' in lib/seo.ts (generateOrganizationSchema + generateLocalBusinessSchema) - 2-line fix, sitewide impact.",
+      "Replace the '/multi' page's hardcoded fallback subtitle and 19-char description ('Mon Coach Plein Air') with real marketing copy in app/multi/page.tsx.",
+      "Fix the generic /aventures/[slug] meta description fallback (app/aventures/[slug]/page.tsx:187-191) by reusing the proven copy pattern already written for the old /activities/[slug] route.",
+      "Remove 'Mon Coach Plein Air' and duplicate '| Rêves d'Aventures' suffixes from the title fallbacks on /niveaux, /acces, /avis, /calendrier, /guide, /contact.",
+      "Add cdn.sanity.io to next.config.ts images.remotePatterns and switch hero/activity <img> tags to next/image or Sanity's urlFor().width().auto('format') - the homepage currently ships ~9 unoptimized images at 1.6-3MB each."
+    ]
+  },
+  "categories": [
+    {
+      "name": "Technical SEO",
+      "score": 35,
+      "what_works": [
+        "HTTPS enforced with HSTS; clean http->https (308) and non-www->www (307) redirects to the serving host www.revesdaventures.fr",
+        "robots.txt is clean and permissive (Allow: /, Disallow: /api/) with sitemap declared",
+        "Custom 404 returns a real HTTP 404",
+        "Fast TTFB (~0.26s), Brotli compression, Vercel edge caching",
+        "lang=\"fr\" set correctly; mobile viewport meta present; fully server-rendered (Next.js App Router)"
+      ],
+      "findings": [
+        {
+          "title": "Sitewide canonical tag points every page to the homepage",
+          "severity": "Critical",
+          "description": "Verified on /, /aventures/escalade, /aventures/canyoning, /contact, /calendrier, /guide, /aventures/duo-activites, /multi, /niveaux, /acces, /avis, /cgv, /activities/canyoning, /activities/kayak-et-escalade - all output <link rel=\"canonical\" href=\"https://revesdaventures.fr\"/>. Root cause: app/layout.tsx:28-30 sets `alternates: { canonical: '/' }` in the root layout metadata (metadataBase = https://revesdaventures.fr), and no page-level generateMetadata (including the shared generateSeoMetadata() helper) overrides alternates.canonical, so every route inherits the homepage as canonical.",
+          "recommendation": "Extend generateSeoMetadata() in lib/seo.ts to accept a per-page canonical path and have every route's generateMetadata pass its own path (e.g. /aventures/${slug}, /contact, /calendrier). Remove the blanket alternates.canonical: '/' from the root layout once each page sets its own."
+        },
+        {
+          "title": "sitemap.xml reflects the old URL structure and omits 12 live pages",
+          "severity": "Critical",
+          "description": "app/sitemap.ts (app/sitemap.ts:9-16) builds activity URLs as ${baseUrl}/activities/${slug} (old route) and a static list (lines 18-61) that was never updated after the rebrand/migration. The live, linked site uses /aventures/{slug} (8 activity/formula pages) plus /multi, /niveaux, /acces, /avis - none of which appear in sitemap.xml.",
+          "recommendation": "Update app/sitemap.ts to generate /aventures/${slug} URLs and add static entries for /multi, /niveaux, /acces, /avis, /aventures/mono-activite, /aventures/duo-activites. Remove /activities and /activities/* entries once those routes are redirected/removed."
+        },
+        {
+          "title": "Orphaned legacy /activities/* routes are live (200) and duplicate /aventures/* content",
+          "severity": "High",
+          "description": "app/activities/page.tsx and app/activities/[slug]/page.tsx still serve HTTP 200 for all 15 sitemap-listed slugs (e.g. /activities/escalade, 58KB) covering the same topics as /aventures/escalade (48KB). Not linked from any current navigation - only discoverable via the stale sitemap. Ironically these legacy pages have better, unique meta descriptions than their /aventures/* equivalents.",
+          "recommendation": "301 redirect each /activities/{slug} to /aventures/{slug} (and /activities to / or /aventures), port the good meta descriptions from app/activities/[slug]/page.tsx:54-58 into the new route, then remove the legacy route files."
+        },
+        {
+          "title": "Canonical/OG/sitemap URLs target the apex domain, which 307-redirects to www",
+          "severity": "Medium",
+          "description": "canonical, og:url and sitemap baseUrl all use https://revesdaventures.fr (no www), but this apex URL returns a 307 redirect to https://www.revesdaventures.fr/ - the actual serving host.",
+          "recommendation": "Set metadataBase / sitemap baseUrl to https://www.revesdaventures.fr (or make www->apex canonical consistently) so canonical/og:url/sitemap loc values point directly at the final served URL."
+        },
+        {
+          "title": "Missing standard security headers",
+          "severity": "Medium",
+          "description": "Only Strict-Transport-Security is present. Missing: X-Content-Type-Options, X-Frame-Options/frame-ancestors, Referrer-Policy, Permissions-Policy, Content-Security-Policy.",
+          "recommendation": "Add a headers() function in next.config.ts (or middleware.ts) to set these on all routes."
+        },
+        {
+          "title": "No llms.txt; zero presence in Common Crawl",
+          "severity": "Info",
+          "description": "/llms.txt returns 404. Common Crawl domain index returns 'No Captures found for: revesdaventures.fr', consistent with a low-authority/recently restructured site.",
+          "recommendation": "Optional: add a simple /llms.txt listing key pages. Build external links/citations (GBP, directories, social) to improve crawl footprint."
+        }
+      ]
+    },
+    {
+      "name": "Content Quality",
+      "score": 55,
+      "what_works": [
+        "Strong E-E-A-T bio on /guide: Frédéric Buet, 30+ years experience, former high-level canoe-kayak athlete, framed around safety/passion/authenticity",
+        "Real, attributed, dated customer testimonials on /avis (e.g. Coline G. - 25 mai 2026, Bertrand - 2 janvier 2026)",
+        "/calendrier shows real dated/priced upcoming sessions (freshness signal)",
+        "Clear topical structure on activity pages: experience, equipment, level/difficulty, related activities, upcoming sessions"
+      ],
+      "findings": [
+        {
+          "title": "Live CMS placeholder text on /multi page",
+          "severity": "Critical",
+          "description": "The /multi page renders 'Créez votre aventure (Contenu à configurer dans Sanity)' as its hero subtitle for every visitor and crawler. Root cause: app/multi/page.tsx:31-42 - when no Sanity 'multiPage' document exists, getData() falls back to a hardcoded object with this developer placeholder string as 'subtitle', which is rendered directly under the H1.",
+          "recommendation": "Publish the multiPage singleton in Sanity Studio with real hero copy. Replace the code fallback with a real marketing sentence as a safety net, e.g. 'Créez votre aventure sur-mesure : week-end ou séjour multi-activités adapté à votre groupe.'"
+        },
+        {
+          "title": "Duplicate topical content between /activities/* and /aventures/*",
+          "severity": "Medium",
+          "description": "Orphaned /activities/{escalade,canyoning,...} cover the same activities/H1s/schema as /aventures/{escalade,canyoning,...}, creating overlapping subject matter across two URL families.",
+          "recommendation": "Resolved by the technical fix to redirect/remove /activities/*."
+        },
+        {
+          "title": "Generic fallback copy when activity descriptions are missing",
+          "severity": "Low",
+          "description": "app/aventures/[slug]/page.tsx:490 renders 'Description détaillée à venir ou non disponible pour les sessions actuelles.' when no Portable Text description exists - fine as UI fallback but indicates thin unique content if present on any linked activity page.",
+          "recommendation": "Audit each /aventures/* activity in Sanity to confirm a real Portable Text description exists; fill any gaps."
+        }
+      ]
+    },
+    {
+      "name": "On-Page SEO",
+      "score": 45,
+      "what_works": [
+        "Homepage title/description well-optimized and keyword-rich (Escalade, Canyoning, VTT, Lac de Serre-Ponçon, guide diplômé)",
+        "Centralized generateSeoMetadata() helper in lib/seo.ts correctly outputs title/description/OG/Twitter when Sanity SEO data exists",
+        "Legacy /activities/[slug] route has genuinely good, unique per-activity meta descriptions (app/activities/[slug]/page.tsx:54-58)",
+        "All 11 homepage images have descriptive alt text"
+      ],
+      "findings": [
+        {
+          "title": "Six activity pages share one identical, off-brand meta description",
+          "severity": "Critical",
+          "description": "/aventures/escalade, /canyoning, /via-ferrata, /velo-de-route, /vtt-et-vtt-electrique, /planche-a-voile-windsurf all output meta description 'Mon Coach Plein Air - Aventures dans les Hautes Alpes' (53 chars, old brand name, no activity-specific info). Root cause: app/aventures/[slug]/page.tsx:187-191 fallback used whenever Sanity activity.seo.metaDescription is unset (true for all activities). The same fallback also sets og:url to https://moncoachpleinair.com/aventures/${slug} - a different domain entirely.",
+          "recommendation": "Replace the fallback with: title `${doc?.title || 'Activité'} | Rêves d'Aventures Hautes-Alpes`, description `Découvrez l'activité ${doc?.title} avec Rêves d'Aventures. Expérience exclusive au cœur des Hautes-Alpes et du lac de Serre-Ponçon.`, url `https://www.revesdaventures.fr/aventures/${slug}` - mirroring the proven copy in app/activities/[slug]/page.tsx:54-58. Long-term: populate seo.metaTitle/metaDescription per activity in Sanity."
+        },
+        {
+          "title": "Three pages have a 19-character meta description ('Mon Coach Plein Air')",
+          "severity": "High",
+          "description": "/aventures/mono-activite, /aventures/duo-activites, and /multi all output <meta name=\"description\" content=\"Mon Coach Plein Air\"/> (19 chars vs recommended ~120-158).",
+          "recommendation": "Replace hardcoded fallback descriptions (e.g. app/multi/page.tsx:106-109) with descriptive, on-brand, page-specific copy."
+        },
+        {
+          "title": "Title tags mix old 'Mon Coach Plein Air' brand with new 'Rêves d'Aventures' brand",
+          "severity": "High",
+          "description": "/niveaux -> 'Niveaux d'Engagement | Mon Coach Plein Air | Rêves d'Aventures' (72 chars); /acces -> 'Accès & Hébergement | Mon Coach Plein Air | Rêves d'Aventures' (70 chars); /avis -> 'Avis Clients | Mon Coach Plein Air | Rêves d'Aventures' (59 chars). Root cause: page-level generateMetadata fallback titles hardcode 'Mon Coach Plein Air' (e.g. app/niveaux/page.tsx:40), and the layout's '%s | Rêves d'Aventures' template then appends the current brand a second time.",
+          "recommendation": "Remove 'Mon Coach Plein Air' from these three fallback titles - the layout template already appends '| Rêves d'Aventures'."
+        },
+        {
+          "title": "Redundant double brand name on /calendrier, /guide, /contact",
+          "severity": "Medium",
+          "description": "/calendrier -> 'Calendrier des Sorties | Rêves d'Aventures Hautes-Alpes | Rêves d'Aventures' (85 chars, longest title on the site); /guide -> 'Votre Guide | Rêves d'Aventures | Rêves d'Aventures' (61 chars); /contact -> 'Contact | Rêves d'Aventures | Rêves d'Aventures' (57 chars). The layout template appends the brand a second time on top of page-level fallbacks that already include it.",
+          "recommendation": "Drop '| Rêves d'Aventures' from these three page-level fallback titles."
+        },
+        {
+          "title": "Duplicate, non-descriptive heading before the H1 on the homepage",
+          "severity": "Medium",
+          "description": "Homepage renders <h2>Rêves d'Aventures</h2> immediately before <h1>Rêves d'Aventures</h1> - identical text, neither keyword-rich nor descriptive of the value proposition (the actual tagline is plain text, not in the H1).",
+          "recommendation": "Make the H1 a keyword-rich value statement (e.g. 'Guide de pleine nature en Hautes-Alpes : Escalade, Canyoning, VTT') and remove or restructure the duplicate H2."
+        },
+        {
+          "title": "Missing og:image / twitter:image sitewide",
+          "severity": "High",
+          "description": "Confirmed missing on /, /aventures/escalade, /contact, /guide. Root cause: generateSeoMetadata() only sets openGraph.images when seo.openGraphImage exists in Sanity (true for none currently), and the root layout's openGraph config has no fallback images array.",
+          "recommendation": "Add a sitewide fallback OG image (1200x630) in app/layout.tsx openGraph.images, using an asset from public/assets (e.g. a branded version of logo-v2.png or a hero photo)."
+        }
+      ]
+    },
+    {
+      "name": "Schema / Structured Data",
+      "score": 50,
+      "what_works": [
+        "SportsActivityLocation with full PostalAddress, GeoCoordinates, areaServed (5 places), priceRange, openingHours injected sitewide",
+        "SportsOrganization with sameAs (Instagram, Facebook) injected sitewide",
+        "WebSite schema with SearchAction on homepage",
+        "All sampled JSON-LD parses as valid JSON"
+      ],
+      "findings": [
+        {
+          "title": "Placeholder phone number in sitewide structured data conflicts with the real contact number",
+          "severity": "Critical",
+          "description": "generateOrganizationSchema() (lib/seo.ts:50) and generateLocalBusinessSchema() (lib/seo.ts:65) both hardcode telephone: '+33 6 00 00 00 00', injected on every page via app/layout.tsx. The real, working number used in a tel: link on /contact is +33683169402. This is a NAP inconsistency in the site's own structured data on every page.",
+          "recommendation": "Replace '+33 6 00 00 00 00' with '+33683169402' in both functions in lib/seo.ts. Verify it matches the number listed on Google Business Profile."
+        },
+        {
+          "title": "No Review/AggregateRating schema on /avis despite real testimonials",
+          "severity": "High",
+          "description": "/avis displays multiple real, attributed, dated, star-rated testimonials but ships no Review or AggregateRating JSON-LD.",
+          "recommendation": "Add a Review[] array or AggregateRating summary to the LocalBusiness schema on /avis using the existing testimonial data. Verify current Google eligibility for self-hosted review rich snippets; at minimum this strengthens content for AI answer engines."
+        },
+        {
+          "title": "Product schema offer price and URL reference the old route structure",
+          "severity": "Medium",
+          "description": "generateProductSchema() (lib/seo.ts:91-112) sets offers.price from activity.price, which doesn't exist in the /aventures/[slug] data model (price lives on events, not the activity), likely producing price: null/undefined - invalid for Product rich results. It also hardcodes offers.url to the old /activities/{slug} path.",
+          "recommendation": "If wired into /aventures/[slug] via seo.structuredData, source price from the nearest upcoming event and fix the URL to https://www.revesdaventures.fr/aventures/${slug}. If unused, remove during the /activities cleanup."
+        }
+      ]
+    },
+    {
+      "name": "Performance",
+      "score": 40,
+      "what_works": [
+        "Vercel hosting: HTTP/2, Brotli compression, ISR caching, ~0.26s TTFB for HTML",
+        "next/font (Geist, Geist_Mono) avoids render-blocking font requests",
+        "Navbar and SiteFooter correctly use next/image"
+      ],
+      "findings": [
+        {
+          "title": "Every content image (Sanity CDN) served at full native resolution with no optimization",
+          "severity": "Critical",
+          "description": "Measured: hero background 1536x1024 PNG = 3.0MB; 'Vélo de route' 3024x4032 JPEG = 2.4MB; 'Planche à voile' 4592x3448 JPEG = 1.7MB; homepage alone loads ~9 such images, none with srcset/sizes/loading/width/height. Root cause: next.config.ts has no images.remotePatterns for cdn.sanity.io, and 20 raw <img> tags across app/aventures/[slug]/page.tsx, app/multi/page.tsx, app/page.tsx pull mainImage.asset->url / heroImage.asset->url directly (the original uploaded file) instead of using Sanity's urlFor().width().quality().auto('format') builder, which is already used for bike.image in the rental tab.",
+          "recommendation": "Add cdn.sanity.io to images.remotePatterns in next.config.ts, then replace raw <img> hero/content images with next/image or urlFor(image).width(1600).quality(75).auto('format').url(). auto('format') alone (WebP/AVIF) would cut these files 60-80%."
+        },
+        {
+          "title": "Logo requested at 3840px width via next/image",
+          "severity": "Medium",
+          "description": "/_next/image?url=%2Fassets%2Flogo-v2.png&w=3840&q=75 - the largest Next.js device-size bucket, for an asset that renders at ~150-250px in the navbar/footer.",
+          "recommendation": "Add an explicit sizes prop (e.g. sizes=\"160px\") to the logo <Image> usage so Next.js selects an appropriately small variant."
+        },
+        {
+          "title": "No width/height on raw <img> tags (CLS risk)",
+          "severity": "Medium",
+          "description": "20 raw <img> tags have no width/height or intrinsic-size styling, risking layout shift on slow connections.",
+          "recommendation": "Resolved as a side effect of switching to next/image (issue above)."
+        },
+        {
+          "title": "Could not retrieve live CrUX/Lighthouse data",
+          "severity": "Info",
+          "description": "PageSpeed Insights API returned 429 RESOURCE_EXHAUSTED (daily quota exceeded) at audit time.",
+          "recommendation": "Re-run PageSpeed Insights for https://www.revesdaventures.fr/ after the image fixes to quantify LCP improvement."
+        }
+      ]
+    },
+    {
+      "name": "AI Search Readiness",
+      "score": 40,
+      "what_works": [
+        "robots.txt imposes no restrictions on AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, etc.)",
+        "Fully server-rendered HTML - AI crawlers get full content without JS execution",
+        "Strong quotable founder narrative on /guide (30 years experience, ex-high-level athlete)",
+        "Structured local-business data gives AI systems a clear entity + location anchor",
+        "/avis and /calendrier provide real, current, citable testimonial and availability data"
+      ],
+      "findings": [
+        {
+          "title": "Canonical bug undermines citability of every non-homepage page",
+          "severity": "Critical",
+          "description": "With every page declaring the homepage as canonical, AI answer engines may attribute page content to the homepage URL or deprioritize it as a distinct citable unit (same root cause as Technical finding #1).",
+          "recommendation": "Fixing the sitewide canonical issue is the highest-leverage GEO fix available."
+        },
+        {
+          "title": "Phone number inconsistency affects AI-generated local answers",
+          "severity": "High",
+          "description": "An AI assistant reading SportsOrganization/SportsActivityLocation JSON-LD would surface the placeholder +33 6 00 00 00 00 instead of the real +33683169402 (same root cause as Schema finding #1).",
+          "recommendation": "Fix lib/seo.ts telephone fields (see Schema findings)."
+        },
+        {
+          "title": "No llms.txt",
+          "severity": "Low",
+          "description": "/llms.txt returns 404. Not required but low-effort for a small, well-structured site.",
+          "recommendation": "Add a simple /llms.txt listing key pages (activities, guide bio, levels, access, calendar, reviews) with one-line descriptions."
+        },
+        {
+          "title": "Zero presence in Common Crawl",
+          "severity": "Info",
+          "description": "Domain-level Common Crawl index returns no captures for revesdaventures.fr, reflecting limited external link/authority profile.",
+          "recommendation": "Build off-site presence: Google Business Profile, local directories, and ensure the linked Instagram/Facebook profiles are active and link back to the site."
+        }
+      ]
+    },
+    {
+      "name": "Images",
+      "score": 35,
+      "what_works": [
+        "All 11 homepage <img> tags have descriptive alt attributes",
+        "Navbar/SiteFooter logo images use next/image"
+      ],
+      "findings": [
+        {
+          "title": "Multi-megabyte unoptimized hero/content images (see Performance)",
+          "severity": "Critical",
+          "description": "Same root cause and evidence as the Performance category's image finding - 1.6-3MB images served at native resolution with no format/quality/size optimization.",
+          "recommendation": "See Performance category fix: add cdn.sanity.io to images.remotePatterns and switch to next/image or urlFor().width().auto('format')."
+        },
+        {
+          "title": "Hero background image is a 3MB PNG (wrong format for a photograph)",
+          "severity": "Medium",
+          "description": "The 1536x1024 hero background is served as PNG (3.0MB) - PNG is lossless and unsuited to photographic content; JPEG/WebP/AVIF would be a fraction of the size at visually identical quality.",
+          "recommendation": "Re-export/serve this asset as WebP or AVIF via Sanity's auto('format'), or re-upload as JPEG if it's a photo."
+        },
+        {
+          "title": "Missing og:image / twitter:image sitewide",
+          "severity": "High",
+          "description": "No social preview image on any page - shared links to the site show no image card.",
+          "recommendation": "Add a sitewide fallback OG image (1200x630) in app/layout.tsx openGraph.images (see On-Page findings)."
+        }
+      ]
+    }
+  ],
+  "action_plan": {
+    "phases": [
+      {
+        "name": "Phase 1: Critical Fixes",
+        "timeframe": "Week 1",
+        "items": [
+          "Fix sitewide canonical bug: give every route its own alternates.canonical via generateSeoMetadata() / per-page generateMetadata (app/layout.tsx:28-30 and all route files)",
+          "Fix placeholder phone number '+33 6 00 00 00 00' -> '+33683169402' in lib/seo.ts (generateOrganizationSchema + generateLocalBusinessSchema)",
+          "Replace live CMS placeholder text on /multi ('Contenu à configurer dans Sanity') with real copy, in Sanity and as code fallback (app/multi/page.tsx:31-42, 106-109)",
+          "Fix generic 'Mon Coach Plein Air' meta description on the 6 /aventures/* activity pages (app/aventures/[slug]/page.tsx:187-191) using the proven copy pattern from app/activities/[slug]/page.tsx:54-58",
+          "Fix og:url domain mismatch (moncoachpleinair.com -> www.revesdaventures.fr) in the same fallback",
+          "Fix the 19-char 'Mon Coach Plein Air' descriptions on /aventures/mono-activite, /aventures/duo-activites, /multi"
+        ]
+      },
+      {
+        "name": "Phase 2: High-Impact Improvements",
+        "timeframe": "Weeks 2-3",
+        "items": [
+          "Update app/sitemap.ts to reflect /aventures/* + /multi, /niveaux, /acces, /avis, /aventures/mono-activite, /aventures/duo-activites; remove /activities entries",
+          "301 redirect orphaned /activities/{slug} routes to /aventures/{slug} (and /activities to /), then remove legacy route files",
+          "Fix title tags: remove 'Mon Coach Plein Air' from /niveaux, /acces, /avis fallback titles; remove duplicate '| Rêves d'Aventures' suffix from /calendrier, /guide, /contact",
+          "Add sitewide fallback og:image/twitter:image (1200x630) in app/layout.tsx",
+          "Add cdn.sanity.io to next.config.ts images.remotePatterns and switch hero/activity images to next/image or urlFor().width().auto('format') - addresses the multi-MB image problem",
+          "Add Review/AggregateRating schema to /avis using existing testimonial data"
+        ]
+      },
+      {
+        "name": "Phase 3: Content & Authority",
+        "timeframe": "Month 2",
+        "items": [
+          "Rewrite homepage H1 to a keyword-rich value statement; remove/restructure the duplicate H2 with identical text",
+          "Fix generateProductSchema() price source and URL (lib/seo.ts:91-112), or remove if unused after /activities cleanup",
+          "Add Person/founder schema for Frédéric Buet (links to /guide bio)",
+          "Add FAQPage schema for the homepage's existing FAQ accordion (FAQSection component)",
+          "Fix logo next/image sizing (sizes prop) to avoid 3840px requests",
+          "Add security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, CSP) via next.config.ts headers()",
+          "Re-export the 3MB PNG hero background as WebP/AVIF/JPEG"
+        ]
+      },
+      {
+        "name": "Phase 4: Monitoring & Iteration",
+        "timeframe": "Ongoing",
+        "items": [
+          "Re-run PageSpeed Insights / Lighthouse after image optimization to quantify LCP improvement",
+          "Audit each /aventures/* activity in Sanity to ensure a real Portable Text description exists (no 'à venir' fallback on live pages)",
+          "Add /llms.txt listing key pages",
+          "Verify NAP (name/address/phone) consistency against Google Business Profile and Instagram/Facebook bios",
+          "Monitor Google Search Console indexing status for /aventures/* pages after the canonical/sitemap fixes ship",
+          "Consider seasonal/topical content (best months for canyoning, via ferrata difficulty guides, equipment checklists) to build long-tail visibility"
+        ]
+      }
+    ]
+  },
+  "artifacts": {
+    "findings_dir": "findings/",
+    "screenshots_dir": "screenshots/"
+  }
+}

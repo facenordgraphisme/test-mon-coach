@@ -1,168 +1,129 @@
-# Full SEO Audit — Rêves d'Aventures (revesdaventures.fr)
+# Audit SEO complet — Rêves d'Aventures (www.revesdaventures.fr)
 
-**Date:** 2026-06-15
-**Audited URL:** https://www.revesdaventures.fr/
-**Business type:** Local Service — outdoor adventure sports guide/coaching (Escalade, Canyoning, VTT, Via Ferrata, Vélo de route, Planche à voile/Windsurf), based at Lac de Serre-Ponçon / Embrun, Hautes-Alpes, France. Single operator: Frédéric Buet.
-**Method:** Live site crawl (HTTP, rendered HTML, JSON-LD, sitemap, robots.txt) cross-referenced with the project's own Next.js/Sanity source code, giving exact root causes and file/line references for every major finding.
-
----
-
-## Executive Summary
-
-### SEO Health Score: 44 / 100
-
-| Category | Weight | Score |
-|---|---|---|
-| Technical SEO | 22% | 35 |
-| Content Quality | 23% | 55 |
-| On-Page SEO | 20% | 45 |
-| Schema / Structured Data | 10% | 50 |
-| Performance (CWV) | 10% | 40 |
-| AI Search Readiness (GEO) | 10% | 40 |
-| Images | 5% | 35 |
-
-The site is built on a modern, fast, well-structured Next.js/Sanity stack with genuinely good content assets (a credible founder bio, real customer testimonials, live dated availability). However, the score is dragged down by a small number of **sitewide, code-level configuration bugs left over from a brand/URL migration** ("Mon Coach Plein Air" → "Rêves d'Aventures", `/activities/*` → `/aventures/*`). These bugs affect **every page on the site simultaneously**, which is why they dominate the score — and why fixing them is unusually high-leverage.
-
-### Top 5 Critical Issues
-
-1. **Every page's canonical tag points to the homepage** ([app/layout.tsx:28-30](app/layout.tsx#L28-L30)) — tells Google every activity page, the contact page, the booking calendar, etc. are duplicates of the homepage and shouldn't be indexed separately. **This is very likely the #1 reason non-homepage pages aren't ranking.**
-2. **sitemap.xml is stale** ([app/sitemap.ts](app/sitemap.ts)) — references the old `/activities/{slug}` URLs and is missing all 12 live `/aventures/*`, `/multi`, `/niveaux`, `/acces`, `/avis` pages.
-3. **Six activity pages share one identical, generic, off-brand meta description** ("Mon Coach Plein Air - Aventures dans les Hautes Alpes") with an `og:url` pointing at a different domain (`moncoachpleinair.com`) ([app/aventures/[slug]/page.tsx:187-191](app/aventures/[slug]/page.tsx#L187-L191)).
-4. **Live developer placeholder text** — "Créez votre aventure (Contenu à configurer dans Sanity)" — is rendered on the public `/multi` page ([app/multi/page.tsx:31-42](app/multi/page.tsx#L31-L42)).
-5. **Fake phone number `+33 6 00 00 00 00` is embedded in structured data on every page** ([lib/seo.ts:50,65](lib/seo.ts#L50)), while the real working number on `/contact` is `+33 6 83 16 94 02`.
-
-### Top 5 Quick Wins
-
-1. Replace `'+33 6 00 00 00 00'` with `'+33683169402'` in `lib/seo.ts` — a 2-line fix with sitewide impact on NAP consistency.
-2. Fix the `/multi` page's placeholder subtitle and 19-char description.
-3. Port the existing, good `/activities/[slug]` meta-description copy into the `/aventures/[slug]` fallback (the good copy already exists in the codebase — it's just on the wrong route).
-4. Strip "Mon Coach Plein Air" and duplicate "| Rêves d'Aventures" suffixes from title fallbacks on `/niveaux`, `/acces`, `/avis`, `/calendrier`, `/guide`, `/contact`.
-5. Add `cdn.sanity.io` to `next.config.ts` image config and switch to optimized images — the homepage currently ships ~9 images at 1.6–3MB each, unresized and unconverted.
+**Date :** 2026-11-06 · **URL auditée :** https://www.revesdaventures.fr/ · **Audit précédent :** 2026-06-15 (44/100, archivé dans `archive-2026-06-15/`)
+**Type d'activité :** service local (zone de chalandise) — guide outdoor multi-activités (escalade, canyoning, via ferrata, VTT, vélo de route, voile/windsurf, kayak), Lac de Serre-Ponçon / Embrun / Savines-le-Lac, Hautes-Alpes. Réservation et paiement en ligne.
+**Méthode :** crawl des 29 URL du sitemap et des liens internes, données Search Console (Search Analytics 90 j + inspection d'URL de 31 pages), PageSpeed Insights (Lighthouse 13.6), captures desktop/mobile, 10 analyses spécialisées, croisées avec le code source (Next.js 16 + Sanity) pour donner les fichiers et lignes en cause.
+**Limites :** pas de données terrain CrUX (trafic insuffisant), GA4 non configuré (ID de propriété manquant), pas de clé Moz ; les moteurs de recherche ont bloqué la vérification automatique de la fiche Google Business Profile et des annuaires.
 
 ---
 
-## 1. Technical SEO (Score: 35/100)
+## Synthèse
 
-**What works:** HTTPS + HSTS, clean redirect chain (http→https, non-www→www), clean `robots.txt`, real 404s, fast TTFB (~0.26s) via Vercel, `lang="fr"`, mobile viewport, fully server-rendered.
+### Score de santé SEO : 60 / 100 (juin : 44)
 
-**Critical:**
-- **Sitewide canonical bug** — every page canonicalizes to `https://revesdaventures.fr` (the homepage). Root cause: `alternates: { canonical: '/' }` in the root layout, never overridden per page.
-- **Stale sitemap** — lists 15 old `/activities/{slug}` URLs from Sanity activity slugs, missing the 12 live `/aventures/*` + `/multi`/`/niveaux`/`/acces`/`/avis` pages.
-- **Orphaned `/activities/*` routes** — still return HTTP 200, not linked anywhere, duplicate `/aventures/*` content.
+| Catégorie | Poids | Juin | Nov. | Détail |
+|---|---|---|---|---|
+| SEO technique | 22 % | 35 | **68** | [technical.md](findings/technical.md) |
+| Qualité du contenu | 23 % | 55 | **46** | [content.md](findings/content.md) |
+| SEO on-page | 20 % | 45 | **62** | [onpage.md](findings/onpage.md) |
+| Données structurées | 10 % | 50 | **58** | [schema.md](findings/schema.md) |
+| Performance (CWV) | 10 % | 40 | **82** | [performance.md](findings/performance.md) |
+| Préparation à la recherche IA | 10 % | 40 | **55** | [geo.md](findings/geo.md) (49), [agentic.md](findings/agentic.md) (74) |
+| Images | 5 % | 35 | **60** | [images.md](findings/images.md) |
 
-**Medium:**
-- Canonical/og:url/sitemap use the apex domain (`revesdaventures.fr`), which 307-redirects to `www` — should point directly at the serving host.
-- Missing security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Content-Security-Policy`.
+Analyses complémentaires (hors score) : SEO local 38/100 ([local.md](findings/local.md)), SXO 41/100 ([sxo.md](findings/sxo.md)), visuel/mobile 66/100 ([visual.md](findings/visual.md)), backlinks : données insuffisantes ([backlinks.md](findings/backlinks.md)).
 
-Full detail: [findings/technical.md](findings/technical.md)
+**Lecture :** les bugs de configuration de juin (canonical, sitemap, redirections, images, en-têtes) sont corrigés, et la Search Console le confirme : les impressions passent d'environ 25/mois (mai-juin) à environ 300/mois (juillet-octobre). Le contenu baisse (46 contre 55) parce que l'audit est plus exigeant sur l'E-E-A-T et que de nouveaux problèmes de confiance sont apparus. Ce qui freine désormais le site, c'est **la découverte de ses pages par Google** (catalogue rendu côté client) et **la minceur et la fiabilité du contenu**, plus que la technique.
 
----
+### Données Search Console (90 jours, 08/08 → 03/11/2026)
+- 924 impressions, 37 clics, CTR 4 %, position moyenne 11,5. Saisonnalité nette (pic août, creux novembre).
+- 70 % des clics vont à l'accueil (requêtes de marque). La seule thématique hors marque qui génère des clics (windsurf / planche à voile Serre-Ponçon) pointe vers une page **aujourd'hui en 404**.
+- Requêtes à potentiel mal classées : via ferrata Hautes-Alpes / Serre-Ponçon / Les Orres (positions 16 à 55), canyoning Embrun / Serre-Ponçon / La Blache (27 à 38), team building (6,5, 0 clic), « que faire dans le Champsaur » (position 1, aucune page dédiée).
+- **Inconnues de Google :** `/aventures/canyoning`, `/aventures/escalade`, `/aventures/velo-de-route-et-via-ferrata`, `/blog` et les 2 articles. **Explorées, non indexées :** `/aventures/vtt-et-escalade`, `/aventures/velo-de-route-et-escalade`. **Indexées à tort :** des pages `/booking/<id>` (7 avec impressions), et `/aventures/planche-a-voile-windsurf` (404).
 
-## 2. On-Page SEO (Score: 45/100)
+### Les 5 problèmes critiques
+1. **Faux avis dans le HTML de l'accueil.** [components/ReviewSection.tsx:29-52](../components/ReviewSection.tsx#L29-L52) est un composant client avec 3 avis inventés en secours (« Aventurier Anonyme », « Marie L. », « Thomas B. », deux marqués « Google »). Ils sont dans le HTML servi à Google ; les vrais avis ne les remplacent qu'après exécution du JavaScript. Risque de confiance et de conformité (pratique commerciale trompeuse).
+2. **Titre « Guide de haute montagne » non étayé.** Utilisé dans les métadonnées, le schéma et `llms.txt` ([lib/seo.ts:46-47,96](../lib/seo.ts#L46), [app/layout.tsx:26-33](../app/layout.tsx#L26)), alors que `/guide` liste des BE Escalade/Canyonisme/Via ferrata et des BEES VTT/Canoë-kayak/Voile. C'est un titre réglementé, et les moteurs IA le reprennent mot pour mot. **À confirmer avec le client.**
+3. **Le catalogue d'activités est invisible dans le HTML.** Sur `/aventures/mono-activite`, `/aventures/duo-activites` et `/multi`, [components/ActivityFilterableList.tsx](../components/ActivityFilterableList.tsx) (`useSearchParams` sous `Suspense`) bascule en rendu client : le HTML ne contient que « Chargement... ». Les activités duo n'ont **aucun lien entrant** dans le HTML, et canyoning/escalade ne sont pas découvertes par Google.
+4. **Pages de réservation indexées et page windsurf perdue.** `/booking/[id]` n'a ni metadata ni `noindex` (titre générique de l'accueil) ; `/aventures/planche-a-voile-windsurf` (86 impressions, 3 clics) renvoie 404 sans redirection ; `/aventures/vtt` aussi.
+5. **Pages d'activité minces et génériques.** 54 à 260 mots, même méta-description modèle sur 14 pages ([app/aventures/[slug]/page.tsx:199-203](../app/aventures/[slug]/page.tsx#L199-L203)), aucun prix, durée, âge minimum ni lieu nommé tant qu'aucune séance n'est programmée (« Pas de dates prévues prochainement »). Sur les requêtes cibles, Google classe des fiches qui affichent « dès X € », une durée et un itinéraire.
 
-**What works:** Homepage title/description are well-optimized and keyword-rich. Centralized `generateSeoMetadata()` helper works correctly when fed real data. The old `/activities/[slug]` route already has good, unique per-activity descriptions. All homepage images have alt text.
-
-**Critical:**
-- Six `/aventures/*` activity pages share one generic 53-char description referencing the old brand "Mon Coach Plein Air", with `og:url` pointing at `moncoachpleinair.com`.
-
-**High:**
-- Three pages (`/aventures/mono-activite`, `/aventures/duo-activites`, `/multi`) have a 19-character description: just "Mon Coach Plein Air".
-- `/niveaux`, `/acces`, `/avis` titles mix both brand names: e.g. *"Niveaux d'Engagement | Mon Coach Plein Air | Rêves d'Aventures"* (72 chars).
-- `og:image`/`twitter:image` missing on every page checked.
-
-**Medium:**
-- `/calendrier`, `/guide`, `/contact` titles double up the brand suffix (up to 85 chars).
-- Homepage has a duplicate, non-descriptive `<h2>` ("Rêves d'Aventures") immediately before the identical `<h1>`.
-
-Full detail: [findings/onpage.md](findings/onpage.md)
-
----
-
-## 3. Content Quality & E-E-A-T (Score: 55/100)
-
-**What works:** `/guide` carries a genuinely strong founder bio (Frédéric Buet, 30+ years, ex-high-level canoe-kayak athlete). `/avis` has real, attributed, dated testimonials. `/calendrier` shows live, dated, priced sessions — a freshness signal.
-
-**Critical:**
-- `/multi` renders the literal developer placeholder *"Créez votre aventure (Contenu à configurer dans Sanity)"* in its hero — visible to every visitor and crawler.
-
-**Medium:**
-- Duplicate topical content between orphaned `/activities/*` and live `/aventures/*` pages for the same activities.
-- Generic "description coming soon" fallback text — worth auditing each activity in Sanity for a real description.
-
-Full detail: [findings/content.md](findings/content.md)
+### Les 5 gains rapides
+1. Redirection 301 de `/aventures/planche-a-voile-windsurf` (et `/aventures/vtt`) vers la page active ; mise à jour de `llms.txt`.
+2. `noindex` + vrai titre sur `/booking/[id]` et `/success`.
+3. Sitemap : filtrer les slugs nuls (`/aventures/null` est listé en 404), dates `lastModified` réelles.
+4. Domaine apex : passer la redirection Vercel `revesdaventures.fr → www` de 307 à **308 permanente** en un seul saut.
+5. Supprimer les faux avis et rendre les vrais avis côté serveur.
 
 ---
 
-## 4. Schema & Structured Data (Score: 50/100)
+## 1. SEO technique — 68/100
 
-**What works:** Solid `SportsActivityLocation` (full address, geo-coordinates, 5-place `areaServed`, `priceRange`, `openingHours`) + `SportsOrganization` (with `sameAs` Instagram/Facebook) + `WebSite`/`SearchAction`, all injected sitewide and valid JSON.
+**Corrigé depuis juin :** canonicals propres à chaque page sur l'hôte www, sitemap aux bonnes URL, redirections 308 `/activities/*`, en-têtes de sécurité + CSP + HSTS, vraie 404 en français, pré-rendu de toutes les pages publiques (déployé aujourd'hui), garde-fou sur les slugs.
 
-**Critical:**
-- Placeholder telephone `+33 6 00 00 00 00` hardcoded in both schema generators (`lib/seo.ts`), conflicting with the real `+33683169402` used on `/contact`.
+**Ouvert :**
+- **Élevé :** catalogue rendu côté client (voir critique n° 3).
+- **Élevé :** `/booking/<id>` et `/success` indexables ([app/booking/[id]/page.tsx](../app/booking/[id]/page.tsx), [app/success/page.tsx](../app/success/page.tsx)). Ajouter `robots: { index: false, follow: true }` sans les bloquer dans robots.txt, pour que Google voie le noindex.
+- **Élevé :** anciennes URL en 404 avec impressions (`/aventures/planche-a-voile-windsurf`, `/aventures/vtt`).
+- **Élevé :** `/aventures/null` dans le sitemap ([app/sitemap.ts:8](../app/sitemap.ts#L8), pas de `defined(slug.current)` ; idem pour les articles l. 19).
+- **Moyen :** `lastModified: new Date()` sur les 13 URL statiques ([app/sitemap.ts:36-110](../app/sitemap.ts#L36)), ce qui envoie un signal de fraîcheur artificiel.
+- **Moyen : www / apex.** Le choix de **www** comme hôte canonique est le bon : tout le code, le sitemap et la propriété GSC sont alignés dessus, inutile de changer. En revanche `https://revesdaventures.fr` répond **307 (temporaire)** et `http://revesdaventures.fr` fait **2 sauts** (308 vers https apex puis 307 vers www). Dans Vercel → Domains : garder `www.revesdaventures.fr` en principal, régler `revesdaventures.fr` sur « Redirect to www.revesdaventures.fr » en **308 Permanent**. Google voit encore des liens vers l'apex (referring_urls GSC). Optionnel : ajouter une propriété GSC de type **Domaine** (`sc-domain:revesdaventures.fr`) pour voir apex, www, http et https en un seul endroit.
+- **Moyen :** `/Aventures/escalade` (majuscule) répond 200. Le canonical limite l'impact, mais une redirection en minuscules serait plus propre.
+- **Faible :** dossier `app/activities/` mort (masqué par les redirections), deux balises `robots` sur la 404, HSTS sans `includeSubDomains; preload`, `script-src 'unsafe-inline'`.
 
-**High:**
-- No `Review`/`AggregateRating` schema on `/avis` despite real testimonials being present.
+## 2. Qualité du contenu — 46/100
 
-**Medium:**
-- `generateProductSchema()` likely produces an invalid/null `price` (sourced from a field that doesn't exist on the current data model) and references the old `/activities/{slug}` URL.
+E-E-A-T 44 (Expérience 55, Expertise 58, Autorité 28, Confiance 38).
+- **Critique :** faux avis (ci-dessus) ; titre « Guide de haute montagne » non étayé.
+- **Élevé :** `/mentions-legales` inachevée : « [Nom Prénom] », hébergeur non renseigné (obligation légale LCEN), e-mail `contact@revesd'aventures.fr` invalide (apostrophe) ([app/mentions-legales/page.tsx:29](../app/mentions-legales/page.tsx#L29)).
+- **Élevé :** pages d'activité minces : 14 pages entre 54 et 208 mots de contenu principal, sans prix, durée, âge, lieux, FAQ. Deux sont « explorées, non indexées ».
+- **Élevé :** pas de page pour des requêtes déjà visibles : via ferrata par lieu (Les Orres, Serre-Ponçon), canyons nommés (La Blache, Rabou), team building / groupes, familles et ados, « que faire autour de Serre-Ponçon ».
+- **Moyen :** contenus dupliqués ou erronés : `velo-de-route-et-escalade` et `velo-de-route-et-via-ferrata` identiques à 41 %, paragraphe windsurf égaré dans `kayak-et-escalade`, articles de blog génériques (environ 600 mots) qui contredisent les pages d'activité (âge minimum, chaussures), « encordée » erroné pour la via ferrata.
+- **Moyen :** `/guide` (197 mots, diplômes seulement en badges), `/avis` (4 avis).
 
-Full detail: [findings/schema.md](findings/schema.md)
+## 3. SEO on-page — 62/100
+- **Élevé :** titres et descriptions d'activité générés par le même modèle (« Escalade | Rêves d'Aventures », « Découvrez l'activité X… »). À remplir dans Sanity (`seo.title` / `seo.description`), avec le lieu et l'intention.
+- **Moyen :** H1 faibles : accueil = la marque seule, `/guide` = « Qui suis-je », `/blog` = « Le Blog », `/calendrier` = « Le Calendrier ». `/cgv` a **12 H1**.
+- **Moyen :** descriptions courtes : `/avis` 74 car., `/acces` 93, `/mentions-legales` 98.
+- **Moyen :** maillage : articles et activités ne se lient pas entre eux, activités duo orphelines, pas de fil d'Ariane.
+
+## 4. Données structurées — 58/100
+**Corrigé :** téléphone réel, Person du fondateur, AggregateRating sur `/avis` construit à partir des vrais avis Sanity.
+- **Élevé :** aucune liaison par `@id` : le même commerce est décrit par 2 ou 3 entités sans lien (SportsActivityLocation, SportsOrganization, éditeur du blog). À fusionner dans un `@graph`.
+- **Élevé :** pas de schéma propre aux pages d'activité (Service + Offer + BreadcrumbList, Event par séance) alors que la requête GROQ récupère déjà prix, dates et places.
+- **Élevé :** notes « auto-attribuées » sur `/avis` (non éligibles aux étoiles), `ratingValue` en chaîne de caractères.
+- **Moyen :**
+  - `streetAddress: 'Lac de Serre-Ponçon'` n'est pas une adresse ;
+  - `openingHours` de 8 h à 20 h tous les jours, probablement faux ;
+  - `availableLanguage` inclut l'anglais ;
+  - `/guide` et `/contact` émettent un bloc JSON-LD vide `[]` ;
+  - le `SearchAction` pointe vers `/search` qui n'existe pas.
+- **Info :** FAQPage n'apporte plus de résultat enrichi chez Google. Inoffensif, mais à ne pas multiplier.
+Modèles JSON-LD prêts à l'emploi : [findings/schema.md](findings/schema.md).
+
+## 5. Performance — 82/100
+Pas de données terrain CrUX. Mesures en laboratoire (PSI) : mobile 83 à 93, desktop 95 à 100, CLS 0, TBT ≤ 100 ms.
+- **Élevé :** LCP mobile de l'accueil 4,7 s : l'image du hero apparaît en fondu depuis `opacity:0` ([components/Hero.tsx:45-58](../components/Hero.tsx#L45-L58)). Afficher la 1ʳᵉ diapositive sans animation (environ 3,0 s attendus) et retirer `priority` sur le logo.
+- **Élevé :** 2 CSS bloquants (environ 560 ms) : `experimental.inlineCss`.
+- **Moyen :** AVIF non activé, `sizes` approximatifs sur les cartes (80 à 130 Ko gaspillés chacune), `minimumCacheTTL` absent, image du hero en PNG 1536 px. `/calendrier` LCP 4,0 s (JS).
+- **Faible :** JS legacy et inutilisé (framer-motion `LazyMotion`, `browserslist`).
+
+## 6. Images — 60/100
+- **Élevé :** texte alternatif présent mais inutile : 30 « Mon Coach Plein Air » (ancienne marque : [Navbar.tsx:81](../components/Navbar.tsx#L81), [SiteFooter.tsx:55](../components/SiteFooter.tsx#L55)), 11 « Image » (images du corps Sanity sans champ alt ; `mainImage.alt` jamais récupéré).
+- **Moyen :** `public/assets` pèse environ 120 Mo, dont un PNG de 30,5 Mo téléchargeable, des HEIC et des fichiers inutilisés.
+
+## 7. Préparation à la recherche IA — 55/100
+GEO 49, agentique 74 (Lighthouse Agentic Browsing 2/3).
+- **Élevé :** titre de guide (ci-dessus), **incohérence d'identité** : les fiches office de tourisme / Apidae (serreponcon.com, savines-le-lac.fr, Geotrek CD05, provence-alpes-cotedazur.com…) indiquent **Savines-le-Lac 05160** et une adresse Gmail, alors que le site indique Embrun 05200 et que les mentions légales indiquent Saint-Apollinaire 05160.
+- **Élevé :** pages d'activité incapables de répondre aux questions de base (prix, durée, âge, lieu), les pages les plus citables sont inconnues de Google.
+- **Moyen :** `llms.txt` liste la page windsurf en 404 ; confusion de marque (Rêve de Cimes, Rêves de Rivières…) : ajouter `alternateName` et associer systématiquement la marque à « Frédéric Buet ».
+- **Élevé (agents) :** bouton du menu mobile sans nom accessible ([Navbar.tsx:136](../components/Navbar.tsx#L136)), champs du formulaire de réservation sans label lié ([BookingForm.tsx:431-536](../components/BookingForm.tsx#L431)).
+
+## 8. SEO local — 38/100 (hors score)
+- **Critique :** aucune trace d'une fiche Google Business Profile depuis le site (ni lien, ni carte, ni lien d'avis Google). **À vérifier par toi : la fiche existe-t-elle ?** Sinon, la créer en zone de chalandise (adresse masquée).
+- **Élevé :** NAP incohérent (voir ci-dessus), listes de zones desservies différentes entre `/contact` et le schéma, restes de placeholders (`hello@moncoach.com` dans le footer, e-mails envoyés sous le nom « Mon Coach Plein Air », [lib/mail.ts:16](../lib/mail.ts#L16)).
+- **Élevé :** 4 avis seulement, aucun lien vers une plateforme d'avis tierce.
+
+## 9. Expérience de recherche (SXO) — 41/100 (hors score)
+Sur 13 requêtes cibles, 75 à 85 % des résultats sont des fiches d'offices de tourisme (alimentées par Apidae), des places de marché (Funbooker, Manawa, CheckYeti) ou des bases d'itinéraires. Rêves d'Aventures n'apparaît sur aucune. Deux leviers : (1) des pages d'activité au format attendu (« dès X € », durée, âge, lieu, photos, avis), (2) être présent **dans** ces fiches (Apidae via l'office de tourisme, places de marché). Persona le plus mal servi : groupes et team building (28/100).
+
+## 10. Visuel / mobile — 66/100 (hors score)
+- **Élevé :** la bannière cookies couvre **37 % de l'écran mobile** et masque le seul bouton « Réserver » de l'accueil ([components/CookieBanner.tsx:37-38](../components/CookieBanner.tsx#L37)).
+- **Élevé :** aucun bouton « Réserver » visible sur mobile hors du hero de l'accueil (le bouton n'existe que sur desktop, [Navbar.tsx:130](../components/Navbar.tsx#L130)).
+- **Moyen :** zones tactiles < 44 px (footer, calendrier avec libellés ARIA en anglais), un filtre qui déborde sur `/aventures/mono-activite`.
+
+## 11. Backlinks — données insuffisantes
+Absent du graphe Common Crawl de janvier-mars 2026 (site jeune et petit). Exporter GSC → Liens ou ajouter une clé Moz pour mesurer. Cibles prioritaires : offices de tourisme (Serre-Ponçon, Embrun, Les Orres, Savines), Hautes-Alpes Tourisme, hébergeurs partenaires, fédérations / syndicat des guides.
 
 ---
-
-## 5. Performance (Score: 40/100, lab estimate)
-
-> Live CrUX/Lighthouse data unavailable — PageSpeed Insights API quota was exhausted during this audit (`429 RESOURCE_EXHAUSTED`). Findings below are based on direct measurement of page assets and code inspection.
-
-**What works:** Vercel hosting (HTTP/2, Brotli, ISR caching, ~0.26s TTFB). `next/font` for fonts. `Navbar`/`SiteFooter` correctly use `next/image`.
-
-**Critical:**
-- Every content image is a raw `<img>` pointing at the **original Sanity upload**, with no resize/quality/format params:
-  - Hero background: 1536×1024 **PNG, 3.0 MB**
-  - "Vélo de route": 3024×4032 **JPEG, 2.4 MB**
-  - "Planche à voile - Windsurf": 4592×3448 **JPEG, 1.7 MB**
-  - ...and 6 more in the same range, all on the homepage.
-  - Root cause: `next.config.ts` has no `images.remotePatterns` for `cdn.sanity.io`, and 20 raw `<img>` tags bypass both `next/image` and Sanity's own `urlFor().width().quality().auto('format')` builder (which **is** correctly used elsewhere, for `bike.image`).
-
-**Medium:**
-- Logo requested at `w=3840` via `next/image` — far larger than needed for a nav/footer logo.
-- No `width`/`height` on raw `<img>` tags → CLS risk.
-
-Full detail: [findings/performance.md](findings/performance.md)
-
----
-
-## 6. AI Search Readiness / GEO (Score: 40/100)
-
-**What works:** `robots.txt` allows all AI crawlers; fully server-rendered content; strong quotable founder narrative on `/guide`; structured local-business data gives a clear entity/location anchor; `/avis` and `/calendrier` provide citable, current data.
-
-**Critical (shared root causes):**
-- The canonical bug (Technical #1) likely causes AI answer engines to attribute page content to the homepage rather than the specific activity/guide/contact page.
-- The phone-number inconsistency (Schema #1) would surface a fake number in AI-generated local answers.
-
-**Low/Info:**
-- No `/llms.txt` (404).
-- Zero presence in Common Crawl — reflects a limited off-site authority profile, not an on-page bug.
-
-Full detail: [findings/geo.md](findings/geo.md)
-
----
-
-## 7. Images (Score: 35/100)
-
-Same root cause as Performance: multi-megabyte, unresized, wrong-format (PNG for a photo) images. Plus the missing `og:image`/`twitter:image` sitewide. All existing `alt` text is good.
-
-Full detail: [findings/performance.md](findings/performance.md) (images covered alongside performance — same fix)
-
----
-
-## Why the score looks low despite a solid site
-
-Five of the seven categories are dragged down by **the same handful of root causes**, all stemming from an in-progress brand/URL migration ("Mon Coach Plein Air" → "Rêves d'Aventures", `/activities` → `/aventures`):
-
-- One config line (`alternates.canonical: '/'`) affects **every page's** Technical and GEO score.
-- One fallback string in `lib/seo.ts` affects **every page's** Schema and GEO score (phone number).
-- One fallback object in `app/aventures/[slug]/page.tsx` affects **6 pages'** On-Page score.
-- One unfinished Sanity document affects `/multi`'s Content and On-Page score.
-
-Because these are concentrated, code-level issues rather than hundreds of individual content problems, **Phase 1 of the action plan (Week 1) can realistically move the health score from 44 into the 60s-70s** without any new content production — see [ACTION-PLAN.md](ACTION-PLAN.md).
+Plan d'action priorisé : [ACTION-PLAN.md](ACTION-PLAN.md) · Données structurées de l'audit : [audit-data.json](audit-data.json)
